@@ -6,12 +6,16 @@ import ReduceMethods
 import Data.Void
 import MergeDefs
 import System.Exit
+import System.Environment   
+import Data.List
 import Text.Megaparsec as P
 
-run :: String -> IO ()
-run str =
+strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
+
+run :: String -> String -> IO ()
+run str fn =
     do
-        let incs = P.runParser Parser.includes "<repl>" str
+        let incs = P.runParser Parser.includes fn str
         let (ns, ios) = res where 
             res =
                 case incs of 
@@ -30,5 +34,17 @@ run str =
                     Left e -> Left $ P.errorBundlePretty e
                     Right n -> Right $ mergeMultipleNode n
         case DefCheck.checkDefinitions tnd Nothing of
-            Right n -> putStrLn $ CodeGen.runGenerator $ Right n
+            Right n -> writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ "\n\noutErr(out)"
             Left str -> putStrLn str
+
+runFile fn =
+    do
+        f <- readFile fn
+        run f fn
+
+main = 
+    do
+        args <- getArgs
+        let fn = head args
+        f <- readFile fn
+        run f fn

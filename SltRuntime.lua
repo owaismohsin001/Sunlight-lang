@@ -822,32 +822,3 @@ tail = SltThunk.create(
     )
   end
 )
-
----------------------------------
-local area;
-local Square;
-local Circle;
-local Triangle;
-local square;
-local circle;
-local triangle;
-local tri;
-local circ;
-local sqr;
-local madd;
-local out;
-
-area = SltThunk.create(function() return SltFunc.create(function (n) return  (((n()):isType("Square")):is_true() and ((((n()):getProperty((SltString.create("c", {"area.slt", 2, 22}))))()))*((((n()):getProperty((SltString.create("c", {"area.slt", 2, 26}))))()))) or (((n()):isType("Circle")):is_true() and ((((n()):getProperty((SltString.create("r", {"area.slt", 3, 22}))))()))*((SltNum.create(3.15, {"area.slt", 3, 24})))) or (((n()):isType("Triangle")):is_true() and ((SltNum.create(0.5, {"area.slt", 4, 22})))*(((((n()):getProperty((SltString.create("a", {"area.slt", 4, 28}))))()))*((((n()):getProperty((SltString.create("b", {"area.slt", 4, 32}))))())))) or error(SltError.create("CaseError", "None of the cases matched", {loc = {"area.slt", 1, 1}}))end, {"area.slt", 1, 1}, true) end)
-Square = SltFunc.create(function(tb, loc) return SltStruct.create("Square", "Shape", {e = ""}, tb, loc) end, {"<repl>", 1, 35})
-Circle = SltFunc.create(function(tb, loc) return SltStruct.create("Circle", "Shape", {r = ""}, tb, loc) end, {"<repl>", 1, 35})
-Triangle = SltFunc.create(function(tb, loc) return SltStruct.create("Triangle", "Shape", {a = ""; b = ""; c = ""}, tb, loc) end, {"<repl>", 1, 35})
-square = SltThunk.create(function() return SltFunc.create(function (e) return  Square({e = SltThunk.create(function() return e() end)}, {"<repl>", 1, 35})end, {"<repl>", 1, 35}, true) end)
-circle = SltThunk.create(function() return SltFunc.create(function (r) return  Circle({r = SltThunk.create(function() return r() end)}, {"<repl>", 1, 35})end, {"<repl>", 1, 35}, true) end)
-triangle = SltThunk.create(function() return SltFunc.create(function (a) return SltFunc.create(function (b) return SltFunc.create(function (c) return  Triangle({a = SltThunk.create(function() return a() end); b = SltThunk.create(function() return b() end); c = SltThunk.create(function() return c() end)}, {"<repl>", 1, 35})end, {"<repl>", 1, 35}, true) end, {"<repl>", 1, 35}, true) end, {"<repl>", 1, 35}, true) end)
-tri = SltThunk.create(function() return Triangle({a = SltThunk.create(function() return (SltNum.create(1, {"<repl>", 1, 99})) end); b = SltThunk.create(function() return (SltNum.create(4, {"<repl>", 1, 107})) end); c = SltThunk.create(function() return (SltNum.create(7, {"<repl>", 1, 115})) end)}, {"<repl>", 1, 85}) end)
-circ = SltThunk.create(function() return Circle({r = SltThunk.create(function() return (SltNum.create(5, {"<repl>", 1, 139})) end)}, {"<repl>", 1, 127}) end)
-sqr = SltThunk.create(function() return Square({e = SltThunk.create(function() return (SltNum.create(11, {"<repl>", 1, 162})) end)}, {"<repl>", 1, 150}) end)
-madd = SltThunk.create(function() return SltFunc.create(function (a) return SltFunc.create(function (b) return  (((b()):eq((SltNum.create(0, {"<repl>", 1, 189})))):is_true() and (a())+(b())) or (SltBool.create(true, {"<repl>", 1, 199}):is_true() and madd()(SltThunk.create(function() return (a())+(a()) end))(SltThunk.create(function() return (b())-((SltNum.create(1, {"<repl>", 1, 220}))) end))) or error(SltError.create("CaseError", "None of the cases matched", {loc = {"<repl>", 1, 184}}))end, {"<repl>", 1, 184}, true) end, {"<repl>", 1, 184}, true) end)
-out = SltThunk.create(function() return madd()(SltThunk.create(function() return area()(SltThunk.create(function() return circ() end)) end))(SltThunk.create(function() return area()(SltThunk.create(function() return tri() end)) end)) end)
-
-outErr(out)
