@@ -1,0 +1,25 @@
+open map_and_filter: mf, rf, xs;
+map_and_filter ? [] = xs -> []
+map_and_filter ? xs@SltList -> if rf: head: xs then [mf: head: xs] .. map_and_filter: mf, rf, tail: xs else map_and_filter: mf, rf, (tail: xs)
+
+open take: n, ls
+take ? ls@SltList and n < 1 -> []
+take ? [] = ls and n < 1 -> []
+take ? ls@SltList -> [head: ls] .. take: n-1, tail: ls;
+
+open fold: f, i, xs
+fold ? [] = xs -> i
+fold ? xs@SltList -> f: (head: xs), fold: f, i, tail: xs
+
+open seq: f, a
+seq ? [] = a -> []
+seq ? [] = f -> []
+seq ? a@SltList and f@SltList -> (map: (head: f), a) .. seq: (tail: f), a 
+
+open empty: ls
+empty ? [] = ls -> true
+empty ? [] /= ls -> false
+
+map: f, xs <- every xs is f: x
+filter: f, xs <- every xs is x if f: x
+len: ls <- fold: \a, b -> b+1, 0, ls

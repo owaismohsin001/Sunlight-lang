@@ -1,0 +1,54 @@
+type Maybe <- Some{a} | None
+
+seq ? f@Some and a@Some -> some: a.a
+seq ? a@None or a@None -> a
+
+class getSome: mb, d
+mb@Some -> mb.a;
+mb@None -> d;
+
+map_and_filter ? xs@Some -> some: if rf: xs.a then mf: xs.a else xs.a
+map_and_filter ? xs@None -> None
+
+glance ? s@Some -> some: glance: fi, i, s.a
+glance ? s@None -> None
+
+access ? s@Some -> i access s.a
+access ? s@None -> None
+
+empty ? ls@Some -> empty: ls.a
+
+unedit ? s@Some -> some: unedit: s.a, i, fi, uf
+unedit ? s@None -> None
+
+type Either <- Right{r} | Left{l}
+
+class getRight: et, d
+et@Right -> et.a
+et@Left -> d
+
+class getLeft: et, d
+et@Right -> d
+et@Left -> et.l;
+
+map_and_filter ? xs@Right -> right: if rf: xs.r then mf: xs.r else xs.r
+map_and_filter ? xs@Left -> left: if rf: xs.l then mf: xs.l else xs.l
+
+seq ? f@Right and a@Right -> right: f.r: a.r
+seq ? f@Left and a@Left -> left: f.l: a.l
+seq ? a@Left or a@Right -> a
+
+access ? s@Right -> right: i access s.r
+access ? s@Left -> left: i access s.l
+
+unedit ? s@Right -> right: unedit: s.r, i, fi, uf
+unedit ? s@Left -> left: unedit: s.l, i, fi, uf
+
+glance ? s@Right -> right: glance: fi, i, s.r
+glance ? s@Left -> left: glance: fi, i, s.l
+
+access ? s@Right -> right: i access s.r
+access ? s@Left -> left: i access s.l
+
+empty ? ls@Right -> empty: ls.r
+empty ? ls@Left -> empty: ls.l
