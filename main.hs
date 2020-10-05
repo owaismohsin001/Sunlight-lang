@@ -27,7 +27,7 @@ run str fn =
         let nd = res where 
             res = 
                 case ins of 
-                    Right xs -> P.runParser (Parser.parse xs) "<repl>" str
+                    Right xs -> P.runParser (Parser.parse xs) fn str
                     Left n -> Left n
         let tnd = res where 
             res = case nd of

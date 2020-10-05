@@ -289,12 +289,21 @@ lambdaExpr =
         pos <- getSourcePos
         Text.Megaparsec.Char.string "\\"
         spaces
-        args <- logicalExpr `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
-        spaces
-        Text.Megaparsec.Char.string "->"
-        spaces
-        e <- logicalExpr
-        return $ FuncDefNode Nothing Prelude.True args e pos
+        try (fullLamba pos) <|> basicLambda pos
+    where
+        fullLamba pos =
+            do
+                args <- logicalExpr `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
+                spaces
+                Text.Megaparsec.Char.string "->"
+                spaces
+                e <- logicalExpr
+                return $ FuncDefNode Nothing Prelude.True args e pos
+        
+        basicLambda pos =
+            do
+                e <- logicalExpr
+                return $ FuncDefNode Nothing Prelude.True [IdentifierNode "x" pos] e pos
 
 
 boolean =
@@ -698,4 +707,4 @@ caseExpr =
                 te <- expr
                 return $ IfNode ce te Nothing pos
 
-parse xs = decls xs
+parse xs = decls xs <* eof

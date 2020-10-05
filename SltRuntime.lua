@@ -3,12 +3,7 @@ function SltValueCall(this, ...)
 end
 
 function outErr(f)
-  local status, exception = pcall(f)
-  if not status then
-    print(exception)
-  else
-    print(f())
-  end
+  print(f())
 end
 
 function checkType(expected, val)
@@ -62,7 +57,7 @@ SltValue = {
         error(SltError.create("TypeError", "Cannot multiply " .. this.type_ .. " with " .. other.type_, this))
       end;
 
-      dev = function(this, other)
+      div = function(this, other)
         error(SltError.create("TypeError", "Cannot divide " .. this.type_ .. " by " .. other.type_, this))
       end;
 
@@ -539,31 +534,7 @@ function SltError.create(errorType, message, value)
 
   loc = "In file: \"" .. fn .. "\", line no: " .. ln .. ", col no: " .. cn
   print(loc)
-  print(message)
-
-  getError = function(this)
-    if this.value.loc == nil then
-      return this.err .. ": " .. this.message
-    else
-        fn, ln, cn = unpack(this.value.loc)
-        ln = tostring(ln)
-        cn = tostring(cn)
-        loc = "In file: \"" .. fn .. "\", line no: " .. ln .. ", col no: " .. cn
-        if this.err == 'Uncaught Error' and this.message == '' then
-            return loc  .. "\n" .. this.err .. ": " .. tostring(this.value)
-        elseif this.message == "" then
-            return loc .. "\n" .. this.err
-        else
-            return loc .. "\n" .. this.err .. ": " .. this.message
-        end
-    end
-  end
-
-  setmetatable(this, {
-    __index = SltValue;
-    __tostring = getError
-  })
-  return this
+  print("Uncaught Error: " .. message)
 end
 
 SltThunk = {}

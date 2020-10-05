@@ -1,0 +1,4 @@
+open area: n
+area ? n@Square -> n.c*n.c
+area ? n@Circle -> n.r*3.15
+area ? n@Triangle -> 0.5*n.a*n.b;

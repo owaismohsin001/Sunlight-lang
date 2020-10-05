@@ -2,9 +2,10 @@ include "errors.slt"
 include "traversable.slt"
 include "access.slt"
 
-a <- [[1, 2], [13, [5]], [7]]
+a <- [[1, 2], [[13, 19], [5]], [7]]
 
 f: x <- x*2
-mdLs <- (\f -> change: a, 2, f): (\f, x -> change: x, 2, f): (\f, x -> change: x, 1, f): f
+fcx: f <- \f, x -> change: x, 1, f <| \f, x -> change: x, 2, f <| f
+mdLs <- \f -> change: a, 2, f <| fcx <| f
 
-out <- mdLs[2][2][1]
+out <- (some: \x+2) seq mdLs[2][1][2]

@@ -15,5 +15,5 @@ access ? i < 1 and s@SltList -> None
 access ? i = 1 and s@SltList -> some: head: s
 access ? s@SltList -> (i-1) access (tail: s)
 
-change: s, i, uf <- unedit: s, 1, \idx -> idx /= i, uf
-view: i, s <- (glance: \x -> x /= i, 1, s)[1]
+change: s, i, uf <- unedit: s, 1, \x /= i, uf
+view: i, s <- (glance: \x /= i, 1, s)[1]

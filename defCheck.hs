@@ -135,8 +135,13 @@ checkDefinitions le parent =
                 Right nn -> 
                     case isDefined sc rmn  of
                         Left s -> Left s
-                        Right () -> Right rmn
-                    where rmn = removeNewMethods sc nn
+                        Right () -> 
+                            case StringPos "out" (getStringPos nn) `exists` sc of 
+                                Right () -> Right rmn
+                                Left s -> Left "undefined entry point \"out\""
+                    where 
+                        rmn = removeNewMethods sc nn
+                        getStringPos (ProgramNode _ pos) = pos
 
 checkIODefinitions :: Either (P.ParseErrorBundle String Data.Void.Void) Node -> Maybe Scope -> IO ()
 checkIODefinitions lf p =
