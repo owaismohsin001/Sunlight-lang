@@ -4,7 +4,6 @@ import Parser
 import qualified Text.Megaparsec as P
 import Data.Maybe
 import Data.List
-import Data.List.Split
 import Debug.Trace
 
 

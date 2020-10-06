@@ -335,8 +335,8 @@ parens =
 --                 return $ ret a op b pos
 
 -- New, not tested enogh, uglier, but faster by a lot 
-binOp :: Parser Node -> Parser String ->  Parser Node -> (Node -> String -> Node -> SourcePos -> Node) -> Parser Node
-binOp fa ops fb ret =
+rBinOp :: Parser Node -> Parser String ->  Parser Node -> (Node -> String -> Node -> SourcePos -> Node) -> Parser Node
+rBinOp fa ops fb ret =
     do
         pos <- getSourcePos
         a <- fa
@@ -348,6 +348,19 @@ binOp fa ops fb ret =
                 b <- fb
                 return $ ret a op b pos
             ) <|> return a
+
+binOp f ops ret = do
+  t1 <- f
+  loop t1
+  where termSuffix t1 = try (do
+          pos <- getSourcePos
+          spaces
+          op <- ops
+          spaces
+          t2 <- f
+          loop (ret t1 op t2 pos))
+        loop t = termSuffix t <|> return t
+
 
 lhs =
     do
@@ -519,9 +532,9 @@ backExpr =
                 let (l:ls) = reverse xs
                 return $ foldl (\a b -> CallNode b [a] pos) l ls
 
-logicalExpr = binOp compExpr (Text.Megaparsec.Char.string "and" <|> Text.Megaparsec.Char.string "or") logicalExpr BinOpNode
+logicalExpr = binOp compExpr (Text.Megaparsec.Char.string "and" <|> Text.Megaparsec.Char.string "or") BinOpNode
 
-compExpr = binOp typeExpr ops compExpr BinOpNode where
+compExpr = binOp typeExpr ops BinOpNode where
     ops =
         (
         Text.Megaparsec.Char.string "=" 
@@ -532,16 +545,16 @@ compExpr = binOp typeExpr ops compExpr BinOpNode where
         <|> Text.Megaparsec.Char.string "<"
         ) :: Parser String
 
-typeExpr = binOp arithExpr (Text.Megaparsec.Char.string "@") (dataName <|> typeExpr) BinOpNode
+typeExpr = binOp (dataName <|> arithExpr) (Text.Megaparsec.Char.string "@") BinOpNode
 
-arithExpr = binOp term (Text.Megaparsec.Char.string "+" <|> Text.Megaparsec.Char.string "-") arithExpr BinOpNode
+arithExpr = binOp term (Text.Megaparsec.Char.string "+" <|> Text.Megaparsec.Char.string "-") BinOpNode
 
-term = binOp Parser.concat (Text.Megaparsec.Char.string "*" <|> Text.Megaparsec.Char.string "/") term BinOpNode
+term = binOp Parser.concat (Text.Megaparsec.Char.string "*" <|> Text.Megaparsec.Char.string "/") BinOpNode
 
-concat = binOp infixOp (Text.Megaparsec.Char.string "..") expr BinOpNode
+concat = binOp infixOp (Text.Megaparsec.Char.string "..") BinOpNode
 
 infixOp = 
-    binOp application op infixOp (\a op b pos -> CallNode (IdentifierNode op pos) [a, b] pos)
+    rBinOp application op infixOp (\a op b pos -> CallNode (IdentifierNode op pos) [a, b] pos)
     where
         op = do extractString <$> identifier
 

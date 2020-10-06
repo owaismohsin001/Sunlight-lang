@@ -10,7 +10,7 @@ import System.Environment
 import Data.List
 import Text.Megaparsec as P
 
-strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
+strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
 
 run :: String -> String -> IO ()
 run str fn =
