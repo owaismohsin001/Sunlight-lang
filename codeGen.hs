@@ -70,10 +70,10 @@ generate (DeclNode lhs rhs pos) = generateLhs lhs ++ " = " ++ evalRhs where
             TupleNode ts _ -> "SltValue.unwrap(" ++ generate rhs ++ ", " ++ show (length ts) ++ ")"
             DeStructure ds _ -> "SltValue.destructure(" ++ generate rhs ++ ", " ++ show (length ds) ++ ")"
             IdentifierNode{} -> "SltThunk.create(function() return " ++ generate rhs ++ " end)"
-generate (FuncDefNode _ pure args expr pos) = 
+generate (FuncDefNode _ args expr pos) = 
     fun
     where
-        fun = gen ++ " " ++ generate expr ++ unwords (map (const ("end, " ++ luaPos pos ++ ", " ++ turnBool pure ++ ")")) args)
+        fun = gen ++ " " ++ generate expr ++ unwords (map (const ("end, " ++ luaPos pos ++ ")")) args)
         gen = intercalate "" (map (\arg -> "SltFunc.create(function (" ++ generateLhs arg ++") return ") args)
         turnBool b = if b then "true" else "false"
 generate (BoolNode b pos) = "SltBool.create(" ++ b ++ ", " ++ luaPos pos ++ ")"

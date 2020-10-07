@@ -14,7 +14,6 @@ methodFun p@(ProgramNode ps pos) = ProgramNode (getNodes $ map mFun ps) pos wher
         Just $ DeclNode id (
             FuncDefNode 
                 (Just id) 
-                True 
                 args 
                 (SequenceIfNode (getNodes $ map (convMethod $ extractString id) ps) pos) pos
             ) pos where 

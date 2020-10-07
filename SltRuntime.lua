@@ -78,7 +78,7 @@ SltValue = {
       end;
 
       eq = function(this, other)
-        error(SltError.create("TypeError", "Can't check equality of  " .. this.type_ .. " and " .. other.type_, this))
+        return SltBool.create(false, this.loc)
       end;
 
       lt = function(this, other)
@@ -98,7 +98,7 @@ SltValue = {
       end;
 
       neq = function(this, other)
-        error(SltError.create("TypeError", "Can't check equality of  " .. this.type_ .. " and " .. other.type_, this))
+        return SltBool.create(true, this.loc)
       end;
 
       anded = function(this, other)
@@ -130,7 +130,7 @@ SltValue = {
       unwrap = function(this, args)
         tryOrError(function() return checkType("SltTuple", this) end)
         tryOrError(function() return this.checkLength(this, args) end)
-        return unpack(this.value)
+        return table.unpack(this.value)
       end;
 
       destructure = function(this, args)
@@ -140,7 +140,7 @@ SltValue = {
         for k, v in pairs(this.table) do 
           table.insert(newTable, v)
         end
-        return unpack(newTable)
+        return table.unpack(newTable)
       end;
 
       toString = function(this)
@@ -528,7 +528,7 @@ function SltError.create(errorType, message, value)
     value = value;
   }, SltError)
 
-  fn, ln, cn = unpack(this.value.loc)
+  fn, ln, cn = table.unpack(this.value.loc)
   ln = tostring(ln)
   cn = tostring(cn)
 
@@ -743,11 +743,9 @@ end;
 
 SltFunc = {}
 SltFunc.__index = SltValue
-function  SltFunc.create(fun, loc, isPure)
+function  SltFunc.create(fun, loc)
   local this = {}
   this.fun = fun;
-  this.isPure = isPure and true or false
-  this.values = {};
   this.type_ = "SltFunc";
   this.loc = loc
 
@@ -757,11 +755,12 @@ function  SltFunc.create(fun, loc, isPure)
     return "<function>"
   end
 
+  this.eq = function(this, other) return SltBool.create(false, this.loc) end
+  this.neq = function(this, other) return SltBool.create(true, this.loc) end
+
   setmetatable(this, {
     __index = SltValue;
-    __call = function(this, ...)
-      return this.fun(...)
-    end;
+    __call = function(this, a) return this.fun(a) end;
     __add = SltValue.add;
     __sub = SltValue.sub;
     __mul = SltValue.mul;

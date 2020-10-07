@@ -36,7 +36,7 @@ define ds (MethodNode id _ _) = define ds id
 define ds NewMethodNode{} = ds
 
 -- Define function arguments and where clauses
-define ds (FuncDefNode _ _ args _ _) = ds ++ concatMap (define ds) args
+define ds (FuncDefNode _ args _ _) = ds ++ concatMap (define ds) args
 define ds (WhereNode _ dcs _) = ds ++ concatMap (define ds) dcs
 define ds a = error(show a)
 
@@ -83,7 +83,7 @@ isDefined sc (BinOpNode lhs op rhs pos) =
         "." -> isDefined sc lhs
         _ -> isDefined sc lhs |>> isDefined sc rhs
 isDefined sc (IdentifierNode id pos) = StringPos id pos `exists` sc
-isDefined sc n@(FuncDefNode mid _ args expr pos) = 
+isDefined sc n@(FuncDefNode mid args expr pos) = 
     expSc |>> 
         case mid of 
             Just id -> 

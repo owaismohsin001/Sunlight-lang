@@ -81,7 +81,7 @@ data Node =
     | TupleNode [Node] SourcePos
     | CallNode Node [Node] SourcePos
     | DeclNode Node Node SourcePos
-    | FuncDefNode (Maybe Node) Bool [Node] Node SourcePos
+    | FuncDefNode (Maybe Node) [Node] Node SourcePos
     | MethodNode Node [Node] SourcePos
     | NewMethodNode Node Node Node SourcePos
     | StructInstanceNode Node [Node] SourcePos
@@ -128,7 +128,7 @@ instance Show Node where
     show (MethodNode id args _) = "open " ++ show id ++ "(" ++ intercalate ", " (map show args) ++ ")"
     show (NewMethodNode id ce te _) = 
         "close " ++ show id ++ " ? " ++ show ce ++ " -> " ++ show te
-    show (FuncDefNode f _ args e _) = fname ++ " <- " ++ "(" ++ intercalate ", " (map show args) ++ ")" ++ " -> " ++ show e where
+    show (FuncDefNode f args e _) = fname ++ " <- " ++ "(" ++ intercalate ", " (map show args) ++ ")" ++ " -> " ++ show e where
         fname =
             case f of
                 Just f -> show f
@@ -252,15 +252,15 @@ everyExpr =
             spaces
             re <- expr
             return [
-                    FuncDefNode Nothing Prelude.True [IdentifierNode "x" pos] me pos, 
-                    FuncDefNode Nothing Prelude.True [IdentifierNode "x" pos] re pos, 
+                    FuncDefNode Nothing [IdentifierNode "x" pos] me pos, 
+                    FuncDefNode Nothing [IdentifierNode "x" pos] re pos, 
                     ls
                     ]
             ) <|> (
                 do
                 return [
-                        FuncDefNode Nothing Prelude.True [IdentifierNode "x" pos] me pos, 
-                        FuncDefNode Nothing Prelude.True [IdentifierNode "x" pos] (BoolNode "true" pos) pos, 
+                        FuncDefNode Nothing [IdentifierNode "x" pos] me pos, 
+                        FuncDefNode Nothing [IdentifierNode "x" pos] (BoolNode "true" pos) pos, 
                         ls
                         ]
                 )
@@ -298,12 +298,12 @@ lambdaExpr =
                 Text.Megaparsec.Char.string "->"
                 spaces
                 e <- logicalExpr
-                return $ FuncDefNode Nothing Prelude.True args e pos
+                return $ FuncDefNode Nothing args e pos
         
         basicLambda pos =
             do
                 e <- logicalExpr
-                return $ FuncDefNode Nothing Prelude.True [IdentifierNode "x" pos] e pos
+                return $ FuncDefNode Nothing [IdentifierNode "x" pos] e pos
 
 
 boolean =
@@ -411,7 +411,7 @@ structDef =
         lowId (DataNode id pos) = IdentifierNode (map toLower id) pos
         lowId (IdentifierNode id pos) = IdentifierNode (map toLower id) pos
         makeFun (strct@(StructDefNode id xs _ pos)) = 
-            DeclNode (lowId id) (FuncDefNode (Just $ lowId id) Prelude.True xs (instantiate xs strct) pos) pos
+            DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) pos) pos
 
         instantiate rhss (StructDefNode id lhss _ pos) = StructInstanceNode id (zipWith (\a b -> DeclNode a b pos) rhss lhss) pos 
 
@@ -457,7 +457,7 @@ decl =
         e <- whereExpr
         new_e <- 
             case id of
-                (CallNode c arg _) -> return $ FuncDefNode (Just c) Prelude.True arg e pos
+                (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e pos
                 _ -> return e
         return $ DeclNode new_id new_e pos
 
@@ -584,7 +584,7 @@ index =
         ls <- P.many tIndex
         return $ case last $ Just og : ls of 
             Just _ -> folded og ls pos
-            Nothing -> FuncDefNode Nothing Prelude.True [IdentifierNode "elwegot" pos] (folded og ls pos) pos
+            Nothing -> FuncDefNode Nothing [IdentifierNode "elwegot" pos] (folded og ls pos) pos
     where
         folded og ls pos = foldr (makeCall pos) og (reverse ls)
 
@@ -655,7 +655,7 @@ classStmnt =
                     <|> try decl 
                     <|> structDef
                     <|> mewMethod)))
-        return $ DeclNode id (FuncDefNode (Just id) Prelude.True args (SequenceIfNode allCases seqPos) seqPos) pos
+        return $ DeclNode id (FuncDefNode (Just id) args (SequenceIfNode allCases seqPos) seqPos) pos
     where
         cases = do
             newlines
