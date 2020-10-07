@@ -2,7 +2,7 @@
 This functional progamming language compiles to lua, it has thge philosophy of being structured. Structured doesn't nessacarily mean typed, but every piece of data must have some structure to it. This is we put utmost focus of our language on structs which allow data to be organized in a very flexible way.
 
 # Data structues
-This language has a few data and has tools for you to create whatever else you desire using them as the base. Following are the built-in data structures this language has
+This language has a few data structures and has tools for you to create whatever else you desire using them as the base. Following are the built-in data structures, this language offers
 
 ### String
 This, as you expect holds a string of data, like `"data"`
@@ -81,3 +81,26 @@ Now we can have
 id: x -> x
 fst ? stct@SltList -> head: stct
 ```
+# Application
+Function application is really simple, all you gotta do is,
+```
+add: 1, 2
+```
+where `add` is a function, `1` and `2` are aruments and this entire thing is an application. Now, there are other ways to aply functions like the forward pipe
+```
+out <- [1, 2, 3, 4] |> map: \x -> x*2 |> filter: \x -> x /= 2
+```
+or the backwards pipe, which comes in handy quite often
+```
+out <-  filter: \x -> x /= 2 <| map: \x -> x*2 <| [1, 2, 3, 4]
+```
+both of which ouput 
+```
+[4, 6, 8]
+```
+## Infix calls
+The aforemention `add` function can also be used like
+```
+1 `add` 2
+```
+which would yeild exactly what you expet, `3`.
