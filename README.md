@@ -104,3 +104,52 @@ The aforemention `add` function can also be used like
 1 `add` 2
 ```
 which would yeild exactly what you expet, `3`.
+
+That's about it, for the actual language because most of the properties of this language come from it's standard library
+# Error Handling
+Most programming languages has some sort of exception handling mechanism built-in but some functional languages like likew Sunlight-lang are expressive enough to define these in the standard library. So, enter `Maybe`, Here's a simple demonstation of it.
+```
+class div: a b
+b = 0 -> None
+true -> some: a/b
+```
+This works fine when there's only one way something could possibly have failed but when that's not true, you need `Either`, like this
+```
+class makeCar: c, m
+m <= 0 -> left: "Model of a ar must be positive"
+c = right: "Land Cruiser" -> car: c, m
+c = right: "Mistubishi" -> car: c, m
+c = right: "Honda" -> car: c, m
+true -> left: "No company named " .. c .. "exists"
+```
+Here you'll get the error in form of either one thing or another.
+
+# Lenses
+## Access
+If you want to access something from a datastructure then you should use access, which has it's syntactic sugar
+```
+a <- [0, 8, 6, 4, 5][2]
+```
+which yeilds eight because by default indexing starts from one in Sunlight-lang.
+Sometimes you want more than access to a single element, and for those times we have `glance` where you can just glance at several of the elements that doesn't satisfy a given predicate. For example,
+```
+out <- glance: \x < 3, 1, [0, 9, 4, 6, 8, 1]
+```
+and with both of those combined you can use `view` which is just `access` but with better pipe support and no syntactic suagr.
+```
+out <- [[1, 2], [2, 5], [9, 3]] |> view: 3 |> view: 2
+```
+## Update
+If you want to update something in accordance with it's index then your best bet is to change to use `change` like this
+```
+out <- change: [3, 5, 55, 8], 1, \x -> x*2
+```
+which returns `[6, 5, 55, 8]` and if you want to chain these you should say
+```
+out <- \f -> change: [[1, 2], [2, 5], [9, 3]], 2, f <| \f, x -> change: x, 1, f <| \x*2
+```
+which in turn returns `[[1, 2], [4, 5], [9, 3]]`. If you instead want to change a bunch of elemnts that disatisfy a predicate then you should use `unedit` and write
+```
+out <- out <- unedit: [3, 5, 55, 8], 1, \x < 3, \x*2
+```
+and these can be chained with continuations the same way that the other one can, as `change` is merely a specification of `unedit`.
