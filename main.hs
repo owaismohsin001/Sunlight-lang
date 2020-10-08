@@ -13,8 +13,9 @@ import Text.Megaparsec as P
 strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
 
 run :: String -> String -> IO ()
-run str fn =
+run fstr fn =
     do
+        let str = filter (\x -> x /= '\t') fstr
         let incs = P.runParser Parser.includes fn str
         let (ns, ios) = res where 
             res =
