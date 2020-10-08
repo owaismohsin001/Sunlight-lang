@@ -153,3 +153,31 @@ which in turn returns `[[1, 2], [4, 5], [9, 3]]`. If you instead want to change 
 out <- out <- unedit: [3, 5, 55, 8], 1, \x < 3, \x*2
 ```
 and these can be chained with continuations the same way that the other one can, as `change` is merely a specification of `unedit`.
+
+## Making your own lenses
+If you define your own data structures that can be "indexed", whatever inexing in the context of your data structures mean. In order for you to do this, you must extend the methods `unedit`, `glance` and optionally, although very much preferably `access`. In this way, all the aforementioned syntax, functions and methods can be used for your data structurs.
+
+# Data manipulation
+There are many ways to manipulation data structures, you can map/filter over them, take from them, and even fold them to some value. For mapping and filtering, you can use `every` keyword like this
+```
+every [1, 2, 3, 4, 5] is x+1
+```
+and filtering over them using the same syntax will also be very much possible when you say
+```
+every [1, 2, 3, 4, 5] is x+1 if x /= 2
+```
+returning `[2, 4, 5, 6]`. There's a way to map anf filter without actually using this syntax for the times it seems verbose, and to use this you should use `map` and `filter`. Reducing is done by the `fold` function like this
+```
+fold: \a, b -> a*b, 1, [1, 2, 3, 4, 5]
+```
+You can also take some data from some structure using the `take` function like this
+```
+inf: n <- [n] .. inf: n+1
+out <- take: 10, inf: 1
+```
+which returns `[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`.
+
+In statically typed functional languages like Haskell, there's a `fmap` for modifying valuse inside data structures, we just use map here to do the same, with `Maybe` and `Either` and potentially for your own data type.
+
+## Instansiation of these functions
+All of these functions are `open` and can be extened except for `map` and `filter` which are mere specifications of `map_and_filter`. So, in order for you to use these functions for your own data structures, just define these by the use fo aforementioned open method syntax.
