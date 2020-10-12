@@ -183,20 +183,67 @@ identifier =
         fc <- lower
         l <- P.many (lower <|> upper <|> digit <|> undersore)
         return $ IdentifierNode (fc : l) pos
+    <|> nsAccess
     where
         undersore = (
             ((char '_') :: Parser Char) 
                 <* notFollowedBy ((char '_') :: Parser Char)
             ) :: Parser Char
-
+        nsAccess =
+            do
+                t1 <- dataName
+                termSuffix t1       
+        termSuffix t1 = try $ unTrySuffix t1
+        unTrySuffix t1 =
+            do
+                s <- singleSuffix t1
+                loop s
+        singleSuffix t1 =
+            do
+                pos <- getSourcePos
+                op <- Text.Megaparsec.Char.string "::"
+                t2 <- dataName <|> identifier
+                loop $ IdentifierNode (extractString t1 ++ "__" ++ extractString t2) pos
+        loop t = (unTrySuffix t <|> return t) :: Parser Node
 
 dataName :: Parser Node
 dataName =
-    do
-        pos <- getSourcePos
-        fc <- upper
-        l <- P.many (lower <|> upper <|> digit)
-        return $ DataNode (fc : l) pos
+    try nsDataAccess <|> dataNameFormula
+    where
+        dataNameFormula =
+            do
+                pos <- getSourcePos
+                fc <- upper
+                l <- P.many (lower <|> upper <|> digit)
+                return $ DataNode (fc : l) pos
+        nsDataAccess =
+            do
+                t1 <- dataNameFormula
+                termSuffix Nothing t1      
+            where 
+                termSuffix stp t1 = try $ unTrySuffix stp t1
+                unTrySuffix stp t1 =
+                    do
+                        s <- singleSuffix stp t1
+                        loop stp s
+                singleSuffix stp t1 =
+                    do
+                        pos <- getSourcePos
+                        op <- Text.Megaparsec.Char.string "::"
+                        t2 <- dataNameFormula
+                        x stp t1 t2 pos
+
+                loop :: Maybe Node -> Node -> Parser Node
+                loop stp t = case stp of
+                    Just a -> return a
+                    Nothing -> unTrySuffix Nothing t <|> return t :: Parser Node
+
+                x stp t1 t2 pos =
+                    (
+                        lookAhead (Text.Megaparsec.Char.string "::" :: Parser String) *> 
+                            loop stp v
+                    ) <|> loop (Just v) v where
+                        v = DataNode (extractString t1 ++ "__" ++ extractString t2) pos
 
 structInstanceExpr = 
     do
@@ -291,7 +338,7 @@ atom = choice [
     Parser.string '"', 
     try Parser.fractional, 
     Parser.number,
-    Parser.structInstanceExpr,
+    try $ Parser.structInstanceExpr <* notFollowedBy (Text.Megaparsec.Char.string "::"),
     Parser.identifier
     ]
 
@@ -650,7 +697,7 @@ index =
 access =  
     do
         pos <- getSourcePos
-        l <- nsAccess `sepBy1` try (spaces *> Text.Megaparsec.Char.string "." <* notFollowedBy (Text.Megaparsec.Char.string ".") <* spaces)
+        l <- atom `sepBy1` try (spaces *> Text.Megaparsec.Char.string "." <* notFollowedBy (Text.Megaparsec.Char.string ".") <* spaces)
         let mpl = map makeBin (tail l)
         return $ foldl' (\a b -> BinOpNode a "." b pos) (head l) mpl
     where
@@ -658,34 +705,6 @@ access =
         makeBin n@(BinOpNode a op b pos) = BinOpNode a op (makeBin b) pos
         makeBin n@(IdentifierNode s pos) = StringNode s pos
         makeBin n = n
-
-nsAccess =
-    try 
-        (
-            do
-                t1 <- dataName
-                termSuffix t1       
-        ) <|> atom
-    where 
-        termSuffix t1 = try $
-            do
-                s <- singleSuffix t1
-                loop s
-        singleSuffix t1 =
-            do
-                pos <- getSourcePos
-                op <- Text.Megaparsec.Char.string "::"
-                t2 <- atom
-                loop $ IdentifierNode (extractString t1 ++ "__" ++ extractString t2) pos
-        loop t = (termSuffix t <|> return t) :: Parser Node
-
---
--- do
---                 pos <- getSourcePos
---                 d <- dataName
---                 op <- Text.Megaparsec.Char.string "#"
---                 id <- identifier
---                 return $ IdentifierNode (extractString d ++ "__" ++ extractString id) pos
 
 methodDecl = 
     do

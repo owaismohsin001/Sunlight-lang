@@ -13,4 +13,14 @@ mod Alan
     ic <- Alan::i + 1
 end
 
-out <- mlp2 seq (some: \x+2) seq mdLs[Alan::ic][1][2] where mlp2 <- some: \x*2 end
+mod Shapes
+    type Shape <- Circle{r} | Square{e}
+    class getV: s
+    s@Shapes::Circle -> s.r*2
+    s@Shapes::Square -> s.e*2
+    a <- 10
+end
+
+circ <- Shapes::Circle{r :: 15}
+
+out <- mlp2 seq (some: \x+Shapes::getV: circ) seq mdLs[Alan::ic][1][2] where mlp2 <- some: \x*2 end
