@@ -44,7 +44,8 @@ notKeyword = notFollowedBy (choice keywords) where
             Parser.Or,
             Parser.And,
             Parser.Open,
-            Parser.Include
+            Parser.Include,
+            Parser.Mod
         ]
 
 showL k = map toLower (show k)
@@ -66,6 +67,7 @@ data Keyword =
     | Or
     | Include
     | Open
+    | Mod
     deriving(Show, Eq)
 
 data Node =
@@ -90,6 +92,7 @@ data Node =
     | DeStructure [Node] SourcePos
     | DataNode String SourcePos
     | BoolNode String SourcePos
+    | FromStruct Node
     | WhereNode Node [Node] SourcePos
     | MultipleDefinitionNode [Node]
     deriving (Eq)
@@ -101,6 +104,7 @@ instance Show Node where
     show (IdentifierNode id _) = id
     show (CallNode callee args _) = show callee ++ "(" ++ intercalate ", " (map show args) ++ ")"
     show (WhereNode e ds _) = show e ++ "{" ++ intercalate ", " (map show ds) ++"}"
+    show (MultipleDefinitionNode ds) = "start:\n" ++ (intercalate "\n" (map show ds)) ++ "\nend"
     show (ProgramNode arr _) = intercalate "\n" (map show arr)
     show (ListNode xs _) = "[" ++ intercalate ", " (map show xs) ++ "]"
     show (TupleNode arr _) = "(" ++ intercalate ", " (map show arr) ++ ",)"
@@ -115,6 +119,7 @@ instance Show Node where
     show (BoolNode b _) = b
     show (UnaryExpr u n _) = "(" ++ u ++ " " ++ show n ++ ")"
     show (DataNode n _) = n
+    show (FromStruct n) = "FromStruct: " ++ show n
     show (StructDefNode id ls ov _) = show id ++ "{" ++ intercalate "; " (map show ls) ++ "}" ++ decCase 
         where
             decCase =
@@ -176,8 +181,14 @@ identifier =
         pos <- getSourcePos
         notKeyword
         fc <- lower
-        l <- P.many (lower <|> upper <|> digit <|> oneOf "_")
+        l <- P.many (lower <|> upper <|> digit <|> undersore)
         return $ IdentifierNode (fc : l) pos
+    where
+        undersore = (
+            ((char '_') :: Parser Char) 
+                <* notFollowedBy ((char '_') :: Parser Char)
+            ) :: Parser Char
+
 
 dataName :: Parser Node
 dataName =
@@ -361,7 +372,6 @@ binOp f ops ret = do
           loop (ret t1 op t2 pos))
         loop t = termSuffix t <|> return t
 
-
 lhs =
     do
         id <- mainLhs
@@ -378,6 +388,7 @@ lhs =
                         identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces) 
                     <* spaces <* Text.Megaparsec.Char.string "}"
                 return $ DeStructure ls pos
+
         fDef =
             do
                 pos <- getSourcePos
@@ -411,7 +422,7 @@ structDef =
         lowId (DataNode id pos) = IdentifierNode (map toLower id) pos
         lowId (IdentifierNode id pos) = IdentifierNode (map toLower id) pos
         makeFun (strct@(StructDefNode id xs _ pos)) = 
-            DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) pos) pos
+            FromStruct $ DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) pos) pos
 
         instantiate rhss (StructDefNode id lhss _ pos) = StructInstanceNode id (zipWith (\a b -> DeclNode a b pos) rhss lhss) pos 
 
@@ -446,20 +457,21 @@ structDef =
                         return $ IdentifierNode (extractString id) pos
 
 decl =
-    do
-        pos <- getSourcePos
-        id <- lhs
-        new_id <- 
-            case id of
-                (CallNode c arg _) -> return c
-                _ -> return id
-        spaces
-        e <- whereExpr
-        new_e <- 
-            case id of
-                (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e pos
-                _ -> return e
-        return $ DeclNode new_id new_e pos
+    modStmnt <|>
+        do
+            pos <- getSourcePos
+            id <- lhs
+            new_id <- 
+                case id of
+                    (CallNode c arg _) -> return c
+                    _ -> return id
+            spaces
+            e <- whereExpr
+            new_e <- 
+                case id of
+                    (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e pos
+                    _ -> return e
+            return $ DeclNode new_id new_e pos
 
 includes =
     do
@@ -475,6 +487,38 @@ includes =
                 keyword Include
                 mspaces
                 Parser.string '"'
+
+modStmnt =
+    do
+        pos <- getSourcePos
+        mname <- keyword Mod *> mspaces *> dataName <* newlines <* spaces
+        ds <- (newlines *> spaces *> ((try mewMethod <|> classStmnt <|> structDef <|> decl <|> methodDecl) )) 
+            `sepBy1` notFollowedBy (newlines *> spaces *> newlines *> keyword End)
+        newlines *> spaces *> newlines *> keyword End
+        let tds = map (differLhs mname) ds
+        return $ MultipleDefinitionNode tds
+    where
+        differLhs :: Node -> Node -> Node
+        differLhs mn (IdentifierNode id pos) = IdentifierNode (extractString mn ++ "__" ++ id) pos
+        differLhs mn (DataNode id pos) = DataNode (extractString mn ++ "__" ++ id) pos
+        differLhs mn (TupleNode ts pos) = TupleNode (map (differLhs mn) ts) pos
+        differLhs mn (DeclNode lhs rhs pos) = DeclNode (differLhs mn lhs) (changeFun mn rhs) pos
+        differLhs mn (StructDefNode id x (Just o) pos) = StructDefNode (differLhs mn id) x (Just $ differLhs mn o) pos
+        differLhs mn (StructDefNode id x Nothing pos) = StructDefNode (differLhs mn id) x Nothing pos
+        differLhs mn (DeStructure ids pos) = DeStructure (map (differLhs mn) ids) pos
+        differLhs mn (SumTypeNode ds pos) = SumTypeNode (map (differLhs mn) ds) pos
+        differLhs mn (MethodNode id args pos) = MethodNode (differLhs mn id) args pos
+        differLhs mn (MultipleDefinitionNode ds) = MultipleDefinitionNode $ map (differLhs mn) ds
+        differLhs mn (FromStruct (DeclNode lhs (FuncDefNode (Just id) args (StructInstanceNode sid sargs spos) pos) dpos)) =
+            FromStruct $ 
+                DeclNode (differLhs mn lhs) 
+                (FuncDefNode (Just $ differLhs mn id) args (StructInstanceNode (differLhs mn sid) sargs spos) pos) 
+                dpos
+        differLhs mn nm@NewMethodNode{} = nm
+        differLhs _ a = error(show a ++ "\n")
+
+        changeFun mn (FuncDefNode (Just id) args e pos) = FuncDefNode (Just $ differLhs mn id) args e pos
+        changeFun mn n = n
 
 decls xs =
     do
@@ -545,7 +589,7 @@ compExpr = binOp typeExpr ops BinOpNode where
         <|> Text.Megaparsec.Char.string "<"
         ) :: Parser String
 
-typeExpr = binOp (dataName <|> arithExpr) (Text.Megaparsec.Char.string "@") BinOpNode
+typeExpr = rBinOp arithExpr (Text.Megaparsec.Char.string "@") (dataName <|> arithExpr) BinOpNode
 
 arithExpr = binOp term (Text.Megaparsec.Char.string "+" <|> Text.Megaparsec.Char.string "-") BinOpNode
 
@@ -606,7 +650,7 @@ index =
 access =  
     do
         pos <- getSourcePos
-        l <- atom `sepBy1` try (spaces *> Text.Megaparsec.Char.string "." <* notFollowedBy (Text.Megaparsec.Char.string ".") <* spaces)
+        l <- nsAccess `sepBy1` try (spaces *> Text.Megaparsec.Char.string "." <* notFollowedBy (Text.Megaparsec.Char.string ".") <* spaces)
         let mpl = map makeBin (tail l)
         return $ foldl' (\a b -> BinOpNode a "." b pos) (head l) mpl
     where
@@ -614,6 +658,34 @@ access =
         makeBin n@(BinOpNode a op b pos) = BinOpNode a op (makeBin b) pos
         makeBin n@(IdentifierNode s pos) = StringNode s pos
         makeBin n = n
+
+nsAccess =
+    try 
+        (
+            do
+                t1 <- dataName
+                termSuffix t1       
+        ) <|> atom
+    where 
+        termSuffix t1 = try $
+            do
+                s <- singleSuffix t1
+                loop s
+        singleSuffix t1 =
+            do
+                pos <- getSourcePos
+                op <- Text.Megaparsec.Char.string "::"
+                t2 <- atom
+                loop $ IdentifierNode (extractString t1 ++ "__" ++ extractString t2) pos
+        loop t = (termSuffix t <|> return t) :: Parser Node
+
+--
+-- do
+--                 pos <- getSourcePos
+--                 d <- dataName
+--                 op <- Text.Megaparsec.Char.string "#"
+--                 id <- identifier
+--                 return $ IdentifierNode (extractString d ++ "__" ++ extractString id) pos
 
 methodDecl = 
     do

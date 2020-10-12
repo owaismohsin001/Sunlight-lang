@@ -2,10 +2,15 @@ include "errors.slt"
 include "traversable.slt"
 include "access.slt"
 
-a <- some: [[1, 2], [[13, 19], [5]], [7]]
+a <- Some{a :: [[1, 2], [[13, 19], [5]], [7]]}
 
 f: x <- x*2
 fcx: f <- \f, x -> change: x, 1, f <| \f, x -> change: x, 2, f <| f
 mdLs <- \f -> change: a, 2, f <| fcx <| f
 
-out <- mlp2 seq (some: \x+2) seq mdLs[2][1][2] where mlp2 <- some: \x*2 end
+mod Alan
+    i <- 1
+    ic <- Alan::i + 1
+end
+
+out <- mlp2 seq (some: \x+2) seq mdLs[Alan::ic][1][2] where mlp2 <- some: \x*2 end

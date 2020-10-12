@@ -4,5 +4,7 @@ import Parser
 
 mergeMultipleNode (ProgramNode ps pos) = 
     ProgramNode (foldr (++) [] $ map merge ps) pos where
-        merge (MultipleDefinitionNode mds) = mds
+        merge :: Node -> [Node]
+        merge (MultipleDefinitionNode mds) = foldr (++) [] $ map merge mds
+        merge (FromStruct n) = [n]
         merge n = [n]
