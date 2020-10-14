@@ -1,4 +1,4 @@
-This functional progamming language compiles to lua, it has thge philosophy of being structured. Structured doesn't nessacarily mean typed, but every piece of data must have some structure to it. This is we put utmost focus of our language on structs which allow data to be organized in a very flexible way.
+This functional progamming language compiles to lua, it has thge philosophy of being structured. Structured doesn't nessacarily mean typed, but every piece of data must have some structure to it. This is where we put utmost focus of our language on structs as it allow data to be organized in a very flexible way.
 
 # Data structues
 This language has a few data structures and has tools for you to create whatever else you desire using them as the base. Following are the built-in data structures, this language offers
@@ -138,6 +138,7 @@ end
 In this way all of your variables will be locked up in `someModule` and to access, you must say `someModule::varName`. This is true even when you are coding inside a module. Although more conviniences will show up for modules in the near future.
 
 That's about it, for the actual language because most of the properties of this language come from it's standard library
+
 # Standard Library
 Avalible std modules currently are
 `errors.slt`,
@@ -146,7 +147,7 @@ Avalible std modules currently are
 
 # Error Handling
 (From `errors.slt`)
-Most programming languages has some sort of exception handling mechanism built-in but some functional languages like likew Sunlight-lang are expressive enough to define these in the standard library. So, enter `Maybe`, Here's a simple demonstation of it.
+Most programming languages have some sort of exception handling mechanism built-in but other programming languages like Sunlight-lang are expressive enough to define these in the standard library. So, enter `Maybe`, Here's a simple demonstation of it.
 ```
 class div: a b
 b = 0 -> None
@@ -195,7 +196,7 @@ out <- out <- unedit: [3, 5, 55, 8], 1, \x < 3, \x*2
 and these can be chained with continuations the same way that the other one can, as `change` is merely a specification of `unedit`.
 
 ## Making your own lenses
-If you define your own data structures that can be "indexed", whatever inexing in the context of your data structures mean. In order for you to do this, you must extend the methods `unedit`, `glance` and optionally, although very much preferably `access`. In this way, all the aforementioned syntax, functions and methods can be used for your data structurs.
+If you define your own data structures that can be "indexed", whatever inexing in the context of your data structures might mean. In order for you to do this, you must extend the methods `unedit`, `glance` and optionally, although very much preferably `access`. In this way, all the aforementioned syntax, functions and methods can be used for your data structurs.
 
 # Data structure manipulation
 (From `traversable.slt`)
@@ -222,3 +223,6 @@ In statically typed functional languages like Haskell, there's a `fmap` for modi
 
 ## Instansiation of these functions
 All of these functions are `open` and can be extened except for `map` and `filter` which are mere specifications of `map_and_filter`. So, in order for you to use these functions for your own data structures, just define these by the use fo aforementioned open method syntax.
+
+# Thank You
+Thanks for reading through, hope you enjoy playing around Sunlight-Lang. Since this language is still in it's pre-alpha stage, make sure that you report bugs if you find them.
