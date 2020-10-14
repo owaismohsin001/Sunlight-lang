@@ -48,8 +48,27 @@ and a sum of these an be declared as such
 ```
 type Shape <- Circle{r} | Triangle{a, b, c} | Square{e}
 ```
-Now a shape can be either a cirle, a triangle, or a square.
+Now a shape can be either a cirle, a triangle, or a square. 
 
+## Instantiation of a type
+The way to instantiate these types is to use record/type syntax
+```
+out <- Square{e :: 5}
+```
+or
+```
+out <- Triangle{a :: 5, b :: 3, c :: 8}
+```
+Those definitions of types also defines functions named `square`, `circle`, and `triangle`(these are entirely lowercased), all of which are just functions that take the number of arguments their respective type takes and return an instance of their respective types. For examle,
+```
+out <- square: 5
+```
+or
+```
+out <- triangle: 5, 3, 8
+```
+
+The benefit of using functions instead of the actual type syntax is that these functions are curried unlike that aforementioned record syntax.
 ## Checking a type
 To chack a type you can simply type variable's name by saying `a@Circle` where rhs of `@` is a type.
 
@@ -104,6 +123,20 @@ The aforemention `add` function can also be used like
 ```
 which would yeild exactly what you expet, `3`.
 
+# Multiple files
+There are ways to use multiple files in a project, when using Sunlight-lang. This is the way to include standard library and use defined libraries, and it is
+```
+include "something.slt"
+... actual code ...
+```
+It will include that file in your code now, but if you are looking for more of a module, then consider adding
+```
+mod someModule
+... actual code ...
+end
+```
+In this way all of your variables will be locked up in `someModule` and to access, you must say `someModule::varName`. This is true even when you are coding inside a module. Although more conviniences will show up for modules in the near future.
+
 That's about it, for the actual language because most of the properties of this language come from it's standard library
 # Error Handling
 Most programming languages has some sort of exception handling mechanism built-in but some functional languages like likew Sunlight-lang are expressive enough to define these in the standard library. So, enter `Maybe`, Here's a simple demonstation of it.
@@ -156,7 +189,7 @@ and these can be chained with continuations the same way that the other one can,
 ## Making your own lenses
 If you define your own data structures that can be "indexed", whatever inexing in the context of your data structures mean. In order for you to do this, you must extend the methods `unedit`, `glance` and optionally, although very much preferably `access`. In this way, all the aforementioned syntax, functions and methods can be used for your data structurs.
 
-# Data manipulation
+# Data structure manipulation
 There are many ways to manipulation data structures, you can map/filter over them, take from them, and even fold them to some value. For mapping and filtering, you can use `every` keyword like this
 ```
 every [1, 2, 3, 4, 5] is x+1
