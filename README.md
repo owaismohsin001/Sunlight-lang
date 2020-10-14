@@ -138,7 +138,14 @@ end
 In this way all of your variables will be locked up in `someModule` and to access, you must say `someModule::varName`. This is true even when you are coding inside a module. Although more conviniences will show up for modules in the near future.
 
 That's about it, for the actual language because most of the properties of this language come from it's standard library
+# Standard Library
+Avalible std modules currently are
+`errors.slt`,
+`traversable.slt`,
+`access.slt`
+
 # Error Handling
+(From `errors.slt`)
 Most programming languages has some sort of exception handling mechanism built-in but some functional languages like likew Sunlight-lang are expressive enough to define these in the standard library. So, enter `Maybe`, Here's a simple demonstation of it.
 ```
 class div: a b
@@ -157,6 +164,7 @@ true -> left: "No company named " .. c .. "exists"
 Here you'll get the error in form of either one thing or another.
 
 # Lenses
+(From `access.slt`)
 ## Access
 If you want to access something from a datastructure then you should use access, which has it's syntactic sugar
 ```
@@ -190,6 +198,7 @@ and these can be chained with continuations the same way that the other one can,
 If you define your own data structures that can be "indexed", whatever inexing in the context of your data structures mean. In order for you to do this, you must extend the methods `unedit`, `glance` and optionally, although very much preferably `access`. In this way, all the aforementioned syntax, functions and methods can be used for your data structurs.
 
 # Data structure manipulation
+(From `traversable.slt`)
 There are many ways to manipulation data structures, you can map/filter over them, take from them, and even fold them to some value. For mapping and filtering, you can use `every` keyword like this
 ```
 every [1, 2, 3, 4, 5] is x+1
