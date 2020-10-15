@@ -14,8 +14,7 @@ import System.IO.Unsafe
 
 strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
 
-run :: String -> String -> IO ()
-run fstr fn =
+fParse fn fstr = 
     do
         let str = filter (\x -> x /= '\t') fstr
         let incs = P.runParser Parser.includes fn str
@@ -27,11 +26,14 @@ run fstr fn =
         txs <- ios
         let ps = zipWith (P.runParser (Parser.parse [])) ns txs
         let ins = mapE id ps :: Either (ParseErrorBundle String Data.Void.Void) [Node]
-        let nd = res where 
-            res = 
-                case ins of 
-                    Right xs -> P.runParser (Parser.parse xs) fn str
-                    Left n -> Left n
+        case ins of 
+            Right xs -> return $ P.runParser (Parser.parse xs) fn str
+            Left n -> return $ Left n
+
+run :: String -> String -> IO ()
+run fstr fn =
+    do
+        nd <- fParse fn fstr
         let tnd = res where 
             res = case nd of
                     Left e -> Left $ P.errorBundlePretty e

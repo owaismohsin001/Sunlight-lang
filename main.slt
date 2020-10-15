@@ -8,11 +8,6 @@ f: x <- x*2
 fcx: f <- \f, x -> change: x, 1, f <| \f, x -> change: x, 2, f <| f
 mdLs <- \f -> change: a, 2, f <| fcx <| f
 
-mod Alan
-    i <- 1
-    ic <- Alan::i + 1
-end
-
 mod Shapes
     type Shape <- Circle{r} | Square{e}
     class getV: s
@@ -23,4 +18,4 @@ end
 
 circ <- Shapes::Circle{r :: 15}
 
-out <- mlp2 seq (some: \x+Shapes::getV: circ) seq mdLs[Alan::ic][1][2] where mlp2 <- some: \x*2 end
+out <- mlp2 seq (some: \x+Shapes::getV: circ) seq mdLs[2][1][2] where mlp2 <- some: \x*2 end
