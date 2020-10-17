@@ -1,9 +1,0 @@
-thing <- 10
-
-mod Shapes
-    type Shape <- Circle{r} | Square{e}
-    class getV: s
-    s@Shapes::Circle -> s.r*2
-    s@Shapes::Square -> s.e*2
-    a <- 10
-end
