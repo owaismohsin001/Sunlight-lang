@@ -45,7 +45,8 @@ notKeyword = notFollowedBy (choice keywords) where
             Parser.And,
             Parser.Open,
             Parser.Include,
-            Parser.Mod
+            Parser.Mod,
+            Parser.Lib
         ]
 
 showL k = map toLower (show k)
@@ -68,6 +69,7 @@ data Keyword =
     | Include
     | Open
     | Mod
+    | Lib
     deriving(Show, Eq)
 
 data Node =
@@ -146,6 +148,7 @@ extractString (DataNode ident _) = ident
 
 extractList (ListNode ls _) = ls
 extractList (ProgramNode ls _) = ls
+
 extractDecl (IdentifierNode id _) = id
 extractStructInstance (StructInstanceNode id ls _) = (id, ls)
 
@@ -520,7 +523,7 @@ decl =
                     _ -> return e
             return $ DeclNode new_id new_e pos
 
-includes =
+includes iType =
     do
         pos <- getSourcePos
         P.many Parser.newline
@@ -531,7 +534,7 @@ includes =
         include =
             do
                 pos <- getSourcePos
-                keyword Include
+                keyword iType
                 mspaces
                 Parser.string '"'
 
@@ -571,12 +574,14 @@ decls xs =
     do
         pos <- getSourcePos
         P.many Parser.newline
-        a <- includes
+        a <- includes Lib
+        P.many Parser.newline
+        b <- includes Mod
         P.many Parser.newline
         spaces
         dcs <- 
             (try mewMethod <|> classStmnt <|> structDef <|> decl <|> methodDecl) 
-                `endBy1` (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String)
+                `endBy` (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String)
         return $ ProgramNode (concatLists dcs $ getLists xs) pos
     where
         getLists ns = map extractList ns

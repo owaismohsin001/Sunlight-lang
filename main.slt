@@ -1,6 +1,4 @@
-include "errors.slt"
-include "traversable.slt"
-include "access.slt"
+lib "std"
 
 a <- Some{a :: [[1, 2], [[13, 19], [5]], [7]]}
 

@@ -8,32 +8,51 @@ import MergeDefs
 import System.Exit
 import System.Environment   
 import Data.List
+import Debug.Trace
 import Text.Megaparsec as P
 
 import System.IO.Unsafe
 
 strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
 
-fParse fn fstr = 
+remIncludes =
+        do
+            P.many Parser.newline
+            ls <- Parser.includes Lib
+            P.many Parser.newline
+            is <- Parser.includes Mod
+            return (ls, is)
+
+fParse :: String -> String -> String -> IO (Either (ParseErrorBundle String Void) Node)
+fParse dir fn fstr = 
     do
         let str = filter (\x -> x /= '\t') fstr
-        let incs = P.runParser Parser.includes fn str
-        let (ns, ios) = res where 
-            res =
-                case incs of 
-                    Right is -> ( map extractString (extractList is), mapM readFile (map extractString (extractList is)) )
-                    Left e -> error (P.errorBundlePretty e)
+        let (libs, incs) = res where
+            res = case P.runParser remIncludes fn str of
+                Right is -> is
+                Left e -> error (P.errorBundlePretty e)
+        let (ns, ios) = (
+                map extractString (extractList incs), 
+                mapM (readFile . (\x -> dir ++ "/" ++ extractString x)) (extractList incs) 
+                )
+        let lns = map extractString (extractList libs)
         txs <- ios
+        libs <- mapM (readFile . (\x -> dir ++ "/" ++ extractString x ++ "/main.slt")) (extractList libs)
+        libs <- mapM id (zipWith3 fParse (map (\x -> dir ++ "/" ++ x) lns) lns libs) :: IO [Either (ParseErrorBundle String Void) Node]
+        let ls = res where
+            res = case mapM id libs :: Either (ParseErrorBundle String Void) [Node] of
+                Right ns -> ns
+                Left e -> error (P.errorBundlePretty e)
         let ps = zipWith (P.runParser (Parser.parse [])) ns txs
         let ins = mapE id ps :: Either (ParseErrorBundle String Data.Void.Void) [Node]
         case ins of 
-            Right xs -> return $ P.runParser (Parser.parse xs) fn str
+            Right xs -> return $ P.runParser (Parser.parse $ ls ++ xs) fn str
             Left n -> return $ Left n
 
 run :: String -> String -> IO ()
 run fstr fn =
     do
-        nd <- fParse fn fstr
+        nd <- fParse "." fn fstr
         let tnd = res where 
             res = case nd of
                     Left e -> Left $ P.errorBundlePretty e
