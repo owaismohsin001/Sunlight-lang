@@ -37,8 +37,12 @@ fParse dir fn fstr =
                 )
         let lns = map extractString (extractList libs)
         txs <- ios
-        libs <- mapM (readFile . (\x -> dir ++ "/" ++ extractString x ++ "/main.slt")) (extractList libs)
-        libs <- mapM id (zipWith3 fParse (map (\x -> dir ++ "/" ++ x) lns) lns libs) :: IO [Either (ParseErrorBundle String Void) Node]
+        let 
+            sepStatic x = if head s == '*' then "./libs/" ++ tail s ++ "/main.slt" else dir ++ "/" ++ s ++ "/main.slt" where
+                s = extractString x
+        libs <- mapM (readFile . sepStatic) (extractList libs)
+        let sepStatic s = if head s == '*' then "./libs/" ++ tail s else dir ++ "/" ++ s
+        libs <- mapM id (zipWith3 fParse (map sepStatic lns) lns libs) :: IO [Either (ParseErrorBundle String Void) Node]
         let ls = res where
             res = case mapM id libs :: Either (ParseErrorBundle String Void) [Node] of
                 Right ns -> ns
