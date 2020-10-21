@@ -138,7 +138,7 @@ end
 In this way all of your variables will be locked up in `someModule` and to access, you must say `someModule::varName`. This is true even when you are coding inside a module. Although more conviniences will show up for modules in the near future.
 
 ## Libraries
-As you might have seen, you cannot nest `mods` into each other with the `mod` keword and that is, becase you are not supposed to, if you have a problem that requires additional set of files then you should use the `lib` keyword. In order to create a library, you must create a folder(ie. std) put all your library files in it and then create a `main` file in this aforementioned folder. This `main` file should include all other files of the folder(that you want this library to include), then specify this folder's name in your root's `main` file, like such `lib "std"`.
+As you might have seen, you cannot nest `mods` into each other with the `mod` keword and that is, becase you are not supposed to, if you have a problem that requires additional set of files then you should use the `lib` keyword. In order to create a library, you must create a folder(ie. std) put all your library files in it and then create a `main` file in this aforementioned folder. This `main` file should include all other files of the folder(that you want this library to include), then specify this folder's name in your root's `main` file, like such `lib "*std"`.
 
 That's about it, for the actual language because most of the properties of this language come from it's standard library
 
