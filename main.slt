@@ -16,4 +16,4 @@ end
 
 circ <- Shapes::Circle{r :: 15}
 
-out <- mlp2 seq (some: \x+Shapes::getV: circ) seq mdLs[2][1][2] where mlp2 <- some: \x*2 end
+out <- mlp2 seq (some: \x+circV) seq mdLs[2][1][2] where mlp2 <- some: \x*2 circV <- Shapes::getV: circ end

@@ -124,6 +124,47 @@ isDefined _ p =
         BoolNode _ _ -> Right ()
         a -> Left $ show a
 
+-- Take a set of sets and reduce it down to a set
+reduceSets :: Set.Set StringPos -> [Node] -> Set.Set StringPos
+reduceSets st dcs = Set.foldr Set.union Set.empty $ Set.fromList $ map (usedVars st) dcs
+
+-- Collect a set of all used variable names to compare them with unused ones
+usedVars :: Set.Set StringPos -> Node -> Set.Set StringPos
+usedVars st (ProgramNode dcs _) = st `reduceSets` dcs
+usedVars st (DeclNode lhs rhs _) = usedVars st rhs `Set.union` st
+usedVars st (BinOpNode lhs op rhs pos) = 
+    case op of
+        "." -> usedVars st lhs `Set.union` st
+        _ -> usedVars st lhs `Set.union` (usedVars st rhs `Set.union` st)
+usedVars st (IdentifierNode id pos) = st `Set.union` Set.singleton (StringPos id pos)
+usedVars st n@(FuncDefNode _ args expr pos) = 
+    usedVars st expr `Set.difference` (Set.empty `reduceSets` args)
+usedVars st n@(WhereNode expr ds pos) = usedVars st expr `Set.union` (st `Set.union` (Set.empty `reduceSets` ds))
+usedVars st (CallNode id args pos) = usedVars st id `Set.union` (st `reduceSets` args)
+usedVars st (UnaryExpr _ e _) = usedVars st e
+usedVars st (IfNode ce te ee _) = usedVars st ce `Set.union` usedVars st te `Set.union` 
+    case ee of
+        Just e -> usedVars st e
+        Nothing -> Set.empty
+usedVars st (SequenceIfNode ns _) =  st `reduceSets` ns
+usedVars st (ListNode ns _) = st `reduceSets` ns
+usedVars st (TupleNode ts _) = st `reduceSets` ts
+usedVars st (StructInstanceNode id args _) = 
+    usedVars st id `Set.union` (st `reduceSets` args)
+usedVars st (StructDefNode id args mov _) = 
+    case mov of
+        Nothing -> st
+        Just ov -> usedVars st ov
+usedVars st SumTypeNode{} = st
+usedVars st DeStructure{} = st
+usedVars st (DataNode id pos) = st `Set.union` Set.singleton (StringPos id pos)
+usedVars _ p = 
+    case p of 
+        NumNode _ _ -> Set.empty
+        StringNode _ _ -> Set.empty
+        BoolNode _ _ -> Set.empty
+        a -> Set.empty
+
 -- Run the definition checker
 checkDefinitions :: Either String Node -> Maybe Scope -> Either String Node
 checkDefinitions le parent =
@@ -137,10 +178,16 @@ checkDefinitions le parent =
                         Left s -> Left s
                         Right () -> 
                             case StringPos "out" (getStringPos nn) `exists` sc of 
-                                Right () -> Right rmn
+                                Right () -> Right $ filterDefs rmn
                                 Left s -> Left "undefined entry point \"out\""
                     where 
                         rmn = removeNewMethods sc nn
+                        filterDefs n@(ProgramNode dfs pos) = 
+                            let used = usedVars Set.empty n in 
+                                ProgramNode (filter (toKeep used) dfs) pos
+                        toKeep used x = 
+                            head (define [] x) `Set.member` used || (getPosString $ head $ define [] x) == "out"
+                        getPosString (StringPos s _) = s
                         getStringPos (ProgramNode _ pos) = pos
 
 checkIODefinitions :: Either (P.ParseErrorBundle String Data.Void.Void) Node -> Maybe Scope -> IO ()
@@ -151,5 +198,3 @@ checkIODefinitions lf p =
     where l = case lf of
                 Left e -> Left $ P.errorBundlePretty e
                 Right n -> Right n
-
-
