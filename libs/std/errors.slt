@@ -38,8 +38,8 @@ seq ? f@Right and a@Right -> right: f.r: a.r
 seq ? f@Left and a@Left -> left: f.l: a.l
 seq ? a@Left or a@Right -> a
 
-access ? s@Right -> right: i access s.r
-access ? s@Left -> left: i access s.l
+access ? s@Right -> i access s.r
+access ? s@Left -> i access s.l
 
 unedit ? s@Right -> right: unedit: s.r, i, fi, uf
 unedit ? s@Left -> left: unedit: s.l, i, fi, uf
