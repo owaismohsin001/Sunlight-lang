@@ -598,13 +598,13 @@ whereExpr =
                     pos <- getSourcePos
                     mspaces
                     keyword Where
-                    mspaces
+                    spaces
                     ds <- (newlines *> spaces *> decl) `sepBy1` notFollowedBy (spacificSpaces *> keyword End)
                     spacificSpaces *> keyword End
                     return $ WhereNode rns ds pos
             ) <|> return rns
     where
-        spacificSpaces = (mspaces *> newlines *> spaces) <|> (Parser.newline *> newlines *> spaces)
+        spacificSpaces = (spaces *> newlines *> spaces) <|> (Parser.newline *> newlines *> spaces)
 
 expr =
     do 
