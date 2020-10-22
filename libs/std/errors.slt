@@ -1,7 +1,7 @@
 type Maybe <- Some{a} | None
 
 seq ? f@Some and a@Some -> some: f.a: a.a
-seq ? a@None or a@None -> a
+seq ? f@None or a@None -> a
 
 class getSome: mb, d
 mb@Some -> mb.a;
