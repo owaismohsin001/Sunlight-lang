@@ -528,12 +528,14 @@ function SltError.create(errorType, message, value)
     value = value;
   }, SltError)
 
-  fn, ln, cn = table.unpack(this.value.loc)
-  ln = tostring(ln)
-  cn = tostring(cn)
+  if this.value.loc ~= nil then
+    fn, ln, cn = table.unpack(this.value.loc)
+    ln = tostring(ln)
+    cn = tostring(cn)
 
-  loc = "In file: \"" .. fn .. "\", line no: " .. ln .. ", col no: " .. cn
-  print(loc)
+    loc = "In file: \"" .. fn .. "\", line no: " .. ln .. ", col no: " .. cn
+    print(loc)
+  end
   print("Uncaught Error: " .. message)
 end
 
