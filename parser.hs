@@ -178,16 +178,19 @@ fractional =
         frac <- number
         return $ NumNode (extractString dec ++ "." ++ extractString frac) pos
 
-identifier :: Parser Node
-identifier =
+identifier :: Bool -> Parser Node
+identifier sQuote =
     do
         pos <- getSourcePos
         notKeyword
         fc <- lower
-        l <- P.many (lower <|> upper <|> digit <|> undersore)
+        l <- if sQuote then P.many allowedPs <* char '\'' else P.many allowedPs
         return $ IdentifierNode (fc : l) pos
     <|> nsAccess
     where
+
+        allowedPs = lower <|> upper <|> digit <|> undersore
+
         undersore = (
             ((char '_') :: Parser Char) 
                 <* notFollowedBy ((char '_') :: Parser Char)
@@ -205,7 +208,7 @@ identifier =
             do
                 pos <- getSourcePos
                 op <- Text.Megaparsec.Char.string "::"
-                t2 <- dataName <|> identifier
+                t2 <- dataName <|> identifier Prelude.False
                 loop $ IdentifierNode (extractString t1 ++ "__" ++ extractString t2) pos
         loop t = (unTrySuffix t <|> return t) :: Parser Node
 
@@ -263,7 +266,7 @@ structInstanceExpr =
         seqInstance = commaSep seqPair
         seqPair =
             do
-                id <- identifier
+                id <- identifier Prelude.False
                 spaces
                 Text.Megaparsec.Char.string "::"
                 spaces
@@ -342,7 +345,7 @@ atom = choice [
     try Parser.fractional, 
     Parser.number,
     try $ Parser.structInstanceExpr <* notFollowedBy (Text.Megaparsec.Char.string "::"),
-    Parser.identifier
+    Parser.identifier Prelude.False
     ]
 
 lambdaExpr =
@@ -429,22 +432,22 @@ lhs =
         Text.Megaparsec.Char.string "<-"
         return id
     where
-        mainLhs = try fDef <|> identifier <|> tuple <|> destructureExpr
+        mainLhs = try fDef <|> identifier Prelude.False <|> tuple <|> destructureExpr
 
         destructureExpr = 
             do
                 pos <- getSourcePos
                 ls <- Text.Megaparsec.Char.string "{" *> spaces *>
-                        identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces) 
+                        identifier Prelude.False `sepBy1` (Text.Megaparsec.Char.string "," <* spaces) 
                     <* spaces <* Text.Megaparsec.Char.string "}"
                 return $ DeStructure ls pos
 
         fDef =
             do
                 pos <- getSourcePos
-                callee <- identifier
+                callee <- identifier Prelude.False
                 spaces *> Text.Megaparsec.Char.string ":" <* spaces
-                args <- identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
+                args <- identifier Prelude.False `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
                 spaces
                 return $ CallNode callee args pos
 
@@ -482,7 +485,7 @@ structDef =
 
         fields id pos =
             do
-                ls <- Text.Megaparsec.Char.string "{" *> commaSep identifier <* Text.Megaparsec.Char.string "}"
+                ls <- Text.Megaparsec.Char.string "{" *> commaSep (identifier Prelude.False) <* Text.Megaparsec.Char.string "}"
                 let stDef = StructDefNode id ls Nothing pos
                 let fDef = makeFun stDef
                 return $ MultipleDefinitionNode $ stDef : [fDef]
@@ -502,7 +505,7 @@ structDef =
                 seqInstance = commaSep seqPair
                 seqPair =
                     do
-                        id <- identifier
+                        id <- identifier Prelude.False
                         pos <- getSourcePos
                         return $ IdentifierNode (extractString id) pos
 
@@ -649,10 +652,11 @@ term = binOp Parser.concat (Text.Megaparsec.Char.string "*" <|> Text.Megaparsec.
 
 concat = binOp infixOp (Text.Megaparsec.Char.string "..") BinOpNode
 
-infixOp = 
-    rBinOp application op infixOp (\a op b pos -> CallNode (IdentifierNode op pos) [a, b] pos)
-    where
-        op = do extractString <$> identifier
+infixOp = rBinOp infixLOp op infixOp (\a op b pos -> CallNode (IdentifierNode op pos) [a, b] pos) where
+    op = do extractString <$> identifier Prelude.False
+
+infixLOp = binOp application op (\a op b pos -> CallNode (IdentifierNode op pos) [a, b] pos) where
+    op = do extractString <$> identifier Prelude.True
 
 application =
     do
@@ -716,15 +720,15 @@ methodDecl =
         pos <- getSourcePos
         keyword Open
         mspaces
-        id <- identifier
+        id <- identifier Prelude.False
         spaces *> Text.Megaparsec.Char.string ":" <* spaces
-        args <- identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
+        args <- identifier Prelude.False `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
         return $ MethodNode id args pos
 
 mewMethod =
     do
         pos <- getSourcePos
-        id <- identifier
+        id <- identifier Prelude.False
         spaces *> Text.Megaparsec.Char.string "?" <* spaces
         cond <- expr
         spaces
@@ -738,7 +742,7 @@ classStmnt =
         pos <- getSourcePos
         keyword Class
         mspaces
-        id <- identifier
+        id <- identifier Prelude.False
         spaces *> Text.Megaparsec.Char.string ":" <* spaces
         args <- expr `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
         mnewlines
