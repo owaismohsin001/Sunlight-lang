@@ -20,6 +20,9 @@ open empty: ls
 empty ? [] = ls -> true
 empty ? [] /= ls -> false
 
+open fmap: f, xs
+fmap ? xs@SltList -> map: f, xs
+
 map: f, xs <- every xs is f: x
 filter: f, xs <- every xs is x if f: x
 len: ls <- fold: \a, b -> b+1, 0, ls

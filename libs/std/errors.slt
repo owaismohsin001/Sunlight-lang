@@ -7,8 +7,8 @@ class getSome: mb, d
 mb@Some -> mb.a;
 mb@None -> d;
 
-map_and_filter ? xs@Some -> some: if rf: xs.a then mf: xs.a else xs.a
-map_and_filter ? xs@None -> None
+fmap ? xs@Some -> some: f: xs.a
+fmap ? xs@None -> None
 
 glance ? s@Some -> some: glance: fi, i, s.a
 glance ? s@None -> None
@@ -35,8 +35,8 @@ class getLeft: et, d
 et@Right -> d
 et@Left -> et.l;
 
-map_and_filter ? xs@Right -> right: if rf: xs.r then mf: xs.r else xs.r
-map_and_filter ? xs@Left -> left: if rf: xs.l then mf: xs.l else xs.l
+fmap ? xs@Right -> f: xs.r
+fmap ? xs@Left -> xs
 
 seq ? f@Right and a@Right -> right: f.r: a.r
 seq ? f@Left and a@Left -> left: f.l: a.l
