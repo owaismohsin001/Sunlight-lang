@@ -7,6 +7,10 @@ take ? ls@SltList and n < 1 -> []
 take ? [] = ls and n < 1 -> []
 take ? ls@SltList -> [head: ls] .. take: n-1, tail: ls;
 
+open last: s
+last ? (tail: s)@SltNum -> head: s
+last ? s@SltList -> last: tail: s
+
 open fold: f, i, xs
 fold ? [] = xs -> i
 fold ? xs@SltList -> f: (head: xs), fold: f, i, tail: xs

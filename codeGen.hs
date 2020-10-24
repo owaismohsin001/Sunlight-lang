@@ -30,7 +30,7 @@ handlebinOp l "<=" r pos = "((" ++ generate l ++ ")" ++ ":lte(" ++ generate r ++
 handlebinOp l ".." r pos = "((" ++ generate l ++ ")" ++ ":concat(SltThunk.create(function() return " ++ generate r ++ " end)))"
 handlebinOp l "@" r pos = "((" ++ generate l ++ ")" ++ ":isType(" ++ generate r ++ "))"
 handlebinOp l "." r pos = "(((" ++ generate l ++ ")" ++ ":getProperty(" ++ generate r ++ "))())"
-handlebinOp l op r pos = "(" ++ generate l ++ ")" ++ op ++ "(" ++ generate r ++ ")"  
+handlebinOp l op r pos = "((" ++ generate l ++ ")" ++ op ++ "(" ++ generate r ++ "))"  
 
 handleUnaryOp "-" e = "(" ++ generate e ++ ":neg())"
 handleUnaryOp "not" e = "(" ++ generate e ++ ":notted())"
@@ -67,9 +67,9 @@ generate (CallNode f args _) =
 generate (DeclNode lhs rhs pos) = generateLhs lhs ++ " = " ++ evalRhs where
     evalRhs =
         case lhs of
-            TupleNode ts _ -> "SltValue.unwrap(" ++ generate rhs ++ ", " ++ show (length ts) ++ ")"
-            DeStructure ds _ -> "SltValue.destructure(" ++ generate rhs ++ ", " ++ show (length ds) ++ ")"
-            IdentifierNode{} -> "SltThunk.create(function() return " ++ generate rhs ++ " end)"
+            TupleNode ts _ -> "(SltValue.unwrap(" ++ generate rhs ++ ", " ++ show (length ts) ++ "))"
+            DeStructure ds _ -> "(SltValue.destructure(" ++ generate rhs ++ ", " ++ show (length ds) ++ "))"
+            IdentifierNode{} -> "(SltThunk.create(function() return " ++ generate rhs ++ " end))"
 generate (FuncDefNode _ args expr pos) = 
     fun
     where

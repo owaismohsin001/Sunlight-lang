@@ -10,10 +10,8 @@ unedit ? i < 1 -> []
 unedit ? s@SltList and i@SltNum -> if fi: i then [head: s] .. unedit: (tail: s), i+1, fi, uf else [uf: head: s] .. unedit: (tail: s), i+1, fi, uf
 
 open access: i, s
-access ? [] = s -> None
-access ? i < 1 and s@SltList -> None
-access ? i = 1 and s@SltList -> some: head: s
-access ? s@SltList -> (i-1) access (tail: s)
+access ? s@SltList and [] = s -> None
+access ? s@SltList -> some: last: take: i, s
 
 change: s, i, uf <- unedit: s, 1, \x /= i, uf
 view: i, s <- (glance: \x /= i, 1, s)[1]
