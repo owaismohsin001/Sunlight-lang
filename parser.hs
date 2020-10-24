@@ -380,7 +380,7 @@ parens =
     do
         Text.Megaparsec.Char.string "("
         spaces
-        e <- expr
+        e <- whereExpr
         spaces
         char ')'
         return e
