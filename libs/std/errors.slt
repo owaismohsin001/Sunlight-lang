@@ -40,7 +40,7 @@ fmap ? xs@Left -> xs
 
 seq ? f@Right and a@Right -> right: f.r: a.r
 seq ? f@Left and a@Left -> left: f.l: a.l
-seq ? f@Left and a@Right or f@Left and a@Right -> a
+seq ? f@Left or a@Right -> a
 
 unedit ? s@Right -> right: unedit: s.r, i, fi, uf
 unedit ? s@Left -> left: unedit: s.l, i, fi, uf
