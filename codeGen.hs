@@ -84,7 +84,7 @@ generate (UnaryExpr op e _) = handleUnaryOp op e
 generate (DataNode n _) = "\"" ++ n ++ "\""
 generate (SumTypeNode ds _) = intercalate "\n" (map generate ds)
 generate (WhereNode exp ds _) = 
-    "SltFunc.create(function() \n" ++ fDecls ++ intercalate ";\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " end)()" where
+    "(function() \n" ++ fDecls ++ intercalate ";\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " end)()" where
         fDecls = intercalate ";\n" (map fDeclare ds)
 generate strct@(StructDefNode id table ov pos) = 
     generateLhs id ++ " = " ++ struct

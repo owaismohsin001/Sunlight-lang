@@ -11,8 +11,6 @@ import Data.List
 import Debug.Trace
 import Text.Megaparsec as P
 
-import System.IO.Unsafe
-
 strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
 
 remIncludes =
@@ -62,7 +60,7 @@ run fstr fn =
                     Left e -> Left $ P.errorBundlePretty e
                     Right n -> Right $ mergeMultipleNode n
         case DefCheck.checkDefinitions tnd Nothing of
-            Right n -> writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ "\n\noutErr(out)"
+            Right n -> writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\nout():getOutput()"
             Left str -> putStrLn str
 
 runFile fn =
@@ -76,5 +74,3 @@ main =
         let fn = head args
         f <- readFile fn
         run f fn
-
-test = parseTest (Parser.decls []) s where s = unsafePerformIO $ readFile "main.slt"

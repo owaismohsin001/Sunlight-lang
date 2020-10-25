@@ -37,9 +37,10 @@ SltValue = {
           __call = SltValueCall;
       };
       type_ = "Value";
+
       add = function(this, other)
         error(SltError.create("TypeError", "Cannot add " .. this.type_ .. " to " .. other.type_, this))
-       end;
+      end;
 
       tail = function(this) 
         error(SltError.create("TypeError", "Cannot get the tail of " .. this.type_ , this)) 
@@ -91,6 +92,10 @@ SltValue = {
 
       gt = function(this, other)
         error(SltError.create("TypeError", "Cannot quantify " .. this.type_ .. " and " .. other.type_ .. " with appropriate quantities for '>'", this))
+      end;
+
+      getOutput = function(this)
+        io.write(tostring(this))
       end;
 
       gte = function(this, other)
@@ -145,11 +150,6 @@ SltValue = {
 
       toString = function(this)
         error(SltError.create("TypeError", "Can't print Value as a string " .. this.type_, this))
-      end;
-
-      getOutput = function(this)
-        print("TypeError: " .. this.type_ .. " cannot be used as output, use a list instead")
-        os.exit()
       end;
 
       locate = function(this, loc)
@@ -219,6 +219,10 @@ function make_iterable(set)
   return iterable
 end
 
+function contains(set, key)
+  return set[key] ~= nil
+end
+
 SltList = {}
 SltList.__index = SltValue
 
@@ -279,7 +283,7 @@ SltList.create = function(head, tail, loc)
     local other_seq = make_iterable(other.toList(other))
     for k, v in pairs(this_seq) do
       if not contains(other_seq, k) then return SltBool.create(false, this.loc) end
-      if not v.equaled(v, other_seq[k]).value then return SltBool.create(false, his.loc) end
+      if not v:eq(other_seq[k]).value then return SltBool.create(false, this.loc) end
     end
     return SltBool.create(true, this.loc)
   end;
@@ -293,10 +297,21 @@ SltList.create = function(head, tail, loc)
     return this
   end
 
-  this.getOutput = function(this)
+  this.getOutput = function(this, whole)
     local output = this
+    if whole then 
+      io.write("[")
+      while output.type_ == "SltList" do
+        output:head():getOutput(true)
+        io.write(", ")
+        output = output:tail()
+      end
+      io.write("]")
+      return
+    end
     while output.type_ == "SltList" do
-      print(output:head():toString())
+      output:head():getOutput(true)
+      print("\n\n")
       output = output:tail()
     end
     return
@@ -315,38 +330,6 @@ SltList.create = function(head, tail, loc)
       __mul = SltValue.mul;
       __div = SltValue.div;  
       __tostring = toString;
-  })
-  return this
-end
-
-SltEmptyList = {}
-SltEmptyList.__index = SltList
-function SltEmptyList.create(pos)
-  this = SltList.create(
-    function(this) return error(SltError.create("IndexError", "Head of an empty list is impossible", this)) end, 
-    function(this) return SltEmptyList.create(pos) end, 
-    pos
-  ) 
-  this.type_ = "SltList"
-  this.isEmpty = true
-  this.loc = pos
-
-  this.concat = function(this, other)
-    return copy(other())
-  end
-
-  this.eq = function(this, other) return SltBool.create(other.isEmpty == nil) end
-  this.neq = function(this, other) return SltBool.create(other.isEmpty ~= nil) end
-
-  setmetatable(this, {
-    __index = SltValue;
-    __call = SltValueCall;
-    __unum = SltValue.neg;
-    __add = SltValue.add;
-    __sub = SltValue.sub;
-    __mul = SltValue.mul;
-    __div = SltValue.div;
-    __tostring = function(_) return "[]" end
   })
   return this
 end
@@ -547,6 +530,8 @@ function SltThunk.create(fun)
   this.fun = fun;
   this.value = nil;
 
+  toString = function(this) return "SltThunk" end
+  
   setmetatable(this, {
     __index = SltValue;
     __call = function(this)
@@ -762,7 +747,7 @@ function  SltFunc.create(fun, loc)
 
   setmetatable(this, {
     __index = SltValue;
-    __call = function(this, a) return this.fun(a) end;
+    __call = function(this, a, b) return this.fun(a, b) end;
     __add = SltValue.add;
     __sub = SltValue.sub;
     __mul = SltValue.mul;
