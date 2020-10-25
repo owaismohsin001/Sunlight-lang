@@ -3,8 +3,8 @@ map_and_filter ? [] = xs -> []
 map_and_filter ? xs@SltList -> if rf: head: xs then [mf: head: xs] .. map_and_filter: mf, rf, tail: xs else map_and_filter: mf, rf, (tail: xs)
 
 open take: n, ls
-take ? ls@SltList and n < 1 -> []
-take ? [] = ls and n < 1 -> []
+take ? ls@SltList and n <= 1 -> []
+take ? [] = ls or n < 1 -> []
 take ? ls@SltList -> [head: ls] .. take: n-1, tail: ls;
 
 open last: s

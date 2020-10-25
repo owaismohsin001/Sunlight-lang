@@ -3,6 +3,9 @@ type Maybe <- Some{a} | None
 seq ? f@Some and a@Some -> some: f.a: a.a
 seq ? f@None or a@None -> a
 
+bind ? s@Some -> f: s.a
+bind ? s@None -> None
+
 class getSome: mb, d
 mb@Some -> mb.a;
 mb@None -> d;
@@ -37,6 +40,9 @@ et@Left -> et.l;
 
 fmap ? xs@Right -> f: xs.r
 fmap ? xs@Left -> xs
+
+bind ? s@Left -> s.l
+bind ? s@Right -> f: s.r
 
 seq ? f@Right and a@Right -> right: f.r: a.r
 seq ? f@Left and a@Left -> left: f.l: a.l
