@@ -1,5 +1,7 @@
 This functional progamming language compiles to lua, it has thge philosophy of being structured. Structured doesn't nessacarily mean typed, but every piece of data must have some structure to it. This is where we put utmost focus of our language on structs as it allow data to be organized in a very flexible way.
 
+(Note: For installation, remember to add [this file](https://github.com/ameerwasi001/Hashing-Lua/blob/main/hashLib.lua) to download repository)
+
 # Data structues
 This language has a few data structures and has tools for you to create whatever else you desire using them as the base. Following are the built-in data structures, this language offers
 
