@@ -1,3 +1,5 @@
+hash = require("hashLib")
+
 function SltValueCall(this, ...)
     return error(SltError.create("Type Error", "Can't call a value of type " .. this.type_, this))
 end
@@ -111,6 +113,14 @@ SltValue = {
       end;
 
       isEmpty = true;
+      hashAble = false;
+
+      uCount = 0;
+
+      getHash = function(this)
+        this.uCount = this.uCount + 1
+        return "Unhasable" ..  this.type_ .. tostring(uCount)
+      end;
 
       ored = function(this, other)
         error(SltError.create("TypeError", "Can't make 'or' of " .. this.type_ .. " and " .. other.type_, this))
@@ -617,6 +627,7 @@ SltNum.__index = SltValue
 function SltNum.create(num, location)
   local this = {}
   this.type_ = "SltNum";
+  this.hashAble = true;
   this.loc = location;
   this.value = num;
 
@@ -642,6 +653,8 @@ function SltNum.create(num, location)
     end
     return SltNum.create(this.value / other.value):locate(this.loc)
   end;
+
+  this.getHash = function(this) return hash.sha1(tostring(this.value)) .. "IsANumber" end
 
   this.neg = function(this)
     return SltNum.create(this.value * -1):locate(this.loc)
@@ -699,6 +712,7 @@ SltString.__index = SltValue
 function SltString.create(str, loc)
   local this = {}
   this.type_ = "SltString"
+  this.hashAble = true
   this.value = str
   this.loc = loc
 
@@ -706,6 +720,8 @@ function SltString.create(str, loc)
     SltValue.sameTypes(this, other, SltValue.concat)
     return SltString.create(this.value .. other.value)
   end
+
+  this.getHash = function(this) return hash.sha1(tostring(this.value)) .. "IsAString" end
 
   this.eq = function(this, other)
     return SltBool.create(this.value == other.value, this.loc)
@@ -734,6 +750,7 @@ function  SltFunc.create(fun, loc)
   local this = {}
   this.fun = fun;
   this.type_ = "SltFunc";
+  this.values = {};
   this.loc = loc
 
   this.locate = function(this, location) return locate(this, location) end;
@@ -745,9 +762,21 @@ function  SltFunc.create(fun, loc)
   this.eq = function(this, other) return SltBool.create(false, this.loc) end
   this.neq = function(this, other) return SltBool.create(true, this.loc) end
 
+  this.getValue = function(this, arg)
+    if arg().hashAble then return this.values[arg():getHash()] end
+    return nil
+  end
+
   setmetatable(this, {
     __index = SltValue;
-    __call = function(this, a, b) return this.fun(a, b) end;
+    __call = function(this, a, b)
+      if a.type_ == nil then return this.fun(a, b) end
+      val = this:getValue(a)
+      if val ~= nil then return val end
+      res = this.fun(a)
+      this.values[a():getHash()] = res
+      return res
+    end;
     __add = SltValue.add;
     __sub = SltValue.sub;
     __mul = SltValue.mul;
