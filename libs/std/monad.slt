@@ -1,1 +1,2 @@
 open bind: s, f
+bind ? s@SltList -> (fold: (\a, b -> a .. b), (head: ls), tail: ls where ls <- fmap: f, s end)
