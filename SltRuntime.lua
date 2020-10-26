@@ -350,6 +350,7 @@ function SltTuple.create(tp, loc)
   local this = {}
   this.type_ = "SltTuple"
   this.value = tp
+  this.hashAble = true
   this.loc = loc
 
   this.checkLength = function(this, length)
@@ -373,6 +374,10 @@ function SltTuple.create(tp, loc)
       if v:neq(other.value[i]):is_true() then return bool_false end
     end
     return main_bool
+  end
+
+  this.getHash = function(this)
+    return table.concat(map(this.value, function(v) return v():getHash() end), "NexT") .. "IsATuple"
   end
 
   this.neq = function(this, other)

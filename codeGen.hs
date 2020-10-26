@@ -67,8 +67,8 @@ generate (CallNode f args _) =
 generate (DeclNode lhs rhs pos) = generateLhs lhs ++ " = " ++ evalRhs where
     evalRhs =
         case lhs of
-            TupleNode ts _ -> "(SltValue.unwrap(" ++ generate rhs ++ ", " ++ show (length ts) ++ "))"
-            DeStructure ds _ -> "(SltValue.destructure(" ++ generate rhs ++ ", " ++ show (length ds) ++ "))"
+            TupleNode ts _ -> "SltValue.unwrap(" ++ generate rhs ++ ", " ++ show (length ts) ++ ")"
+            DeStructure ds _ -> "SltValue.destructure(" ++ generate rhs ++ ", " ++ show (length ds) ++ ")"
             IdentifierNode{} -> "(SltThunk.create(function() return " ++ generate rhs ++ " end))"
 generate (FuncDefNode _ args expr pos) = 
     fun
