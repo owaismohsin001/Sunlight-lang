@@ -6,12 +6,5 @@ let content = client.getContent("https://raw.githubusercontent.com/ameerwasi001/
 
 writeFile("hashLib.lua", content)
 
-discard execCmd "cabal install megaparsec"
-discard execCmd "cabal install text"
-discard execCmd "cabal install hashable"
-
-discard execCmd "cabal install megaparsec --lib"
-discard execCmd "cabal install text --lib"
-discard execCmd "cabal install hashable --lib"
-
+discard execCmd "cabal install"
 discard execCmd "cabal repl"
