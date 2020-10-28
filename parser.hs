@@ -88,14 +88,15 @@ data Node =
     | FuncDefNode (Maybe Node) [Node] Node SourcePos
     | MethodNode Node [Node] SourcePos
     | NewMethodNode Node Node Node SourcePos
-    | StructInstanceNode Node [Node] SourcePos
-    | StructDefNode Node [Node] (Maybe Node) SourcePos
+    | StructInstanceNode Node [Node] Bool SourcePos
+    | StructDefNode Node [Node] Bool (Maybe Node) SourcePos
     | SumTypeNode [Node] SourcePos
     | DeStructure [Node] SourcePos
     | DataNode String SourcePos
     | BoolNode String SourcePos
     | FromStruct Node
     | WhereNode Node [Node] SourcePos
+    | StrictNode Node
     | MultipleDefinitionNode [Node]
     deriving (Eq)
 
@@ -122,15 +123,16 @@ instance Show Node where
     show (UnaryExpr u n _) = "(" ++ u ++ " " ++ show n ++ ")"
     show (DataNode n _) = n
     show (FromStruct n) = "FromStruct: " ++ show n
-    show (StructDefNode id ls ov _) = show id ++ "{" ++ intercalate "; " (map show ls) ++ "}" ++ decCase 
+    show (StructDefNode id ls st ov _) = isStrict st ++ show id ++ "{" ++ intercalate "; " (map show ls) ++ "}" ++ decCase 
         where
             decCase =
                 case ov of
                     Just a -> " -> " ++ show a
                     Nothing -> ""
+            isStrict a = if a then "!" else ""
 
     show (SumTypeNode ds _) = intercalate " | " (map show ds)
-    show (StructInstanceNode id ls _) = show id ++ "{" ++ intercalate "; " (map show ls) ++ "}"
+    show (StructInstanceNode id ls _ _) = show id ++ "{" ++ intercalate "; " (map show ls) ++ "}"
     show (DeStructure ds _) = "{" ++ intercalate ", " (map show ds) ++ "}"
     show (MethodNode id args _) = "open " ++ show id ++ "(" ++ intercalate ", " (map show args) ++ ")"
     show (NewMethodNode id ce te _) = 
@@ -150,7 +152,7 @@ extractList (ListNode ls _) = ls
 extractList (ProgramNode ls _) = ls
 
 extractDecl (IdentifierNode id _) = id
-extractStructInstance (StructInstanceNode id ls _) = (id, ls)
+extractStructInstance (StructInstanceNode id ls _ _) = (id, ls)
 
 type Parser = Parsec Void String
 
@@ -260,8 +262,8 @@ structInstanceExpr =
                 Text.Megaparsec.Char.string "{"
                 ls <- seqInstance
                 Text.Megaparsec.Char.string "}"
-                return $ StructInstanceNode id ls pos
-            ) <|> return (StructInstanceNode id [] pos)
+                return $ StructInstanceNode id ls Prelude.False pos
+            ) <|> return (StructInstanceNode id [] Prelude.False pos)
     where
         seqInstance = commaSep seqPair
         seqPair =
@@ -467,41 +469,50 @@ structDef =
                 pos <- getSourcePos
                 sts <- structInstanceExpr `sepBy1` 
                     try (spaces *> newlines *> spaces *> Text.Megaparsec.Char.string "|" <* spaces <* newlines <* spaces)
-                let ls = zip (map extractMId sts) (map extractIds sts)
-                let defs = map (\(id, xs) -> StructDefNode id xs (Just overarch) pos) ls
+                let ls = zip3 (map extractMId sts) (map extractIds sts) (map extractStrict sts)
+                let defs = map (\(id, xs, stct) -> StructDefNode id xs stct (Just overarch) pos) ls
                 let fdefs = map makeFun defs
                 return $ MultipleDefinitionNode $ SumTypeNode defs pos : fdefs
 
         lowId (DataNode id pos) = IdentifierNode (map toLower id) pos
         lowId (IdentifierNode id pos) = IdentifierNode (map toLower id) pos
-        makeFun (strct@(StructDefNode id xs _ pos)) = 
+        makeFun (strct@(StructDefNode id xs _ _ pos)) = 
             FromStruct $ DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) pos) pos
 
-        instantiate rhss (StructDefNode id lhss _ pos) = StructInstanceNode id (zipWith (\a b -> DeclNode a b pos) rhss lhss) pos 
+        instantiate rhss (StructDefNode id lhss b _ pos) = StructInstanceNode id (zipWith (\a b -> DeclNode a b pos) rhss lhss) b pos 
 
-        extractIds strct@(StructInstanceNode _ ls _) = snd (extractStructInstance strct)
+        extractIds strct@(StructInstanceNode _ ls _ _) = snd (extractStructInstance strct)
 
-        extractMId strct@(StructInstanceNode id _ _) = id
+        extractMId strct@(StructInstanceNode id _ _ _) = id
+
+        extractStrict strct@(StructInstanceNode _ _ stct _) = stct
 
         fields id pos =
             do
                 ls <- Text.Megaparsec.Char.string "{" *> commaSep (identifier Prelude.False) <* Text.Megaparsec.Char.string "}"
-                let stDef = StructDefNode id ls Nothing pos
+                let stDef = StructDefNode id ls Prelude.False Nothing pos
                 let fDef = makeFun stDef
                 return $ MultipleDefinitionNode $ stDef : [fDef]
 
         structInstanceExpr = 
-            do
-                pos <- getSourcePos
-                id <- dataName
-                try (
+            se <|> e where 
+                se =
                     do
-                        Text.Megaparsec.Char.string "{"
-                        ls <- seqInstance
-                        Text.Megaparsec.Char.string "}"
-                        return $ StructInstanceNode id ls pos
-                    ) <|> return (StructInstanceNode id [] pos)
-            where
+                        pos <- getSourcePos
+                        Text.Megaparsec.Char.string "!" <* spaces 
+                        ins <- structInstanceExpr
+                        return $ StructInstanceNode (extractMId ins) (extractIds ins) Prelude.True pos
+                e =
+                    do
+                        pos <- getSourcePos
+                        id <- dataName
+                        try (
+                            do
+                                Text.Megaparsec.Char.string "{"
+                                ls <- seqInstance
+                                Text.Megaparsec.Char.string "}"
+                                return $ StructInstanceNode id ls Prelude.False pos
+                            ) <|> return (StructInstanceNode id [] Prelude.False pos)
                 seqInstance = commaSep seqPair
                 seqPair =
                     do
@@ -556,16 +567,16 @@ modStmnt =
         differLhs mn (DataNode id pos) = DataNode (extractString mn ++ "__" ++ id) pos
         differLhs mn (TupleNode ts pos) = TupleNode (map (differLhs mn) ts) pos
         differLhs mn (DeclNode lhs rhs pos) = DeclNode (differLhs mn lhs) (changeFun mn rhs) pos
-        differLhs mn (StructDefNode id x (Just o) pos) = StructDefNode (differLhs mn id) x (Just $ differLhs mn o) pos
-        differLhs mn (StructDefNode id x Nothing pos) = StructDefNode (differLhs mn id) x Nothing pos
+        differLhs mn (StructDefNode id x st (Just o) pos) = StructDefNode (differLhs mn id) x st (Just $ differLhs mn o) pos
+        differLhs mn (StructDefNode id x stct Nothing pos) = StructDefNode (differLhs mn id) x stct Nothing pos
         differLhs mn (DeStructure ids pos) = DeStructure (map (differLhs mn) ids) pos
         differLhs mn (SumTypeNode ds pos) = SumTypeNode (map (differLhs mn) ds) pos
         differLhs mn (MethodNode id args pos) = MethodNode (differLhs mn id) args pos
         differLhs mn (MultipleDefinitionNode ds) = MultipleDefinitionNode $ map (differLhs mn) ds
-        differLhs mn (FromStruct (DeclNode lhs (FuncDefNode (Just id) args (StructInstanceNode sid sargs spos) pos) dpos)) =
+        differLhs mn (FromStruct (DeclNode lhs (FuncDefNode (Just id) args (StructInstanceNode sid sargs b spos) pos) dpos)) =
             FromStruct $ 
                 DeclNode (differLhs mn lhs) 
-                (FuncDefNode (Just $ differLhs mn id) args (StructInstanceNode (differLhs mn sid) sargs spos) pos) 
+                (FuncDefNode (Just $ differLhs mn id) args (StructInstanceNode (differLhs mn sid) sargs b spos) pos) 
                 dpos
         differLhs mn nm@NewMethodNode{} = nm
         differLhs _ a = error(show a ++ "\n")

@@ -26,11 +26,11 @@ define ds (DataNode id pos) = ds ++ [StringPos id pos]
 define ds (TupleNode t _) = concatMap (define ds) t
 define ds (ProgramNode ns _) = concatMap (define ds) ns
 define ds (DeclNode lhs _ _) = define ds lhs
-define ds (StructDefNode id _ (Just (DataNode o dtpos)) pos) = define ds id ++ [StringPos o dtpos]
-define ds (StructDefNode id _ Nothing _) = define ds id
+define ds (StructDefNode id _ _ (Just (DataNode o dtpos)) pos) = define ds id ++ [StringPos o dtpos]
+define ds (StructDefNode id _ _ Nothing _) = define ds id
 define ds (DeStructure dcs _) = concatMap (define ds) dcs
 define ds (SumTypeNode (dc:dcs) pos) = 
-    define ds dc ++ concatMap (define ds) (map (\(StructDefNode id args ov pos) -> StructDefNode id args Nothing pos) dcs)
+    define ds dc ++ concatMap (define ds) (map (\(StructDefNode id args b ov pos) -> StructDefNode id args b Nothing pos) dcs)
 define ds (SumTypeNode a _) = define ds (head a)
 define ds (MethodNode id _ _) = define ds id 
 define ds NewMethodNode{} = ds
@@ -107,9 +107,9 @@ isDefined sc (IfNode ce te ee _) = isDefined sc ce |>> isDefined sc te |>>
 isDefined sc (SequenceIfNode ns _) = verify $ map (isDefined sc) ns
 isDefined sc (ListNode ns _) = verify $ map (isDefined sc) ns
 isDefined sc (TupleNode ts _) = verify $ map (isDefined sc) ts
-isDefined sc (StructInstanceNode id args _) = 
+isDefined sc (StructInstanceNode id args _ _) = 
     isDefined sc id |>> verify (map (isDefined sc) args)
-isDefined sc (StructDefNode id args mov _) = 
+isDefined sc (StructDefNode id args _ mov _) = 
     case mov of
         Nothing -> Right ()
         Just ov -> isDefined sc ov
@@ -149,9 +149,9 @@ usedVars st (IfNode ce te ee _) = usedVars st ce `Set.union` usedVars st te `Set
 usedVars st (SequenceIfNode ns _) =  st `reduceSets` ns
 usedVars st (ListNode ns _) = st `reduceSets` ns
 usedVars st (TupleNode ts _) = st `reduceSets` ts
-usedVars st (StructInstanceNode id args _) = 
+usedVars st (StructInstanceNode id args _ _) = 
     usedVars st id `Set.union` (st `reduceSets` args)
-usedVars st (StructDefNode id args mov _) = 
+usedVars st (StructDefNode id args _ mov _) = 
     case mov of
         Nothing -> st
         Just ov -> usedVars st ov

@@ -13,7 +13,7 @@ fDeclare (DataNode id _) = "local " ++ id ++ ";\n"
 fDeclare (TupleNode t _) = intercalate "" $ map fDeclare t
 fDeclare (ProgramNode ns _) = intercalate "" $ map fDeclare ns
 fDeclare (DeclNode lhs _ _) = fDeclare lhs 
-fDeclare (StructDefNode id _ _ _) = "local " ++ generateLhs id ++ ";\n"
+fDeclare (StructDefNode id _ _ _ _) = "local " ++ generateLhs id ++ ";\n"
 fDeclare (SumTypeNode ds _) = intercalate "" $ map fDeclare ds
 fDeclare (DeStructure ds _) = intercalate "" $ map fDeclare ds
 fDeclare a = "> " ++ show a ++ "\n\n"
@@ -86,7 +86,7 @@ generate (SumTypeNode ds _) = intercalate "\n" (map generate ds)
 generate (WhereNode exp ds _) = 
     "(function() \n" ++ fDecls ++ intercalate ";\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " end)()" where
         fDecls = intercalate ";\n" (map fDeclare ds)
-generate strct@(StructDefNode id table ov pos) = 
+generate strct@(StructDefNode id table b ov pos) = 
     generateLhs id ++ " = " ++ struct
     where 
         ident = generateLhs id
@@ -97,9 +97,10 @@ generate strct@(StructDefNode id table ov pos) =
                 Nothing -> "nil, "
         struct =
             "SltFunc.create(function(tb, loc)" ++ " return " ++
-            "SltStruct.create(\"" ++ ident ++ "\", " ++ inheritance ++ argTable ++ ", tb, loc) end, " ++ luaPos pos ++")"
+            "SltStruct.create(\"" ++ ident ++ "\", " ++ inheritance ++ argTable ++ ", " ++ makeBool b ++", tb, loc) end, " ++ luaPos pos ++")"
+        makeBool b = if b then "true" else "false" 
 
-generate (StructInstanceNode id ls pos) = 
+generate (StructInstanceNode id ls _ pos) = 
     generateLhs id ++ "({" ++ intercalate "; " (map generate ls) ++ "}, " ++ luaPos pos ++ ")"
 
 runGenerator :: Either String Node -> String 
