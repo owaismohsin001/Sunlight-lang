@@ -1,5 +1,7 @@
 hash = require("hashLib")
 
+uCount = 0
+
 function SltValueCall(this, ...)
     return error(SltError.create("Type Error", "Can't call a value of type " .. this.type_, this))
 end
@@ -115,10 +117,8 @@ SltValue = {
       isEmpty = true;
       hashAble = false;
 
-      uCount = 0;
-
       getHash = function(this)
-        this.uCount = this.uCount + 1
+        uCount = uCount + 1
         return "Unhasable" ..  this.type_ .. tostring(uCount)
       end;
 

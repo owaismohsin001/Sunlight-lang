@@ -101,7 +101,7 @@ generate strct@(StructDefNode id table b ov pos) =
         makeBool b = if b then "true" else "false" 
 
 generate (StructInstanceNode id ls _ pos) = 
-    generateLhs id ++ "({" ++ intercalate "; " (map generate ls) ++ "}, " ++ luaPos pos ++ ")"
+    "(" ++ generateLhs id ++ "({" ++ intercalate "; " (map generate ls) ++ "}, " ++ luaPos pos ++ "))"
 
 runGenerator :: Either String Node -> String 
 runGenerator (Left e) = e
