@@ -460,6 +460,15 @@ function SltStruct.create(name, overarch, keys, canHash, tb, loc)
     return this
   end
 
+  this.getHash = function(this)
+    local init = hash.sha1(this.type_)
+    local ls = ""
+    for k, v in pairs(this.table) do
+      ls = ls .. hash.sha1(k) .. "-to-" .. v():getHash()
+    end
+    return ls .. "From" .. hash.sha1(this.overarch)
+  end
+
   this.eq = function(this, other)
     function eq_struct(ta, tb)
       if len(ta) ~= len(tb) then return SltBool.create(false) end
@@ -780,7 +789,9 @@ function  SltFunc.create(fun, loc)
       val = this:getValue(a)
       if val ~= nil then return val end
       res = this.fun(a)
-      this.values[a():getHash()] = res
+      if a().hashAble then
+        this.values[a():getHash()] = res
+      end
       return res
     end;
     __add = SltValue.add;
