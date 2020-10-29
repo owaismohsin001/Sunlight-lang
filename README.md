@@ -1,6 +1,6 @@
 This functional progamming language compiles to lua, it has thge philosophy of being structured. Structured doesn't nessacarily mean typed, but every piece of data must have some structure to it. This is where we put utmost focus of our language on structs as it allow data to be organized in a very flexible way.
 
-(Note: For installation, remember to add [this file](https://github.com/ameerwasi001/Hashing-Lua/blob/main/hashLib.lua) to download repository)
+(Note: For installation, remember to run setup.nim or add [this file](https://github.com/ameerwasi001/Hashing-Lua/blob/main/hashLib.lua) to download repository)
 
 # Data structues
 This language has a few data structures and has tools for you to create whatever else you desire using them as the base. Following are the built-in data structures, this language offers
@@ -121,10 +121,24 @@ both of which ouput
 ## Infix calls
 The aforemention `add` function can also be used like
 ```
-1 `add` 2
+1 add 2
 ```
-which would yeild exactly what you expet, `3`.
-
+which would yeild exactly what you expet, `3`. By default these are right associative, for example this would result in
+```
+sub: a, b <- a-b
+5 sub 2 sub 1
+```
+and result in `4` but you can make it left associative by instead making the call as
+```
+5 sub' 2 sub' 1
+```
+which would as expected return `2`.
+# Optional strictness
+By default all values in Sunlight are lazy but you can have strcit(they don't get full imediately evaluated, but they do get evaluated as soon as) values by creating strict types, these will nessacarily be memoized by all functions, they may or may not be wrappers
+```
+type SMaybe <- !Just{a} | !Nothing
+```
+This can both positively and negatively impact the performance of values of a certain types since memoization can be both bad and good.
 # Multiple files
 There are ways to use multiple files in a project, when using Sunlight-lang. This is the way to include standard library and use defined libraries, and it is
 ```
@@ -148,7 +162,8 @@ That's about it, for the actual language because most of the properties of this 
 Avalible std modules currently are
 `errors.slt`,
 `traversable.slt`,
-`access.slt`
+`access.slt`,
+`monads.slt`
 
 # Error Handling
 (From `errors.slt`)
@@ -229,5 +244,16 @@ In statically typed functional languages like Haskell, there's a `fmap` for modi
 ## Instansiation of these functions
 All of these functions are `open` and can be extened except for `map` and `filter` which are mere specifications of `map_and_filter`. So, in order for you to use these functions for your own data structures, just define these by the use fo aforementioned open method syntax.
 
+# Sequencing
+(From `monads.slt`)
+There's sequencing in the stanard library, it let's you chain certain evaluations/actions one after another with intermediate actions while creating. This is done by using bind, like this
+```
+out <- Some{a :: [11, 5, 0, 4]} bind (\a -> a[2] bind (\b -> some: a .. [b*2]))
+```
+which returns `Some{a :: [11, 5, 0, 4, 10]}`. You can quite obviously define your own types that work like, for instance `Maybe` is defined like this
+```
+bind ? s@Some -> f: s.a
+bind ? s@None -> None
+```
 # Thank You
 Thanks for reading through, hope you enjoy playing around Sunlight-Lang. Since this language is still in it's pre-alpha stage, make sure that you report bugs if you find them.
