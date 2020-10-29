@@ -466,7 +466,7 @@ function SltStruct.create(name, overarch, keys, canHash, tb, loc)
     for k, v in pairs(this.table) do
       ls = ls .. hash.sha1(k) .. "-to-" .. v():getHash()
     end
-    return ls .. "From" .. hash.sha1(this.overarch)
+    return ls .. "From" .. hash.sha1(this.overarch or "NoOverArch")
   end
 
   this.eq = function(this, other)

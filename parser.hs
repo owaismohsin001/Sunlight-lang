@@ -462,7 +462,7 @@ structDef =
         spaces
         Text.Megaparsec.Char.string "<-"
         spaces
-        fields id pos <|> structs id
+        try (structs id) <|> fields id pos
     where
         structs overarch =
             do
@@ -488,11 +488,13 @@ structDef =
         extractStrict strct@(StructInstanceNode _ _ stct _) = stct
 
         fields id pos =
-            do
-                ls <- Text.Megaparsec.Char.string "{" *> commaSep (identifier Prelude.False) <* Text.Megaparsec.Char.string "}"
-                let stDef = StructDefNode id ls Prelude.False Nothing pos
-                let fDef = makeFun stDef
-                return $ MultipleDefinitionNode $ stDef : [fDef]
+            fe where
+                fe = do
+                        a <- (Text.Megaparsec.Char.string "!" <* spaces) <|> Text.Megaparsec.Char.string ""
+                        ls <- Text.Megaparsec.Char.string "{" *> commaSep (identifier Prelude.False) <* Text.Megaparsec.Char.string "}"
+                        let stDef = StructDefNode id ls (a /= "") Nothing pos
+                        let fDef = makeFun stDef
+                        return $ MultipleDefinitionNode $ stDef : [fDef]
 
         structInstanceExpr = 
             se <|> e where 
