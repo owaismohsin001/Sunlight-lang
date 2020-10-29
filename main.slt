@@ -7,7 +7,7 @@ fcx: f <- \f, x -> change: x, 1, f <| \f, x -> change: x, 2, f <| f
 mdLs <- \f -> change: a, 2, f <| fcx <| f
 
 mod Shapes
-    type Shape <- Circle{r} | Square{e}
+    type Shape <- !Circle{r} | !Square{e}
     class getV: s
     s@Shapes::Circle -> s.r*2
     s@Shapes::Square -> s.e*2
