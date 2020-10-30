@@ -8,6 +8,7 @@ import MergeDefs
 import System.Exit
 import System.Environment   
 import Data.List
+import qualified Data.Set as Set
 import Debug.Trace
 import Text.Megaparsec as P
 
@@ -21,8 +22,8 @@ remIncludes =
             is <- Parser.includes Mod
             return (ls, is)
 
-fParse :: String -> String -> String -> IO (Either (ParseErrorBundle String Void) Node)
-fParse dir fn fstr = 
+fParse :: Set.Set String -> String -> String -> String -> IO (Either (ParseErrorBundle String Void) Node)
+fParse cache dir fn fstr = 
     do
         let str = filter (\x -> x /= '\t') fstr
         let (libs, incs) = res where
@@ -33,14 +34,15 @@ fParse dir fn fstr =
                 map extractString (extractList incs), 
                 mapM (readFile . (\x -> dir ++ "/" ++ extractString x)) (extractList incs) 
                 )
-        let lns = map extractString (extractList libs)
+        let lns = filter (not . (`Set.member` cache)) (map extractString (extractList libs))
+        let nCache = cache `Set.union` (Set.fromList $ filter (\s -> head s == '*') lns)
         txs <- ios
         let 
             sepStatic x = if head s == '*' then "./libs/" ++ tail s ++ "/main.slt" else dir ++ "/" ++ s ++ "/main.slt" where
                 s = extractString x
         libs <- mapM (readFile . sepStatic) (extractList libs)
         let sepStatic s = if head s == '*' then "./libs/" ++ tail s else dir ++ "/" ++ s
-        libs <- mapM id (zipWith3 fParse (map sepStatic lns) lns libs) :: IO [Either (ParseErrorBundle String Void) Node]
+        libs <- mapM id (zipWith3 (fParse nCache) (map sepStatic lns) lns libs) :: IO [Either (ParseErrorBundle String Void) Node]
         let ls = res where
             res = case mapM id libs :: Either (ParseErrorBundle String Void) [Node] of
                 Right ns -> ns
@@ -54,7 +56,7 @@ fParse dir fn fstr =
 run :: String -> String -> IO ()
 run fstr fn =
     do
-        nd <- fParse "." fn fstr
+        nd <- fParse Set.empty "." fn fstr
         let tnd = res where 
             res = case nd of
                     Left e -> Left $ P.errorBundlePretty e

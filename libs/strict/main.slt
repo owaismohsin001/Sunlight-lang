@@ -1,0 +1,7 @@
+lib "*std"
+
+type Strict <- !{a}
+
+fmap ? xs@Strict -> strict: f: xs.a
+seq ? f@Strict and a@Strict -> strict: f.a: a.a
+bind ? s@Strict -> f: s.a
