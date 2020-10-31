@@ -1,7 +1,11 @@
 lib "*std"
 
-type Strict <- !{a}
+-- iniu
+mod Strict
+    type Strict <- !{a}
 
-fmap ? xs@Strict -> strict: f: xs.a
-seq ? f@Strict and a@Strict -> strict: f.a: a.a
-bind ? s@Strict -> f: s.a
+    fmap ? xs@Strict::Strict -> Strict::strict: f: xs.a
+    seq ? f@Strict::Strict and a@Strict::Strict -> Strict::strict: f.a: a.a
+    bind ? s@Strict::Strict -> f: s.a
+    a <- 10
+end

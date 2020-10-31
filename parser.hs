@@ -596,10 +596,14 @@ decls xs =
         P.many Parser.newline
         spaces
         dcs <- 
-            (try mewMethod <|> classStmnt <|> structDef <|> decl <|> methodDecl) 
+             pref *>
+                (try mewMethod <|> classStmnt <|> structDef <|> decl <|> methodDecl) 
                 `endBy` (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String)
         return $ ProgramNode (concatLists dcs $ getLists xs) pos
     where
+        pref = 
+            Text.Megaparsec.Char.string "--" *> manyTill L.charLiteral (char '\n' :: Parser Char) *> P.many (Text.Megaparsec.Char.string "\n")
+                <|> ((\a -> [a]) <$> Text.Megaparsec.Char.string "")
         getLists ns = map extractList ns
         concatLists dcs xs =
             case xs of
