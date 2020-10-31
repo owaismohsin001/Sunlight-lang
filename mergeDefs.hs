@@ -1,6 +1,6 @@
 module MergeDefs where
 
-import Parser
+import Nodes
 
 mergeMultipleNode (ProgramNode ps pos) = 
     ProgramNode (foldr (++) [] $ map merge ps) pos where

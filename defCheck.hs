@@ -2,7 +2,7 @@ module DefCheck where
 
 import Data.Void
 import Data.List
-import Parser hiding (True, False)
+import Nodes
 import Debug.Trace
 import Data.Hashable
 import ReduceMethods

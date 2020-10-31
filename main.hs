@@ -1,4 +1,5 @@
 import Parser
+import Nodes
 import DefCheck
 import CodeGen
 import EitherUtility

@@ -1,6 +1,6 @@
 module CodeGen where
 
-import Parser
+import Nodes
 import qualified Text.Megaparsec as P
 import Data.Maybe
 import Data.List

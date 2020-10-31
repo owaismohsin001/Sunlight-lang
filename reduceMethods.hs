@@ -1,6 +1,6 @@
 module ReduceMethods where
 
-import Parser hiding (True, False)
+import Nodes
 import Scope
 import Data.Void
 import EitherUtility
