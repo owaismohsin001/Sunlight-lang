@@ -407,13 +407,12 @@ structDef =
         extractStrict strct@(StructInstanceNode _ _ stct _) = stct
 
         fields id pos =
-            fe where
-                fe = do
-                        a <- (Text.Megaparsec.Char.string "!" <* spaces) <|> Text.Megaparsec.Char.string ""
-                        ls <- Text.Megaparsec.Char.string "{" *> commaSep (identifier Prelude.False) <* Text.Megaparsec.Char.string "}"
-                        let stDef = StructDefNode id ls (a /= "") Nothing pos
-                        let fDef = makeFun stDef
-                        return $ MultipleDefinitionNode $ stDef : [fDef]
+            do
+                a <- (Text.Megaparsec.Char.string "!" <* spaces) <|> Text.Megaparsec.Char.string ""
+                ls <- Text.Megaparsec.Char.string "{" *> commaSep (identifier Prelude.False) <* Text.Megaparsec.Char.string "}"
+                let stDef = StructDefNode id ls (a /= "") Nothing pos
+                let fDef = makeFun stDef
+                return $ MultipleDefinitionNode $ stDef : [fDef]
 
         structInstanceExpr = 
             se <|> e where 
