@@ -10,6 +10,7 @@ import Data.Void
 import EitherUtility
 import Text.Megaparsec as P
 import Text.Megaparsec.Char
+import MergeDefs
 import qualified Data.Text as T
 import qualified Text.Megaparsec.Char.Lexer as L
 
@@ -104,9 +105,10 @@ identifier sQuote =
     do
         pos <- getSourcePos
         notKeyword
+        a <- Text.Megaparsec.Char.string "$" <|> Text.Megaparsec.Char.string ""
         fc <- lower
         l <- if sQuote then P.many allowedPs <* char '\'' else P.many allowedPs
-        return $ IdentifierNode (fc : l) pos
+        return $ IdentifierNode ((a ++ [fc]) ++ l) pos
     <|> nsAccess
     where
 
@@ -140,9 +142,10 @@ dataName =
         dataNameFormula =
             do
                 pos <- getSourcePos
+                a <- Text.Megaparsec.Char.string "$" <|> Text.Megaparsec.Char.string ""
                 fc <- upper
                 l <- P.many (lower <|> upper <|> digit)
-                return $ DataNode (fc : l) pos
+                return $ DataNode ((a ++ [fc]) ++ l) pos
         nsDataAccess =
             do
                 t1 <- dataNameFormula
@@ -480,7 +483,8 @@ modStmnt =
             `sepBy1` notFollowedBy (newlines *> spaces *> newlines *> keyword End)
         newlines *> spaces *> newlines *> keyword End
         let tds = map (differLhs mname) ds
-        return $ MultipleDefinitionNode tds
+        let flist = map (getDollar $ extractString mname) tds
+        return $ MultipleDefinitionNode flist
     where
         differLhs :: Node -> Node -> Node
         differLhs mn (IdentifierNode id pos) = IdentifierNode (extractString mn ++ "__" ++ id) pos

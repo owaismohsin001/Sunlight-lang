@@ -10,8 +10,8 @@ mdLs <- \f -> change: a, 2, f <| fcx <| f
 mod Shapes
     type Shape <- !Circle{r} | !Square{e}
     class getV: s
-    s@Shapes::Circle -> s.r*2
-    s@Shapes::Square -> s.e*2
+    s@$Circle -> s.r*2
+    s@$Square -> s.e*2
     a <- 10
 end
 
