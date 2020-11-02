@@ -1,6 +1,7 @@
 module DefCheck where
 
 import Data.Void
+import qualified Data.Map as Map
 import Data.List
 import Nodes
 import Debug.Trace
@@ -165,6 +166,56 @@ usedVars _ p =
         BoolNode _ _ -> Set.empty
         a -> Set.empty
 
+-- Define all struct definitions
+defStruct :: [(StringPos, [String])] -> Node -> [(StringPos, [String])]
+defStruct ds (ProgramNode ns _) = concatMap (defStruct ds) ns
+defStruct ds (StructDefNode (DataNode id dpos) args _ _ pos) = [(StringPos id dpos, map extractString args)]
+defStruct ds (SumTypeNode (dcs) pos) = concatMap (defStruct ds) dcs
+defStruct ds _ = ds
+
+-- Check all structs have correct arguments
+checkStructArgs :: Map.Map StringPos [String] -> Node -> Either String ()
+checkStructArgs sc (ProgramNode dcs _) = verify $ map (checkStructArgs sc) dcs
+checkStructArgs sc (DeclNode lhs rhs _) = checkStructArgs sc rhs
+checkStructArgs sc (BinOpNode lhs op rhs pos) = 
+    case op of
+        "." -> checkStructArgs sc lhs
+        _ -> checkStructArgs sc lhs |>> checkStructArgs sc rhs
+checkStructArgs sc n@(FuncDefNode _ _ expr _) = checkStructArgs sc expr
+checkStructArgs sc n@(WhereNode expr _ _) = checkStructArgs sc expr
+checkStructArgs sc (CallNode id args pos) = verify $ checkStructArgs sc id : map (checkStructArgs sc) args
+checkStructArgs sc (UnaryExpr _ e _) = checkStructArgs sc e
+checkStructArgs sc (IfNode ce te ee _) = checkStructArgs sc ce |>> checkStructArgs sc te |>> 
+    case ee of
+        Just e -> checkStructArgs sc e
+        Nothing -> Right ()
+checkStructArgs sc (SequenceIfNode ns _) = verify $ map (checkStructArgs sc) ns
+checkStructArgs sc (ListNode ns _) = verify $ map (checkStructArgs sc) ns
+checkStructArgs sc (TupleNode ts _) = verify $ map (checkStructArgs sc) ts
+checkStructArgs sc (StructInstanceNode (DataNode id ipos) args _ pos) = 
+    case margs of
+        Just eargs -> 
+            if getDecls args == (eargs :: [String]) then Right () 
+            else Left $ 
+                showPos pos ++ "\nIn struct " ++ id ++ " expected " ++ formatList eargs ++ ", but got " ++ formatList (getDecls args)
+        Nothing -> Left $ showPos pos ++ "\n" ++ "Undefined struct " ++ id
+    where 
+        formatList ls = "{" ++ intercalate ", " ls ++ "}"
+        margs = Map.lookup (StringPos id pos) sc
+        getDecls ls = map (\(DeclNode lhs rhs pos) -> extractString lhs) ls 
+checkStructArgs sc StructDefNode{} = Right()
+checkStructArgs sc SumTypeNode{} = Right ()
+checkStructArgs sc DeStructure{} = Right ()
+checkStructArgs _ p = 
+    case p of 
+        NumNode _ _ -> Right ()
+        StringNode _ _ -> Right ()
+        BoolNode _ _ -> Right ()
+        IdentifierNode _ _ -> Right ()
+        DataNode _ _ -> Right ()
+        a -> error (show a)
+
+
 -- Run the definition checker
 checkDefinitions :: Either String Node -> Maybe Scope -> Either String Node
 checkDefinitions le parent =
@@ -178,9 +229,14 @@ checkDefinitions le parent =
                         Left s -> Left s
                         Right () -> 
                             case StringPos "out" (getStringPos nn) `exists` sc of 
-                                Right () -> Right $ filterDefs rmn
                                 Left s -> Left "undefined entry point \"out\""
+                                Right () -> 
+                                    case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
+                                        Right () -> Right filteredRmns
+                                        Left a -> trace "jnio" $ Left a
                     where 
+                        filteredRmns = filterDefs rmn
+                        defStructs n = defStruct [] n
                         rmn = removeNewMethods sc nn
                         filterDefs n@(ProgramNode dfs pos) = 
                             let used = usedVars Set.empty n in 

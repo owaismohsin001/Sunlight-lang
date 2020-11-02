@@ -8,14 +8,17 @@ fcx: f <- \f, x -> change: x, 1, f <| \f, x -> change: x, 2, f <| f
 mdLs <- \f -> change: a, 2, f <| fcx <| f
 
 mod Shapes
-    type Shape <- !Circle{r} | !Square{e}
+    type Shape <- !Circle{r} | !Square{e} | !Triangle{a, b, c}
     class getV: s
     s@$Circle -> s.r*2
     s@$Square -> s.e*2
+    s@$Triangle -> (s.a + s.b + s.c)/2
     a <- 10
 end
 
 circ <- Shapes::Circle{r :: 15}
+
+tri <- Shapes::Triangle{a :: 2, b :: 9, c :: 7}
 
 fib: n <- if n < 2 then 1 else (fib: n-1) + (fib: n-2)
 
