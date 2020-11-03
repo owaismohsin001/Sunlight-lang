@@ -90,14 +90,13 @@ generate strct@(StructDefNode id table b ov pos) =
     generateLhs id ++ " = " ++ struct
     where 
         ident = generateLhs id
-        argTable = "{" ++ intercalate "; " (map ((\a -> a ++ " = " ++ "\"\"") . generateLhs) table) ++ "}"
         inheritance = 
             case ov of
                 Just a -> "\"" ++ generateLhs a ++ "\", "
                 Nothing -> "nil, "
         struct =
             "SltFunc.create(function(tb, loc)" ++ " return " ++
-            "SltStruct.create(\"" ++ ident ++ "\", " ++ inheritance ++ argTable ++ ", " ++ makeBool b ++", tb, loc) end, " ++ luaPos pos ++")"
+            "SltStruct.create(\"" ++ ident ++ "\", " ++ inheritance ++ makeBool b ++", tb, loc) end, " ++ luaPos pos ++")"
         makeBool b = if b then "true" else "false" 
 
 generate (StructInstanceNode id ls _ pos) = 

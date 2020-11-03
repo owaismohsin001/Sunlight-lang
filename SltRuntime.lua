@@ -436,14 +436,14 @@ end
 
 SltStruct = {}
 SltStruct.__index = SltValue
-function SltStruct.create(name, overarch, keys, canHash, tb, loc)
+function SltStruct.create(name, overarch, canHash, tb, loc)
   local this = {}
   this.type_ = name
   this.is_struct = true
   this.overarch = overarch
   this.hashAble = canHash
   this.loc = loc
-  this.table = make_table(this, keys, tb)
+  this.table = tb
 
   this.isType = function(this, str)
     return SltBool.create(this.type_ == str or this.overarch == str, this.pos)
