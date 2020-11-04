@@ -675,6 +675,11 @@ function SltNum.create(num, location)
     return SltNum.create(this.value * -1):locate(this.loc)
   end;
 
+  this.concat = function(this, other)
+    if this.value ~= 0 then return SltValue.concat(this, other) end
+    return other()
+  end
+
   this.eq = function(this, other)
     if this.type_ ~= other.type_ then return SltBool.create(false, this.loc) end
     return SltBool.create(this.value == other.value):locate(this.loc)
