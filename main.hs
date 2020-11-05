@@ -14,6 +14,7 @@ import Debug.Trace
 import Text.Megaparsec as P
 
 strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
+endStr = "if out then out():getOutput() else while true do loopout() end end"
 
 remIncludes =
         do
@@ -63,7 +64,7 @@ run fstr fn =
                     Left e -> Left $ P.errorBundlePretty e
                     Right n -> Right $ mergeMultipleNode n
         case DefCheck.checkDefinitions tnd Nothing of
-            Right n -> writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\nout():getOutput()"
+            Right n -> writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\n" ++ endStr
             Left str -> putStrLn str
 
 runFile fn =

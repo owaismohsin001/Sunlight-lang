@@ -3,7 +3,7 @@ module Scope where
 import Data.Hashable
 import qualified Data.Set as Set
 import qualified Text.Megaparsec as P
-data Scope = Scope (Set.Set StringPos) (Maybe Scope)
+data Scope = Scope{getElems :: Set.Set StringPos, getParent :: Maybe Scope}
 
 existsIn str (Scope set par) = 
     (str `Set.member` set) ||

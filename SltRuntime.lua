@@ -549,9 +549,10 @@ end
 
 SltThunk = {}
 SltThunk.__index = SltValue
-function SltThunk.create(fun)
+function SltThunk.create(fun, name)
   local this = {}
   this.type_ = "SltThunk";
+  this.name = name
   this.fun = fun;
   this.value = nil;
 
@@ -560,7 +561,7 @@ function SltThunk.create(fun)
   setmetatable(this, {
     __index = SltValue;
     __call = function(this)
-      if this.value == nil then
+      if this.value == nil or this.name == "out" or this.name == "loopout" then
         this.value = this.fun()
       end
       return this.value
@@ -737,8 +738,8 @@ function SltString.create(str, loc)
   this.loc = loc
 
   this.concat = function(this, other)
-    SltValue.sameTypes(this, other, SltValue.concat)
-    return SltString.create(this.value .. other.value)
+    SltValue.sameTypes(this, other(), SltValue.concat)
+    return SltString.create(this.value .. other().value)
   end
 
   this.getHash = function(this) return hash.sha1(tostring(this.value)) .. "IsAString" end
@@ -829,4 +830,30 @@ tail = SltThunk.create(
       end
     )
   end
+)
+
+input = SltThunk.create(
+  function() return 
+    SltFunc.create(
+      function(st)
+        io.write(tostring(st()))
+        inp = io.read()
+        io.write("\n")
+        return SltString.create(inp)
+      end     
+    )
+  end,
+  "out"
+)
+
+write = SltThunk.create(
+  function() return 
+    SltFunc.create(
+      function(st)
+        print(tostring(st()))
+        return SltString.create(inp)
+      end     
+    )
+  end,
+  "out"
 )

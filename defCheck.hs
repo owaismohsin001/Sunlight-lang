@@ -78,7 +78,13 @@ ioDefiner fa b =
 -- Check every used variable is defined
 isDefined :: Scope -> Node -> Either String ()
 isDefined sc (ProgramNode dcs _) = verify $ map (isDefined sc) dcs
-isDefined sc (DeclNode lhs rhs _) = isDefined sc rhs
+isDefined sc (DeclNode lhs rhs pos) = if outId lhs then isDefined (newSc sc pos) rhs else isDefined sc rhs where 
+    outId (IdentifierNode "out" _) = True
+    outId (IdentifierNode "loopout" _) = True
+    outId _ = False
+
+    exts pos = map (\i -> StringPos i pos) ["write", "input"]
+    newSc prnt@Scope{} pos = Scope (Set.fromList $ exts pos) (Just prnt)
 isDefined sc (BinOpNode lhs op rhs pos) = 
     case op of
         "." -> isDefined sc lhs
@@ -229,7 +235,10 @@ checkDefinitions le parent =
                         Left s -> Left s
                         Right () -> 
                             case StringPos "out" (getStringPos nn) `exists` sc of 
-                                Left s -> Left "undefined entry point \"out\""
+                                Left s -> 
+                                    case StringPos "loopout" (getStringPos nn) `exists` sc of
+                                        Left _ -> Left "No entry point defined"
+                                        Right () -> Right rmn
                                 Right () -> 
                                     case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
                                         Right () -> Right filteredRmns
@@ -242,7 +251,8 @@ checkDefinitions le parent =
                             let used = usedVars Set.empty n in 
                                 ProgramNode (filter (toKeep used) dfs) pos
                         toKeep used x = 
-                            head (define [] x) `Set.member` used || (getPosString $ head $ define [] x) == "out"
+                            head (define [] x) `Set.member` used || str == "out" || str == "loopout" where 
+                                str = getPosString $ head $ define [] x
                         getPosString (StringPos s _) = s
                         getStringPos (ProgramNode _ pos) = pos
 

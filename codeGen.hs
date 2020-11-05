@@ -69,7 +69,7 @@ generate (DeclNode lhs rhs pos) = generateLhs lhs ++ " = " ++ evalRhs where
         case lhs of
             TupleNode ts _ -> "SltValue.unwrap(" ++ generate rhs ++ ", " ++ show (length ts) ++ ")"
             DeStructure ds _ -> "SltValue.destructure(" ++ generate rhs ++ ", " ++ show (length ds) ++ ")"
-            IdentifierNode{} -> "(SltThunk.create(function() return " ++ generate rhs ++ " end))"
+            IdentifierNode o _ -> "(SltThunk.create(function() return " ++ generate rhs ++ " end, \"" ++ o ++ "\"))"
 generate (FuncDefNode _ args expr pos) = 
     fun
     where
