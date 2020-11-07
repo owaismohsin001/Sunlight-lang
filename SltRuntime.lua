@@ -811,6 +811,7 @@ end;
 
 
 ---------------------------------
+-- Base functions
 head = 
   SltThunk.create(
     function() return
@@ -832,6 +833,20 @@ tail = SltThunk.create(
   end
 )
 
+eval = SltThunk.create(
+  function() return
+    SltFunc.create(
+      function(t)
+        if t.type_ ~= "SltThunk" then return SltError.crate("TypeError", "Cannot evaluate a " .. t.type_, t) end
+        t()
+        return t()
+      end
+    )
+  end
+)
+
+--------------------------------
+-- IO Functions
 input = SltThunk.create(
   function() return 
     SltFunc.create(
@@ -851,7 +866,7 @@ write = SltThunk.create(
     SltFunc.create(
       function(st)
         print(tostring(st()))
-        return SltString.create(inp)
+        return st()
       end     
     )
   end,

@@ -60,7 +60,7 @@ runDefiner (Right n) parent =
             "and", "or", "not", "@", 
             "=", "/=", ">=", "<=", 
             "<", ">", "..", ".", 
-            "head", "tail", "SltList", "SltNum",
+            "head", "tail", "SltList", "SltNum", "eval",
             "SltString", "SltTuple", "SltBool", "SltFunc"
             ]
 
