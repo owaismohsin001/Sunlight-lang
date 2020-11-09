@@ -272,6 +272,16 @@ atom = choice [
     Parser.identifier Prelude.False
     ]
 
+typeRef =
+    do
+        pos <- getSourcePos
+        spaces
+        Text.Megaparsec.Char.string "&"
+        spaces
+        e <- dataName
+        spaces
+        return $ TypeRefNode e pos
+
 lambdaExpr =
     do
         pos <- getSourcePos
@@ -613,7 +623,7 @@ application =
                 do
                     pos <- getSourcePos
                     spaces *> Text.Megaparsec.Char.string ":" <* spaces
-                    args <- logicalExpr `sepEndBy1` (Text.Megaparsec.Char.string "," <* spaces)
+                    args <- (typeRef <|> logicalExpr) `sepEndBy1` (Text.Megaparsec.Char.string "," <* spaces)
                     return $ ListNode args pos
 
 index = 

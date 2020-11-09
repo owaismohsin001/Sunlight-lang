@@ -114,6 +114,7 @@ isDefined sc (IfNode ce te ee _) = isDefined sc ce |>> isDefined sc te |>>
 isDefined sc (SequenceIfNode ns _) = verify $ map (isDefined sc) ns
 isDefined sc (ListNode ns _) = verify $ map (isDefined sc) ns
 isDefined sc (TupleNode ts _) = verify $ map (isDefined sc) ts
+isDefined sc (TypeRefNode e _) = isDefined sc e
 isDefined sc (StructInstanceNode id args _ _) = 
     isDefined sc id |>> verify (map (isDefined sc) args)
 isDefined sc (StructDefNode id args _ mov _) = 
@@ -149,6 +150,7 @@ usedVars st n@(FuncDefNode _ args expr pos) =
 usedVars st n@(WhereNode expr ds pos) = usedVars st expr `Set.union` (st `Set.union` (Set.empty `reduceSets` ds))
 usedVars st (CallNode id args pos) = usedVars st id `Set.union` (st `reduceSets` args)
 usedVars st (UnaryExpr _ e _) = usedVars st e
+usedVars st (TypeRefNode e _) = usedVars st e
 usedVars st (IfNode ce te ee _) = usedVars st ce `Set.union` usedVars st te `Set.union` 
     case ee of
         Just e -> usedVars st e
@@ -212,6 +214,7 @@ checkStructArgs sc (StructInstanceNode (DataNode id ipos) args _ pos) =
 checkStructArgs sc StructDefNode{} = Right()
 checkStructArgs sc SumTypeNode{} = Right ()
 checkStructArgs sc DeStructure{} = Right ()
+checkStructArgs sc TypeRefNode{} = Right ()
 checkStructArgs _ p = 
     case p of 
         NumNode _ _ -> Right ()

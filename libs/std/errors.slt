@@ -3,6 +3,8 @@ type Maybe <- Some{a} | None
 seq ? f@Some and a@Some -> some: f.a: a.a
 seq ? f@None or a@None -> a
 
+unit ? r@Maybe -> some: s
+
 bind ? s@Some -> f: s.a
 bind ? s@None -> None
 
@@ -40,6 +42,8 @@ et@Left -> et.l;
 
 fmap ? xs@Right -> f: xs.r
 fmap ? xs@Left -> xs
+
+unit ? r@Either -> right: s
 
 bind ? s@Left -> s.l
 bind ? s@Right -> f: s.r

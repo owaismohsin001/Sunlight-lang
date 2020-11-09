@@ -6,6 +6,7 @@ mod Strict
 
     fmap ? xs@$Strict -> $strict: f: xs.a
     seq ? f@$Strict and a@$Strict -> $strict: f.a: a.a
+    unit ? r@$Strict -> Strict::strict: s
     bind ? s@$Strict -> f: s.a
     a <- 10
 end

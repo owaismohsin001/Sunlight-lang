@@ -33,6 +33,7 @@ handlebinOp l "." r pos = "(((" ++ generate l ++ ")" ++ ":getProperty(" ++ gener
 handlebinOp l op r pos = "((" ++ generate l ++ ")" ++ op ++ "(" ++ generate r ++ "))"  
 
 handleUnaryOp "-" e = "(" ++ generate e ++ ":neg())"
+handleUnaryOp "!" e = "(" ++ "eval(" ++ generate e ++ "))"
 handleUnaryOp "not" e = "(" ++ generate e ++ ":notted())"
 
 generateLhs (TupleNode t _) = intercalate ", " (map generateLhs t)
@@ -47,6 +48,7 @@ luaPos (P.SourcePos s ln cn) =
 generate (StringNode str pos) = "(SltString.create(\"" ++ str ++ "\", " ++ luaPos pos ++"))"
 generate (NumNode n pos) = "(SltNum.create(" ++ n ++ ", " ++ luaPos pos ++ "))"
 generate (IdentifierNode id _) = id ++ "()"
+generate (TypeRefNode dt pos) = "SltType.create(" ++ generate dt ++ ", " ++ luaPos pos ++ ")"
 generate (BinOpNode l op r pos) = handlebinOp l op r pos
 generate (IfNode ce te ee _) = 
     "(" ++ generate ce ++ ":is_true()" ++ " and " ++ generate te ++ gee ++ ")" where

@@ -6,10 +6,6 @@ function SltValueCall(this, ...)
     return error(SltError.create("Type Error", "Can't call a value of type " .. this.type_, this))
 end
 
-function outErr(f)
-  print(f())
-end
-
 function checkType(expected, val)
   if expected ~= val.type_ then error(SltError.create("TypeError", "expected " .. expected .. " got " .. val.type_, val)) end
   return val
@@ -24,14 +20,6 @@ function tryOrError(fun)
     return
   end
   return
-end
-
-function try(f, catch_f)
-  local status, exception = pcall(f)
-  if not status then
-    return catch_f(exception)
-  end
-  return f()
 end
 
 SltValue = {}
@@ -66,8 +54,9 @@ SltValue = {
         error(SltError.create("TypeError", "Cannot divide " .. this.type_ .. " by " .. other.type_, this))
       end;
 
-      isType = function(this, str)
-        return SltBool.create(this.type_ == str, this.loc)
+      isType = function(this, other)
+        if type(other) == "string" then return SltBool.create(this.type_ == other, this.loc) end
+        return SltBool.create(this.type_ == other.type_, this.loc) 
       end;
 
       neg = function(this)
@@ -195,16 +184,6 @@ function map(tbl, f)
       t[k] = f(v)
   end
   return t
-end
-
-function listToString(this)
-  local tbs = {}
-  local output = this
-  while not output:tail().isEmpty do
-    table.insert(tbs, tostring(output.head()))
-    output = output.tail()
-  end
-  return "[" .. table.concat(tbs, ", ") .. "]"
 end
 
 function reversed(iterable)
@@ -445,8 +424,9 @@ function SltStruct.create(name, overarch, canHash, tb, loc)
   this.loc = loc
   this.table = tb
 
-  this.isType = function(this, str)
-    return SltBool.create(this.type_ == str or this.overarch == str, this.pos)
+  this.isType = function(this, other)
+    if type(other) == "string" then return SltBool.create(this.type_ == other or this.overarch == other, this.pos) end
+    return SltBool.create(this.type_ == other.type_ or this.overarch == other.type_, this.pos) 
   end;
 
   this.checkLength = function(this, length)
@@ -809,6 +789,35 @@ function  SltFunc.create(fun, loc)
   return this
 end;
 
+SltType = {}
+SltType.__index = SltValue
+function  SltType.create(t, loc)
+  local this = {}
+  this.type_ = t;
+  this.is_typeRepr = true;
+  this.loc = loc;
+
+  this.locate = function(this, location) return locate(this, location) end;
+
+  toString = function(this)
+    return "<" .. this.type_ .. ">"
+  end
+
+  this.getHash = function(this, arg)
+    return hash.sha1(this.type_) .. "IsATypeRepr"
+  end
+
+  setmetatable(this, {
+    __index = SltValue;
+    __call = SltValueCall;
+    __add = SltValue.add;
+    __sub = SltValue.sub;
+    __mul = SltValue.mul;
+    __div = SltValue.div;
+    __tostring = toString
+  })
+  return this
+end;
 
 ---------------------------------
 -- Base functions

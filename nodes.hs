@@ -30,6 +30,7 @@ data Node =
     | WhereNode Node [Node] SourcePos
     | StrictNode Node
     | MultipleDefinitionNode [Node]
+    | TypeRefNode Node SourcePos
     deriving (Eq)
 
 instance Show Node where
@@ -55,6 +56,7 @@ instance Show Node where
     show (UnaryExpr u n _) = "(" ++ u ++ " " ++ show n ++ ")"
     show (DataNode n _) = n
     show (FromStruct n) = "FromStruct: " ++ show n
+    show (TypeRefNode e _) = "&" ++ show e
     show (StructDefNode id ls st ov _) = isStrict st ++ show id ++ "{" ++ intercalate "; " (map show ls) ++ "}" ++ decCase 
         where
             decCase =
