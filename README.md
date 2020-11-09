@@ -239,13 +239,15 @@ out <- take: 10, inf: 1
 ```
 which returns `[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`.
 
-In statically typed functional languages like Haskell, there's a `fmap` for modifying valuse inside data structures, we just use map here to do the same, with `Maybe` and `Either` and potentially for your own data type.
+In statically typed functional languages like Haskell, there's a `fmap` for modifying valuse inside data structures and we do the same here by using `Maybe`, `Either` and potentially for your own data type.
 
 ## Instansiation of these functions
 All of these functions are `open` and can be extened except for `map` and `filter` which are mere specifications of `map_and_filter`. So, in order for you to use these functions for your own data structures, just define these by the use fo aforementioned open method syntax.
 
 # Sequencing
 (From `monads.slt`)
+
+## Bind
 There's sequencing in the stanard library, it let's you chain certain evaluations/actions one after another with intermediate actions while creating. This is done by using bind, like this
 ```
 out <- Some{a :: [11, 5, 0, 4]} bind (\a -> a[2] bind (\b -> some: a .. [b*2]))
@@ -255,5 +257,31 @@ which returns `Some{a :: [11, 5, 0, 4, 10]}`. You can quite obviously define you
 bind ? s@Some -> f: s.a
 bind ? s@None -> None
 ```
+## Unit
+The simplest/default value/constructor of a type can be defined using the `unit` function. For types like Maybe, the default is simply
+```
+unit ? r@Maybe -> some: s
+```
+Here `r` is just the type you are given by the caller and `s` is the value given by the user and you put `s` in the minimal context of `r`. Here's an example of the usage of this type
+```
+ls <- [9, 8, 7, 6, 5, 4, 3, 2, 1]
+out <- (unit: 1, &Maybe) bind (\n -> ls[3] bind (\e -> unit: n+e, &Maybe))
+```
+
+# Strict type
+(From library `strict`)
+
+Strict type is in the "standard library"(as in, it's there for you when you install this language) but it needs to be imported like such
+```
+lib "*strict"
+```
+which defines a module namely `Strict` where exists a type `Strict` and it is a functor, applicative, and a monad. You can use it like such
+```
+lib "*strict"
+
+fib: n <- if n.a < 2 then Strict::strict: 1 else (\a, b -> a+b) fmap' (fib: fmap: \x-1, n) seq' (fib: fmap: \x-2, n)
+out <- fib: Strict::Strict{a :: 100}
+```
+
 # Thank You
 Thanks for reading through, hope you enjoy playing around Sunlight-Lang. Since this language is still in it's pre-alpha stage, make sure that you report bugs if you find them.
