@@ -3,3 +3,5 @@ unit ? r@SltList -> [s]
 
 open bind: s, f
 bind ? s@SltList -> (fold: (\a, b -> a .. b), (head: ls), tail: ls where ls <- fmap: f, s end)
+
+join: s <- s bind (\a -> a)

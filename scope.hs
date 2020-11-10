@@ -3,6 +3,11 @@ module Scope where
 import Data.Hashable
 import qualified Data.Set as Set
 import qualified Text.Megaparsec as P
+import Data.List
+import Lev
+
+import Debug.Trace
+
 data Scope = Scope{getElems :: Set.Set StringPos, getParent :: Maybe Scope}
 
 existsIn str (Scope set par) = 
@@ -29,12 +34,19 @@ instance Eq StringPos where
 instance Ord StringPos where
     (StringPos a _) <= (StringPos b _) = hash a <= hash b
 
+getAllElems :: Scope -> Set.Set StringPos
+getAllElems sc = 
+    case getParent sc of
+        Just nsc -> getElems sc `Set.union` getAllElems nsc
+        Nothing -> getElems sc
+
 -- existence checking function
 exists id sc =
     if id `existsIn` sc then 
         Right () 
     else 
-        Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found"
+        Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found\n" ++ 
+            "Perhaps, you meant one of " ++ intercalate ", " (closest 3 (getStr id) $ map getStr $ Set.toList $ getAllElems sc)
     where
         getPos (StringPos _ pos) = pos
         getStr (StringPos str _) = str

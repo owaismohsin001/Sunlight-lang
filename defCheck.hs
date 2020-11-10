@@ -56,10 +56,6 @@ runDefiner (Right n) parent =
         posFromProgram (ProgramNode _ pos) = pos
         pos = posFromProgram n
         baseSymbols = [
-            "+", "-", "*", "/", 
-            "and", "or", "not", "@", 
-            "=", "/=", ">=", "<=", 
-            "<", ">", "..", ".", 
             "head", "tail", "SltList", "SltNum", "eval",
             "SltString", "SltTuple", "SltBool", "SltFunc"
             ]
