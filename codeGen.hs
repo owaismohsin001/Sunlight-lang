@@ -73,7 +73,7 @@ generate (DeclNode lhs rhs pos) = generateLhs lhs ++ " = " ++ evalRhs where
             DeStructure ds _ -> "SltValue.destructure(" ++ generate rhs ++ ", " ++ show (length ds) ++ ")"
             IdentifierNode o _ -> "(SltThunk.create(function() return " ++ generate rhs ++ " end, \"" ++ o ++ "\"))"
 generate (FuncDefNode _ args expr pos) = 
-    fun
+    "(" ++ fun ++ ")"
     where
         fun = gen ++ " " ++ generate expr ++ unwords (map (const ("end, " ++ luaPos pos ++ ")")) args)
         gen = intercalate "" (map (\arg -> "SltFunc.create(function (" ++ generateLhs arg ++") return ") args)
@@ -86,7 +86,7 @@ generate (UnaryExpr op e _) = handleUnaryOp op e
 generate (DataNode n _) = "\"" ++ n ++ "\""
 generate (SumTypeNode ds _) = intercalate "\n" (map generate ds)
 generate (WhereNode exp ds _) = 
-    "(function() \n" ++ fDecls ++ intercalate ";\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " end)()" where
+    "((function() \n" ++ fDecls ++ intercalate ";\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " end)())" where
         fDecls = intercalate ";\n" (map fDeclare ds)
 generate strct@(StructDefNode id table b ov pos) = 
     generateLhs id ++ " = " ++ struct
