@@ -199,7 +199,7 @@ checkStructArgs sc (TupleNode ts _) = verify $ map (checkStructArgs sc) ts
 checkStructArgs sc (StructInstanceNode (DataNode id ipos) args _ pos) = 
     case margs of
         Just eargs -> 
-            if getDecls args == (eargs :: [String]) then Right () 
+            if getDecls args == (eargs :: [String]) then Right ()
             else Left $ 
                 showPos pos ++ "\nIn struct " ++ id ++ " expected " ++ formatList eargs ++ ", but got " ++ formatList (getDecls args)
         Nothing -> Left $ showPos pos ++ "\n" ++ "Undefined struct " ++ id

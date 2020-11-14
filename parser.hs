@@ -534,8 +534,8 @@ decls xs =
         return $ ProgramNode (concatLists dcs $ getLists xs) pos
     where
         pref = 
-            Text.Megaparsec.Char.string "--" *> manyTill L.charLiteral (char '\n' :: Parser Char) *> P.many (Text.Megaparsec.Char.string "\n")
-                <|> ((\a -> [a]) <$> Text.Megaparsec.Char.string "")
+            P.many (Text.Megaparsec.Char.string "--" *> manyTill L.charLiteral (char '\n' :: Parser Char) *> P.many (Text.Megaparsec.Char.string "\n")) 
+                <|> ((\a -> [[a]]) <$> Text.Megaparsec.Char.string "")
         getLists ns = map extractList ns
         concatLists dcs xs =
             case xs of
