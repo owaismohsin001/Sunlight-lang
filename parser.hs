@@ -406,10 +406,13 @@ structDef =
                 let fdefs = map makeFun defs
                 return $ MultipleDefinitionNode $ SumTypeNode defs pos : fdefs
 
-        lowId (DataNode id pos) = IdentifierNode (map toLower id) pos
+        lowId (DataNode id pos) = IdentifierNode (toLower (head id) : tail id) pos
         lowId (IdentifierNode id pos) = IdentifierNode (map toLower id) pos
         makeFun (strct@(StructDefNode id xs _ _ pos)) = 
-            FromStruct $ DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) pos) pos
+            if xs == [] then 
+                FromStruct $ DeclNode (lowId id) (instantiate xs strct) pos
+            else
+                FromStruct $ DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) pos) pos
 
         instantiate rhss (StructDefNode id lhss b _ pos) = StructInstanceNode id (zipWith (\a b -> DeclNode a b pos) rhss lhss) b pos 
 
@@ -512,6 +515,11 @@ modStmnt =
                 DeclNode (differLhs mn lhs) 
                 (FuncDefNode (Just $ differLhs mn id) args (StructInstanceNode (differLhs mn sid) sargs b spos) pos) 
                 dpos
+        differLhs mn (FromStruct (DeclNode lhs (StructInstanceNode sid sargs b spos) pos)) =
+            FromStruct $ 
+                DeclNode (differLhs mn lhs) 
+                (StructInstanceNode (differLhs mn sid) sargs b spos)
+                pos
         differLhs mn nm@NewMethodNode{} = nm
         differLhs _ a = error(show a ++ "\n")
 

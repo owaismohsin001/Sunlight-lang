@@ -6,25 +6,25 @@ seq ? f@None or a@None -> a
 unit ? r@Maybe -> some: s
 
 bind ? s@Some -> f: s.a
-bind ? s@None -> None
+bind ? s@None -> none
 
 class getSome: mb, d
 mb@Some -> mb.a;
 mb@None -> d;
 
 fmap ? xs@Some -> some: f: xs.a
-fmap ? xs@None -> None
+fmap ? xs@None -> none
 
 glance ? s@Some -> some: glance: fi, i, s.a
-glance ? s@None -> None
+glance ? s@None -> none
 
 access ? s@Some -> i access s.a
-access ? s@None -> None
+access ? s@None -> none
 
 empty ? ls@Some -> empty: ls.a
 
 unedit ? s@Some -> some: unedit: s.a, i, fi, uf
-unedit ? s@None -> None
+unedit ? s@None -> none
 
 class toEither: s
 s@Some -> right: s.a
