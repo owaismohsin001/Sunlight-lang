@@ -40,6 +40,12 @@ and declarations can also be functions
 ```
 id: x <- x
 ```
+# Comments
+So it's easy to comment anything in your code by using lua like `--`. This is an example,
+```
+-- Hey this is a comment
+```
+Although, unlike some other lanuages, comments cannot be a full parseable program. 
 
 # Types
 Types are either structs or multiple structs that are grouped under the same same structure. A struct can be declared as such
