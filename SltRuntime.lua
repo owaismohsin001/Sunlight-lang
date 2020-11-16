@@ -842,6 +842,17 @@ tail = SltThunk.create(
   end
 )
 
+stringify = 
+  SltThunk.create(
+    function() return
+      SltFunc.create(
+        function(t)
+          return SltString.create(tostring(t()))
+        end
+      )
+    end
+  )
+
 eval = SltThunk.create(
   function() return
     SltFunc.create(

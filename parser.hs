@@ -337,24 +337,41 @@ rBinOp :: Parser Node -> Parser String ->  Parser Node -> (Node -> String -> Nod
 rBinOp fa ops fb ret =
     do
         pos <- getSourcePos
+        spaces
         a <- fa
         try (
             do
+                newlines
+                spaces
+                newlines
                 spaces
                 op <- ops
+                newlines
+                spaces
+                newlines
                 spaces
                 b <- fb
                 return $ ret a op b pos
             ) <|> return a
 
 binOp f ops ret = do
+  newlines
+  spaces
+  newlines
   t1 <- f
   loop t1
   where termSuffix t1 = try (do
           pos <- getSourcePos
           spaces
+          newlines
+          spaces
+          newlines
+          spaces
           op <- ops
           spaces
+          newlines
+          spaces
+          newlines
           t2 <- f
           loop (ret t1 op t2 pos))
         loop t = termSuffix t <|> return t
