@@ -847,7 +847,22 @@ stringify =
     function() return
       SltFunc.create(
         function(t)
-          return SltString.create(tostring(t()))
+          return SltString.create(tostring(t()), t().pos)
+        end
+      )
+    end
+  )
+
+unsafeMod = 
+  SltThunk.create(
+    function() return
+      SltFunc.create(
+        function(a)
+          return SltFunc.create(
+            function(b)
+              return SltNum.create(math.fmod(a().value, b().value), b().pos)
+            end
+          )
         end
       )
     end

@@ -29,7 +29,7 @@ mspaces =
         Parser.spaces
 keyword k = Text.Megaparsec.Char.string (showL k) :: Parser String
 
-notKeyword = notFollowedBy (choice keywords) where
+notKeyword = try $ notFollowedBy $ choice keywords *> notFollowedBy atom where
     keywords = map ((\a -> Text.Megaparsec.Char.string a :: Parser String) . showL) [
             Parser.If,
             Parser.Then,
@@ -108,7 +108,8 @@ identifier sQuote =
         a <- Text.Megaparsec.Char.string "$" <|> Text.Megaparsec.Char.string ""
         fc <- lower
         l <- if sQuote then P.many allowedPs <* char '\'' else P.many allowedPs
-        return $ IdentifierNode ((a ++ [fc]) ++ l) pos
+        let el = (a ++ [fc]) ++ l
+        return $ IdentifierNode el pos
     <|> nsAccess
     where
 
@@ -341,37 +342,21 @@ rBinOp fa ops fb ret =
         a <- fa
         try (
             do
-                newlines
-                spaces
-                newlines
                 spaces
                 op <- ops
-                newlines
-                spaces
-                newlines
                 spaces
                 b <- fb
                 return $ ret a op b pos
             ) <|> return a
 
 binOp f ops ret = do
-  newlines
-  spaces
-  newlines
   t1 <- f
   loop t1
   where termSuffix t1 = try (do
           pos <- getSourcePos
           spaces
-          newlines
-          spaces
-          newlines
-          spaces
           op <- ops
           spaces
-          newlines
-          spaces
-          newlines
           t2 <- f
           loop (ret t1 op t2 pos))
         loop t = termSuffix t <|> return t
@@ -474,21 +459,20 @@ structDef =
                         return $ IdentifierNode (extractString id) pos
 
 decl =
-    modStmnt <|>
-        do
-            pos <- getSourcePos
-            id <- lhs
-            new_id <- 
-                case id of
-                    (CallNode c arg _) -> return c
-                    _ -> return id
-            spaces
-            e <- whereExpr
-            new_e <- 
-                case id of
-                    (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e pos
-                    _ -> return e
-            return $ DeclNode new_id new_e pos
+    do
+        pos <- getSourcePos
+        id <- lhs
+        new_id <- 
+            case id of
+                (CallNode c arg _) -> return c
+                _ -> return id
+        spaces
+        e <- whereExpr
+        new_e <- 
+            case id of
+                (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e pos
+                _ -> return e
+        return $ DeclNode new_id new_e pos
 
 includes iType =
     do
@@ -508,10 +492,10 @@ includes iType =
 modStmnt =
     do
         pos <- getSourcePos
-        mname <- keyword Mod *> mspaces *> dataName <* newlines <* spaces
-        ds <- (newlines *> spaces *> ((try mewMethod <|> classStmnt <|> structDef <|> decl <|> methodDecl) )) 
+        mname <- keyword Mod *> spaces *> dataName <* newlines <* spaces
+        ds <- (spaces *> newlines *> spaces *> (try classStmnt <|> try structDef <|> try decl <|> mewMethod <|> methodDecl )) 
             `sepBy1` notFollowedBy (newlines *> spaces *> newlines *> keyword End)
-        newlines *> spaces *> newlines *> keyword End
+        (newlines *> spaces *> newlines *> keyword End)
         let tds = map (differLhs mname) ds
         let flist = map (getDollar $ extractString mname) tds
         return $ MultipleDefinitionNode flist
@@ -554,7 +538,7 @@ decls xs =
         spaces
         dcs <- 
              pref *>
-                (try mewMethod <|> classStmnt <|> structDef <|> decl <|> methodDecl) 
+                (try mewMethod <|> methodDecl <|> classStmnt <|> structDef <|> decl <|> modStmnt) 
                 `endBy` (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String)
         return $ ProgramNode (concatLists dcs $ getLists xs) pos
     where
@@ -588,7 +572,7 @@ expr =
         pos <- getSourcePos
         xs pos  
     where
-        spacificSpaces = (mspaces *> newlines *> spaces) <|> (Parser.newline *> newlines *> spaces)
+        spacificSpaces = (spaces *> newlines *> spaces) <|> (Parser.newline *> newlines *> spaces)
         xs pos = 
             do
                 l <- backExpr `sepBy1` try (spaces *> Text.Megaparsec.Char.string "|>" <* spaces)
@@ -693,7 +677,7 @@ methodDecl =
     do
         pos <- getSourcePos
         keyword Open
-        mspaces
+        spaces
         id <- identifier Prelude.False
         spaces *> Text.Megaparsec.Char.string ":" <* spaces
         args <- identifier Prelude.False `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
@@ -715,11 +699,11 @@ classStmnt =
     do
         pos <- getSourcePos
         keyword Class
-        mspaces
+        spaces
         id <- identifier Prelude.False
         spaces *> Text.Megaparsec.Char.string ":" <* spaces
-        args <- expr `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
-        mnewlines
+        args <- identifier Prelude.False `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
+        newlines
         seqPos <- getSourcePos
         allCases <- cases `sepBy1` 
             notFollowedBy (try 

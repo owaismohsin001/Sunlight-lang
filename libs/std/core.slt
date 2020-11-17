@@ -1,0 +1,2 @@
+class modulus: n
+n@SltNum -> unsafeMod: n
