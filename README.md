@@ -34,3 +34,6 @@ out <- map: (\if x = 1 then bottle else bottles: x), unlessZero: 99
 
 ```
 That was oddly specific but ok. So, to learn more definetly visit [this page](https://github.com/ameerwasi001/Sunlight-lang/blob/master/Docs-Tutorial.md)
+
+# Editor Support
+The only editor support for now is this [VSCode syntax highlighter](https://github.com/ameerwasi001/Sunlight-Lang-VSCode) plugin, but there's definitely more to come.
