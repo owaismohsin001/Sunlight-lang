@@ -45,11 +45,16 @@ exists id sc =
     if id `existsIn` sc then 
         Right () 
     else 
-        Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found\n" ++ 
-            "Perhaps, you meant one of " ++ intercalate ", " (closest 3 (getStr id) $ map getStr $ Set.toList $ getAllElems sc)
+        case closeOnes of
+            [] -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found"
+            [a] -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found\n" ++
+                    "Maybe, you meant " ++ show a
+            _ -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found\n" ++ 
+                    "Perhaps, you meant one of " ++ intercalate ", " closeOnes
     where
         getPos (StringPos _ pos) = pos
         getStr (StringPos str _) = str
+        closeOnes = closest 3 (getStr id) $ map getStr $ Set.toList $ getAllElems sc
 
 -- showing a position
 showPos (P.SourcePos s ln cn) = 
