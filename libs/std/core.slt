@@ -2,5 +2,8 @@ id: a <- a
 
 const: a <- (\x -> a)
 
+min: a, b <- if a > b then b else a
+max: a, b <- if a > b then a else b
+
 class modulus: n
 n@SltNum -> unsafeMod: n
