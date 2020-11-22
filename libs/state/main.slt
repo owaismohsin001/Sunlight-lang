@@ -1,0 +1,10 @@
+lib "*std"
+
+type State <- {f}
+
+runState: i, st <- st.f: i
+execState: i, st <- snd: runState: i, st
+evalState: i, st <- fst: runState: i, st
+
+unit ? r@State -> state: \a -> ((), s)
+bind ? s@State -> state: \st -> ( ((f: a).f): sn where (a, sn) <- s.f: st end )

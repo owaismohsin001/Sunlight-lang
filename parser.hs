@@ -29,7 +29,7 @@ mspaces =
         Parser.spaces
 keyword k = Text.Megaparsec.Char.string (showL k) :: Parser String
 
-notKeyword = try $ notFollowedBy $ choice keywords *> notFollowedBy atom where
+notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.string " " where
     keywords = map ((\a -> Text.Megaparsec.Char.string a :: Parser String) . showL) [
             Parser.If,
             Parser.Then,
@@ -493,7 +493,7 @@ modStmnt =
     do
         pos <- getSourcePos
         mname <- keyword Mod *> spaces *> dataName <* newlines <* spaces
-        ds <- (spaces *> newlines *> spaces *> (try classStmnt <|> try structDef <|> try decl <|> mewMethod <|> methodDecl )) 
+        ds <- (spaces *> newlines *> spaces *> (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl )) 
             `sepBy1` notFollowedBy (newlines *> spaces *> newlines *> keyword End)
         (newlines *> spaces *> newlines *> keyword End)
         let tds = map (differLhs mname) ds
@@ -538,8 +538,8 @@ decls xs =
         spaces
         dcs <- 
              pref *>
-                (try mewMethod <|> methodDecl <|> classStmnt <|> structDef <|> decl <|> modStmnt) 
-                `endBy` (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String)
+                (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl <|> modStmnt) 
+                `endBy` ((const "" <$> eof) <|> (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String))
         return $ ProgramNode (concatLists dcs $ getLists xs) pos
     where
         pref = 

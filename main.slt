@@ -1,5 +1,6 @@
 lib "*std"
 lib "*strict"
+lib "*state"
 
 a <- Some{a :: (\a, b, c -> [[a, b*2], b, c]) fmap' [8, 5] seq' [6, 3] seq' [1, 9]}
 

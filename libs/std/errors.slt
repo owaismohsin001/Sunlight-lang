@@ -1,7 +1,7 @@
 type Maybe <- Some{a} | None
 
-seq ? f@Some and a@Some -> some: f.a: a.a
-seq ? f@None or a@None -> a
+seq ? f@Some and s@Some -> some: f.a: s.a
+seq ? f@None or s@None -> s
 
 unit ? r@Maybe -> some: s
 
@@ -12,8 +12,8 @@ class getSome: mb, d
 mb@Some -> mb.a;
 mb@None -> d;
 
-fmap ? xs@Some -> some: f: xs.a
-fmap ? xs@None -> none
+fmap ? s@Some -> some: f: s.a
+fmap ? s@None -> none
 
 glance ? s@Some -> some: glance: fi, i, s.a
 glance ? s@None -> none
@@ -40,17 +40,17 @@ class getLeft: et, d
 et@Right -> d
 et@Left -> et.l;
 
-fmap ? xs@Right -> f: xs.r
-fmap ? xs@Left -> xs
+fmap ? s@Right -> f: s.r
+fmap ? s@Left -> s
 
 unit ? r@Either -> right: s
 
 bind ? s@Left -> s.l
 bind ? s@Right -> f: s.r
 
-seq ? f@Right and a@Right -> right: f.r: a.r
-seq ? f@Left and a@Left -> left: f.l: a.l
-seq ? f@Left or a@Right -> a
+seq ? f@Right and s@Right -> right: f.r: s.r
+seq ? f@Left and s@Left -> left: f.l: s.l
+seq ? f@Left or s@Right -> s
 
 unedit ? s@Right -> right: unedit: s.r, i, fi, uf
 unedit ? s@Left -> left: unedit: s.l, i, fi, uf

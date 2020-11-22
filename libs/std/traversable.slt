@@ -15,19 +15,19 @@ open fold: f, i, xs
 fold ? [] = xs -> i
 fold ? xs@SltList -> f: (head: xs), fold: f, i, tail: xs
 
-open seq: f, a
-seq ? [] = a -> []
+open seq: f, s
+seq ? [] = s -> []
 seq ? [] = f -> []
-seq ? a@SltList and f@SltList -> (map: (head: f), a) .. seq: (tail: f), a 
+seq ? s@SltList and f@SltList -> (map: (head: f), s) .. seq: (tail: f), s
 
 open empty: ls
 empty ? [] = ls -> true
 empty ? [] /= ls -> false
 
-open fmap: f, xs
-fmap ? xs@SltList -> map: f, xs
+open fmap: f, s
+fmap ? s@SltList -> map: f, s
 
-fmap ? xs@SltFunc -> \f: xs: x
+fmap ? s@SltFunc -> \f: s: x
 
 map: f, xs <- every xs is f: x
 filter: f, xs <- every xs is x if f: x

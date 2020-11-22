@@ -5,5 +5,10 @@ const: a <- (\x -> a)
 min: a, b <- if a > b then b else a
 max: a, b <- if a > b then a else b
 
+cmp: f, g <- \f: g: x
+
+fst: t <- a where (a, b) <- t end
+snd: t <- b where (a, b) <- t end
+
 class modulus: n
 n@SltNum -> unsafeMod: n

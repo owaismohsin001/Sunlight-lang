@@ -239,8 +239,8 @@ end
 
 SltList.create = function(head, tail, loc)
   local this = {}
-  this.head = function(this) return head end;
-  this.tail = function(this) return tail end;
+  this.head = SltThunk.create(function(this) return head end);
+  this.tail = SltThunk.create(function(this) return tail end);
   this.isEmpty = false;
   this.loc = loc;
   this.type_ = "SltList";
