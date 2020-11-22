@@ -256,7 +256,7 @@ All of these functions are `open` and can be extended except for `map` and `filt
 ## Bind
 There's sequencing in the standard library, it lets you chain certain evaluations/actions one after another with intermediate actions while creating. This is done by using bind, like this
 ```
-out <- Some{a :: [11, 5, 0, 4]} bind (\a -> a[2] bind (\b -> some: a .. [b*2]))
+out <- Some{a :: [11, 5, 0, 4]} bind \a -> a[2] bind \b -> some: a .. [b*2]
 ```
 which returns `Some{a :: [11, 5, 0, 4, 10]}`. You can quite obviously define your own types that work like, for instance `Maybe` is defined like this
 ```
@@ -271,7 +271,7 @@ unit ? r@Maybe -> some: s
 Here `r` is just the type you are given by the caller and `s` is the value given by the user and you put `s` in the minimal context of `r`. Here's an example of the usage of this type
 ```
 ls <- [9, 8, 7, 6, 5, 4, 3, 2, 1]
-out <- (unit: 1, &Maybe) bind (\n -> ls[3] bind (\e -> unit: n+e, &Maybe))
+out <- (unit: 1, &Maybe) bind \n -> ls[3] bind \e -> unit: n+e, &Maybe
 ```
 
 # Strict type
