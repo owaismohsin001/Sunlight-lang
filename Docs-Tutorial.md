@@ -281,13 +281,40 @@ Strict type is in the "standard library"(as in, it's there for you when you inst
 ```
 lib "*strict"
 ```
-which defines a module namely `Strict` there exists a type `Strict` and it is a functor, applicative, and a monad. You can use it like such
+which defines a module namely `Strict` there exists a type `Strict` and it implements fmap seq, unit, and bind. You can use it like such
 ```
 lib "*strict"
 
 fib: n <- if n.a < 2 then Strict::strict: 1 else (\a, b -> a+b) fmap' (fib: fmap: \x-1, n) seq' (fib: fmap: \x-2, n)
 out <- fib: Strict::Strict{a :: 100}
 ```
+
+# State type
+(From library `state`)
+State library offers a state type that can be used to manage state in a purely functional and abstract style using fmap, seq, unit, and bind. Start by including this library like such
+```
+lib "*state"
+```
+The you can use it to manage any/all kind of state, for example a simple stack can be implemented as such.
+```
+lib "*state"
+
+push: a <- modify: \[a] .. x
+pop <- putPair: \xs -> ((head: xs), tail: xs)
+
+add <- pop bind \a -> pop bind \b -> push: a+b
+
+out <- runState: [], (baseState: []) bind \(push: 2) bind \(push: 3) bind \add
+```
+Here it uses `modify` which as you likely guessed modifies the state. This is one of many utility functions provided by the `state` library.
+
+`putPair` - Takes a function with that takes the old state and returns a tuple comprised of `(result, newState)`
+
+`get` - gets the state and puts and returns it as the result
+
+`put` - takes an argument and puts it as state
+
+`gets` - takes a function and applies it to state and puts it's result as the result of the function
 
 # Thank You
 Thanks for reading through, hope you enjoy playing around Sunlight-Lang. Since this language is still in its pre-alpha stage, make sure that you report bugs if you find them.
