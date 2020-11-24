@@ -842,7 +842,7 @@ tail = SltThunk.create(
   end
 )
 
-stringify = 
+baseStringify = 
   SltThunk.create(
     function() return
       SltFunc.create(
@@ -892,18 +892,16 @@ input = SltThunk.create(
         return SltString.create(inp)
       end     
     )
-  end,
-  "out"
+  end
 )
 
 write = SltThunk.create(
   function() return 
     SltFunc.create(
       function(st)
-        print(tostring(st()))
+        st():getOutput()
         return st()
       end     
     )
-  end,
-  "out"
+  end
 )

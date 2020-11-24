@@ -6,6 +6,7 @@ import Data.Void
 import EitherUtility
 import Debug.Trace
 import Data.List
+import Control.Monad
 import qualified Text.Megaparsec as P
 
 -- A pass that turns methods into functions
@@ -15,7 +16,12 @@ methodFun p@(ProgramNode ps pos) = ProgramNode (getNodes $ map mFun ps) pos wher
             FuncDefNode 
                 (Just id) 
                 args 
-                (SequenceIfNode (getNodes $ map (convMethod $ extractString id) ps) pos) pos
+                (
+                    SequenceIfNode (
+                        getNodes $ map removeDef (map (convMethod $ extractString id) ps) ++ 
+                            map (convMethod $ extractString id) (filter getDefKey ps)
+                        ) Nothing pos
+                    ) pos
             ) pos where 
             ns = getNodes $ map (convMethod $ extractString id) ps
     mFun a = Just a
@@ -30,6 +36,14 @@ methodFun p@(ProgramNode ps pos) = ProgramNode (getNodes $ map mFun ps) pos wher
                         Nothing -> False
             ) xs
         )
+
+    getDefKey :: Node -> Bool
+    getDefKey (NewMethodNode fid@(IdentifierNode id _) (IdentifierNode "def" _) te pos) = True
+    getDefKey _ = False
+
+    removeDef :: Maybe Node -> Maybe Node
+    removeDef (Just (IfNode (IdentifierNode "def" _) _ _ _)) = Nothing
+    removeDef a = a
 
     convMethod :: String -> Node -> Maybe Node
     convMethod rid (NewMethodNode (IdentifierNode id _) ce te pos) = if rid == id then Just $ IfNode ce te Nothing pos else Nothing

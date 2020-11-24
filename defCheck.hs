@@ -58,7 +58,7 @@ runDefiner (Right n) parent =
         baseSymbols = [
             "head", "tail", "SltList", "SltNum", "eval",
             "SltString", "SltTuple", "SltBool", "SltFunc",
-            "stringify", "unsafeMod"
+            "unsafeMod", "baseStringify"
             ]
 
 ioDefiner :: Either (P.ParseErrorBundle String Data.Void.Void) Node -> Maybe Scope -> IO ()
@@ -75,13 +75,7 @@ ioDefiner fa b =
 -- Check every used variable is defined
 isDefined :: Scope -> Node -> Either String ()
 isDefined sc (ProgramNode dcs _) = verify $ map (isDefined sc) dcs
-isDefined sc (DeclNode lhs rhs pos) = if outId lhs then isDefined (newSc sc pos) rhs else isDefined sc rhs where 
-    outId (IdentifierNode "out" _) = True
-    outId (IdentifierNode "loopout" _) = True
-    outId _ = False
-
-    exts pos = map (\i -> StringPos i pos) ["write", "input"]
-    newSc prnt@Scope{} pos = Scope (Set.fromList $ exts pos) (Just prnt)
+isDefined sc (DeclNode lhs rhs pos) = isDefined sc rhs
 isDefined sc (BinOpNode lhs op rhs pos) = 
     case op of
         "." -> isDefined sc lhs
@@ -108,7 +102,8 @@ isDefined sc (IfNode ce te ee _) = isDefined sc ce |>> isDefined sc te |>>
     case ee of
         Just e -> isDefined sc e
         Nothing -> Right ()
-isDefined sc (SequenceIfNode ns _) = verify $ map (isDefined sc) ns
+isDefined sc (SequenceIfNode ns _ pos) = verify $ map (isDefined $ newSc sc) ns where
+    newSc sc = Scope {getElems = Set.singleton $ StringPos "def" pos, getParent = Just sc}
 isDefined sc (ListNode ns _) = verify $ map (isDefined sc) ns
 isDefined sc (TupleNode ts _) = verify $ map (isDefined sc) ts
 isDefined sc (TypeRefNode e _) = isDefined sc e
@@ -152,7 +147,7 @@ usedVars st (IfNode ce te ee _) = usedVars st ce `Set.union` usedVars st te `Set
     case ee of
         Just e -> usedVars st e
         Nothing -> Set.empty
-usedVars st (SequenceIfNode ns _) =  st `reduceSets` ns
+usedVars st (SequenceIfNode ns _ _) =  st `reduceSets` ns
 usedVars st (ListNode ns _) = st `reduceSets` ns
 usedVars st (TupleNode ts _) = st `reduceSets` ts
 usedVars st (StructInstanceNode id args _ _) = 
@@ -170,6 +165,40 @@ usedVars _ p =
         StringNode _ _ -> Set.empty
         BoolNode _ _ -> Set.empty
         a -> Set.empty
+
+-- Remove def keyword
+removeDefKey :: Node -> Node
+removeDefKey (ProgramNode ds pos) = ProgramNode (map removeDefKey ds) pos 
+removeDefKey (DeclNode lhs rhs pos) = DeclNode lhs (removeDefKey rhs) pos
+removeDefKey (BinOpNode lhs op rhs pos) = 
+    case op of
+        "." -> BinOpNode (removeDefKey lhs) op rhs pos
+        _ -> BinOpNode (removeDefKey lhs) op (removeDefKey rhs) pos
+removeDefKey fid@(IdentifierNode id pos) = if id == "def" then BoolNode "true" pos else fid
+removeDefKey n@(FuncDefNode mid args expr pos) = FuncDefNode mid args (removeDefKey expr) pos
+removeDefKey n@(WhereNode expr ds pos) = WhereNode (removeDefKey expr) (map removeDefKey ds) pos
+removeDefKey (CallNode id args pos) = CallNode (removeDefKey id) (map removeDefKey args) pos
+removeDefKey (UnaryExpr op e pos) = UnaryExpr op (removeDefKey e) pos
+removeDefKey (IfNode ce te ee pos) = IfNode (removeDefKey ce) (removeDefKey te) fee pos where
+    fee =
+        case ee of
+            Nothing -> Nothing
+            Just n -> Just $ removeDefKey n
+removeDefKey (SequenceIfNode ns mels pos) = SequenceIfNode (map removeDefKey ns) (getElse mels) pos where
+    getElse (Just a) = Just $ removeDefKey a
+    getElse Nothing = Nothing
+removeDefKey (ListNode ns pos) = ListNode (map removeDefKey ns) pos
+removeDefKey (TupleNode ts pos) = TupleNode (map removeDefKey ts) pos
+removeDefKey (StructInstanceNode id args lazy pos) = StructInstanceNode (removeDefKey id) (map removeDefKey args) lazy pos
+removeDefKey st@(StructDefNode id args strct mov pos) = 
+    case mov of
+        Nothing -> st
+        Just ov -> StructDefNode id args strct (Just $ removeDefKey ov) pos
+removeDefKey n@SumTypeNode{} = n
+removeDefKey n@DeStructure{} = n
+removeDefKey fid@(DataNode id pos) = fid
+removeDefKey (NewMethodNode id cond exp pos) = NewMethodNode (removeDefKey id) (removeDefKey cond) (removeDefKey exp) pos
+removeDefKey p = p
 
 -- Define all struct definitions
 defStruct :: [(StringPos, [String])] -> Node -> [(StringPos, [String])]
@@ -194,7 +223,7 @@ checkStructArgs sc (IfNode ce te ee _) = checkStructArgs sc ce |>> checkStructAr
     case ee of
         Just e -> checkStructArgs sc e
         Nothing -> Right ()
-checkStructArgs sc (SequenceIfNode ns _) = verify $ map (checkStructArgs sc) ns
+checkStructArgs sc (SequenceIfNode ns _ _) = verify $ map (checkStructArgs sc) ns
 checkStructArgs sc (ListNode ns _) = verify $ map (checkStructArgs sc) ns
 checkStructArgs sc (TupleNode ts _) = verify $ map (checkStructArgs sc) ts
 checkStructArgs sc (StructInstanceNode (DataNode id ipos) args _ pos) = 
@@ -235,16 +264,13 @@ checkDefinitions le parent =
                         Left s -> Left s
                         Right () -> 
                             case StringPos "out" (getStringPos nn) `exists` sc of 
-                                Left s -> 
-                                    case StringPos "loopout" (getStringPos nn) `exists` sc of
-                                        Left _ -> Left "No entry point defined"
-                                        Right () -> Right rmn
+                                Left _ -> Left "No entry point defined"
                                 Right () -> 
                                     case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
-                                        Right () -> Right filteredRmns
-                                        Left a -> trace "jnio" $ Left a
+                                        Right () -> Right $ filteredRmns
+                                        Left a -> Left a
                     where 
-                        filteredRmns = filterDefs rmn
+                        filteredRmns = removeDefKey $ filterDefs rmn
                         defStructs n = defStruct [] n
                         rmn = removeNewMethods sc nn
                         filterDefs n@(ProgramNode dfs pos) = 

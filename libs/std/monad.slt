@@ -5,3 +5,7 @@ open bind: s, f
 bind ? s@SltList -> (fold: (\a, b -> a .. b), (head: ls), tail: ls where ls <- fmap: f, s end)
 
 join: s <- s bind id
+
+class mapM: xs, f, r
+[] = xs -> unit: [], r
+true -> (f: head: xs) bind \y -> (mapM: (tail: xs), f, r) bind \ys -> unit: ([y] .. ys), r

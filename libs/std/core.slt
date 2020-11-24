@@ -12,3 +12,6 @@ snd: t <- b where (a, b) <- t end
 
 class modulus: n
 n@SltNum -> unsafeMod: n
+
+open stringify: v
+stringify ? def -> baseStringify: v

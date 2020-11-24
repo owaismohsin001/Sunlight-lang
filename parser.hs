@@ -48,7 +48,8 @@ notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.strin
             Parser.Open,
             Parser.Include,
             Parser.Mod,
-            Parser.Lib
+            Parser.Lib,
+            Parser.Def
         ]
 
 showL k = map toLower (show k)
@@ -72,6 +73,7 @@ data Keyword =
     | Open
     | Mod
     | Lib
+    | Def
     deriving(Show, Eq)
 
 type Parser = Parsec Void String
@@ -686,9 +688,9 @@ methodDecl =
 mewMethod =
     do
         pos <- getSourcePos
-        id <- identifier Prelude.False
+        id <-  identifier Prelude.False
         spaces *> Text.Megaparsec.Char.string "?" <* spaces
-        cond <- expr
+        cond <- (const (IdentifierNode "def" pos) <$> try (keyword Def)) <|> expr
         spaces
         Text.Megaparsec.Char.string "->"
         spaces
@@ -710,10 +712,11 @@ classStmnt =
                 (P.many Parser.newline *> spaces *> (
                     eof *> (StringNode "" <$> getSourcePos)
                     <|> keyword Class *> (StringNode "" <$> getSourcePos)
+                    <|> keyword Open *> (StringNode "" <$> getSourcePos)
                     <|> try decl 
                     <|> structDef
                     <|> mewMethod)))
-        return $ DeclNode id (FuncDefNode (Just id) args (SequenceIfNode allCases seqPos) seqPos) pos
+        return $ DeclNode id (FuncDefNode (Just id) args (SequenceIfNode allCases Nothing seqPos) seqPos) pos
     where
         cases = do
             newlines
@@ -766,7 +769,7 @@ caseExpr =
         Text.Megaparsec.Char.string "|"
         spaces
         fls <- p `sepBy` (spaces *> (Text.Megaparsec.Char.string "|") <* spaces :: Parser String)
-        return $ SequenceIfNode fls pos 
+        return $ SequenceIfNode fls Nothing pos 
     where 
         p = 
             do

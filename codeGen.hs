@@ -79,7 +79,7 @@ generate (FuncDefNode _ args expr pos) =
         gen = intercalate "" (map (\arg -> "SltFunc.create(function (" ++ generateLhs arg ++") return ") args)
         turnBool b = if b then "true" else "false"
 generate (BoolNode b pos) = "SltBool.create(" ++ b ++ ", " ++ luaPos pos ++ ")"
-generate (SequenceIfNode fs pos) = 
+generate (SequenceIfNode fs _ pos) = 
     (intercalate " or " (map generate fs)) ++ 
         " or error(SltError.create(\"CaseError\", \"None of the cases matched\", {loc = " ++ luaPos pos ++ "}))"
 generate (UnaryExpr op e _) = handleUnaryOp op e

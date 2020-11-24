@@ -11,7 +11,7 @@ data Node =
     | BinOpNode Node String Node SourcePos
     | UnaryExpr String Node SourcePos
     | IfNode Node Node (Maybe Node) SourcePos
-    | SequenceIfNode [Node] SourcePos
+    | SequenceIfNode [Node] (Maybe Node) SourcePos
     | ProgramNode [Node] SourcePos
     | ListNode [Node] SourcePos
     | TupleNode [Node] SourcePos
@@ -35,7 +35,12 @@ data Node =
 
 instance Show Node where
     show (StringNode str _) = "\"" ++ str ++ "\""
-    show (SequenceIfNode ifs _) = "[" ++ intercalate ", " (map show ifs) ++ "]"
+    show (SequenceIfNode ifs melse _) = "[" ++ intercalate ", " (map show ifs) ++ "]" ++ 
+        (
+            case melse of
+                Just a -> " else " ++ show a
+                Nothing -> ""
+        )
     show (NumNode n _) = n
     show (IdentifierNode id _) = id
     show (CallNode callee args _) = show callee ++ "(" ++ intercalate ", " (map show args) ++ ")"
