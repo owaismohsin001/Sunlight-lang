@@ -329,7 +329,6 @@ function SltTuple.create(tp, loc)
   local this = {}
   this.type_ = "SltTuple"
   this.value = tp
-  this.hashAble = true
   this.loc = loc
 
   this.checkLength = function(this, length)
@@ -882,7 +881,7 @@ eval = SltThunk.create(
 
 --------------------------------
 -- IO Functions
-input = SltThunk.create(
+unsafeRead = SltThunk.create(
   function() return 
     SltFunc.create(
       function(st)
@@ -892,10 +891,11 @@ input = SltThunk.create(
         return SltString.create(inp)
       end     
     )
-  end
+  end,
+  "out"
 )
 
-write = SltThunk.create(
+unsafeWrite = SltThunk.create(
   function() return 
     SltFunc.create(
       function(st)
@@ -903,5 +903,6 @@ write = SltThunk.create(
         return st()
       end     
     )
-  end
+  end,
+  "out"
 )

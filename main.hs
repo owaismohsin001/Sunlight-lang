@@ -14,7 +14,7 @@ import Debug.Trace
 import Text.Megaparsec as P
 
 strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
-endStr = "out():getOutput()"
+endStr = "tostring(out())"
 
 remIncludes =
         do

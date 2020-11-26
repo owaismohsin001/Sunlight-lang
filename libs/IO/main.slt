@@ -1,0 +1,23 @@
+lib "*std"
+
+type World <- {unsafeF}
+
+class unsafeRunIO: st
+st@World -> st.unsafeF: ()
+true -> unsafeWrite: st
+
+fmap ? s@World -> world: \s0 -> (((f: a), s1) where (a, s1) <- s.unsafeF: s0 end)
+
+seq ? s@World -> world: \s0 -> ( ((fn: a), s2) where 
+    (fn, s1) <- f.unsafeF: s0
+    (a, s2) <- s.unsafeF: s1 
+end)
+
+unit ? r@World -> world: \st -> (s, st)
+bind ? s@World -> world: \st -> ( ((f: a).unsafeF): sn where (a, sn) <- s.unsafeF: st end )
+
+read: a <- world: \st -> ((unsafeRead: a), st)
+readln: a <- world: \st -> ((unsafeRead: a .. "\\n"), st)
+write: a <- world: \st -> ((unsafeWrite: a), st)
+print <- \write: stringify: x
+println <- \write: (stringify: x) .. "\\n"

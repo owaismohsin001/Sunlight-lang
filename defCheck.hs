@@ -58,7 +58,7 @@ runDefiner (Right n) parent =
         baseSymbols = [
             "head", "tail", "SltList", "SltNum", "eval",
             "SltString", "SltTuple", "SltBool", "SltFunc",
-            "unsafeMod", "baseStringify"
+            "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead"
             ]
 
 ioDefiner :: Either (P.ParseErrorBundle String Data.Void.Void) Node -> Maybe Scope -> IO ()
@@ -136,7 +136,7 @@ usedVars st (BinOpNode lhs op rhs pos) =
     case op of
         "." -> usedVars st lhs `Set.union` st
         _ -> usedVars st lhs `Set.union` (usedVars st rhs `Set.union` st)
-usedVars st (IdentifierNode id pos) = st `Set.union` Set.singleton (StringPos id pos)
+usedVars st (IdentifierNode id pos) = st `Set.union` Set.singleton (StringPos id pos) `Set.union` Set.singleton (StringPos "unsafeRunIO" pos)
 usedVars st n@(FuncDefNode _ args expr pos) = 
     usedVars st expr `Set.difference` (Set.empty `reduceSets` args)
 usedVars st n@(WhereNode expr ds pos) = usedVars st expr `Set.union` (st `Set.union` (Set.empty `reduceSets` ds))
@@ -263,14 +263,21 @@ checkDefinitions le parent =
                     case isDefined sc rmn  of
                         Left s -> Left s
                         Right () -> 
-                            case StringPos "out" (getStringPos nn) `exists` sc of 
+                            case (StringPos "out" (getStringPos nn) `exists` sc) of 
                                 Left _ -> Left "No entry point defined"
                                 Right () -> 
                                     case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
                                         Right () -> Right $ filteredRmns
                                         Left a -> Left a
+                                    where filteredRmns = outputOut sc $ removeDefKey $ filterDefs rmn
                     where 
-                        filteredRmns = removeDefKey $ filterDefs rmn
+                        outputOut sc (ProgramNode ps pos) = ProgramNode (map (outputOut sc) ps) pos
+                        outputOut sc nd@(DeclNode id@(IdentifierNode "out" ipos) def pos) = 
+                            case (StringPos "unsafeRunIO" (getStringPos nn) `exists` sc) of 
+                                Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite" ipos) [def] pos) pos
+                                Right () -> DeclNode id (CallNode (IdentifierNode "unsafeRunIO" ipos) [def] pos) pos
+                        outputOut _ a = a
+
                         defStructs n = defStruct [] n
                         rmn = removeNewMethods sc nn
                         filterDefs n@(ProgramNode dfs pos) = 
