@@ -24,7 +24,16 @@ remIncludes =
             is <- Parser.includes Mod
             return (ls, is)
 
-fParse :: Set.Set String -> String -> String -> String -> IO (Either (ParseErrorBundle String Void) Node)
+foldS :: Set.Set String -> [(String, String, String)] -> IO [(Set.Set String, Node)]
+foldS _ [] = return []
+foldS s [(dir, fn, ftxt)] = mapM id [fParse s dir fn ftxt] :: IO [(Set.Set String, Node)]
+foldS s ((dir, fn, ftxt):xs) =
+    do
+        tre@(che, _) <- fParse s dir fn ftxt
+        ls <- foldS che xs
+        return $ [tre] ++ ls
+
+fParse :: Set.Set String -> String -> String -> String -> IO (Set.Set String, Node)
 fParse cache dir fn fstr = 
     do
         let str = filter (\x -> x /= '\t') fstr
@@ -44,26 +53,23 @@ fParse cache dir fn fstr =
                 s = extractString x
         libs <- mapM (readFile . sepStatic) (extractList libs)
         let sepStatic s = if head s == '*' then "./libs/" ++ tail s else dir ++ "/" ++ s
-        libs <- mapM id (zipWith3 (fParse nCache) (map sepStatic lns) lns libs) :: IO [Either (ParseErrorBundle String Void) Node]
-        let ls = res where
-            res = case mapM id libs :: Either (ParseErrorBundle String Void) [Node] of
-                Right ns -> ns
-                Left e -> error (P.errorBundlePretty e)
+        let lbs = zipWith3 (\a b c -> (a, b, c)) (map sepStatic lns) lns libs
+        libs <- foldS nCache lbs
         let ps = zipWith (P.runParser (Parser.parse [])) ns txs
         let ins = mapE id ps :: Either (ParseErrorBundle String Data.Void.Void) [Node]
         case ins of 
-            Right xs -> return $ P.runParser (Parser.parse $ ls ++ xs) fn str
-            Left n -> return $ Left n
+            Right xs -> 
+                case P.runParser (Parser.parse $ map snd libs ++ xs) fn str of
+                    Right n -> return (nCache, n)
+                    Left e -> error $ P.errorBundlePretty e
+            Left n -> error $ P.errorBundlePretty n
 
 run :: String -> String -> IO ()
 run fstr fn =
     do
-        nd <- fParse Set.empty "." fn fstr
-        let tnd = res where 
-            res = case nd of
-                    Left e -> Left $ P.errorBundlePretty e
-                    Right n -> Right $ mergeMultipleNode n
-        case DefCheck.checkDefinitions tnd Nothing of
+        (_, nd) <- fParse Set.empty "." fn fstr
+        let tnd = mergeMultipleNode nd
+        case DefCheck.checkDefinitions (Right tnd) Nothing of
             Right n -> writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\n" ++ endStr
             Left str -> putStrLn str
 
