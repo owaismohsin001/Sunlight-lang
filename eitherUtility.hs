@@ -3,12 +3,10 @@ module EitherUtility where
 foldE f =
     foldr (
         \fa fb -> 
-            case fa of
-                Left a -> Left a
-                Right a ->
-                    case fb of
-                        Left b -> Left b
-                        Right b -> Right $ f a b
+            do
+                a <- fa
+                b <- fb
+                Right $ f a b
         )
 
 mapE :: (b -> b) -> [Either a b] -> Either a [b]
@@ -25,10 +23,4 @@ verify :: [Either a ()] -> Either a ()
 verify = foldE (\_ b -> b) (Right ())
 
 (|>>) :: Either a b -> Either a bx -> Either a bx
-fa |>> fb =
-    case fa of
-        Left a -> Left a
-        Right a ->
-            case fb of
-                Left b -> Left b
-                Right b -> Right b
+(|>>) = (*>)
