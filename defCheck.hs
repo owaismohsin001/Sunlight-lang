@@ -196,7 +196,7 @@ removeDefKey st@(StructDefNode id args strct mov pos) =
         Just ov -> StructDefNode id args strct (Just $ removeDefKey ov) pos
 removeDefKey n@SumTypeNode{} = n
 removeDefKey n@DeStructure{} = n
-removeDefKey fid@(DataNode id pos) = fid
+removeDefKey fid@DataNode{} = fid
 removeDefKey (NewMethodNode id cond exp pos) = NewMethodNode (removeDefKey id) (removeDefKey cond) (removeDefKey exp) pos
 removeDefKey p = p
 

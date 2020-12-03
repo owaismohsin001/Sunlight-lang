@@ -2,6 +2,8 @@ hash = require("hashLib")
 
 uCount = 0
 
+Mutates = -1
+
 function SltValueCall(this, ...)
     return error(SltError.create("Type Error", "Can't call a value of type " .. this.type_, this))
 end
@@ -528,10 +530,10 @@ end
 
 SltThunk = {}
 SltThunk.__index = SltValue
-function SltThunk.create(fun, name)
+function SltThunk.create(fun, mutates)
   local this = {}
   this.type_ = "SltThunk";
-  this.name = name
+  this.mutates = mutates
   this.fun = fun;
   this.value = nil;
 
@@ -540,7 +542,7 @@ function SltThunk.create(fun, name)
   setmetatable(this, {
     __index = SltValue;
     __call = function(this)
-      if this.value == nil or this.name == "out" or this.name == "loopout" then
+      if this.value == nil or this.mutates == Mutates then
         this.value = this.fun()
       end
       return this.value
@@ -892,7 +894,7 @@ unsafeRead = SltThunk.create(
       end     
     )
   end,
-  "out"
+  Mutates
 )
 
 unsafeWrite = SltThunk.create(
@@ -904,5 +906,5 @@ unsafeWrite = SltThunk.create(
       end     
     )
   end,
-  "out"
+  Mutates
 )

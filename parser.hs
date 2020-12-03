@@ -316,8 +316,14 @@ boolean =
 parens =
     do
         Text.Megaparsec.Char.string "("
+        newlines
+        spaces
+        newlines
         spaces
         e <- whereExpr
+        newlines
+        spaces
+        newlines
         spaces
         char ')'
         return e
