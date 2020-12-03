@@ -10,6 +10,17 @@ cmp: f, g <- \f: g: x
 fst: t <- a where (a, b) <- t end
 snd: t <- b where (a, b) <- t end
 
+flip: f, x, y <- f: y, x
+
+add: a, b <- a+b
+sub: a, b <- a-b
+mul: a, b <- a*b
+div: a, b <- a/b
+
+class safeDiv: a, b
+b = 0 -> none
+true -> some: a/b
+
 class modulus: n
 n@SltNum -> unsafeMod: n
 

@@ -539,8 +539,8 @@ decls xs =
         P.many Parser.newline
         spaces
         dcs <- 
-             pref *>
-                (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl <|> modStmnt) 
+             (pref *>
+                (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl <|> modStmnt))
                 `endBy` ((const "" <$> eof) <|> (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String))
         return $ ProgramNode (concatLists dcs $ getLists xs) pos
     where
