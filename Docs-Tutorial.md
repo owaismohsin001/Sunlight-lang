@@ -50,11 +50,11 @@ Although, unlike some other languages, comments cannot be a full parseable progr
 # Types
 Types are either structs or multiple structs that are grouped under the same structure. A struct can be declared as such
 ```
-type Cirle <- {r}
+Cirle <- {r}
 ```
 and a sum of these can be declared as such
 ```
-type Shape <- Circle{r} | Triangle{a, b, c} | Square{e}
+Shape <- Circle{r} | Triangle{a, b, c} | Square{e}
 ```
 Now a shape can be either a circle, a triangle, or a square. 
 
@@ -299,18 +299,20 @@ The you can use it to manage any/all kind of state, for example a simple stack c
 ```
 lib "*state"
 
-push: a <- modify: \[a] .. x
-pop <- putPair: \xs -> ((head: xs), tail: xs)
+push: a <- State::modify: \[a] .. x
+pop <- State::putPair: \xs -> ((head: xs), tail: xs)
 
-add <- pop bind \a -> pop bind \b -> push: a+b
+sAdd <- pop bind \a -> pop bind \b -> push: a+b
 
-out <- runState: [], (baseState: []) bind \(push: 2) bind \(push: 3) bind \add
+out <- State::runState: [], (State::baseState: []) bind \(push: 2) bind \(push: 3) bind \sAdd
 ```
 Here it uses `modify` which as you likely guessed modifies the state. This is one of many utility functions provided by the `state` library.
 
 `putPair` - Takes a function with that takes the old state and returns a tuple comprised of `(result, newState)`
 
 `get` - gets the state and puts and returns it as the result
+
+`stApply` - takes two functions and applies is to it's arguments creating result and new state, an example would be to rewrite the pop function like this, `State::stApply: head, tail`.
 
 `put` - takes an argument and puts it as state
 
