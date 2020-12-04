@@ -1,4 +1,4 @@
-type Maybe <- Some{a} | None
+Maybe <- Some{a} | None
 
 seq ? f@Some and s@Some -> some: f.a: s.a
 seq ? f@None or s@None -> s
@@ -30,7 +30,7 @@ class toEither: s
 s@Some -> right: s.a
 s@None -> left: ()
 
-type Either <- Right{r} | Left{l}
+Either <- Right{r} | Left{l}
 
 class getRight: et, d
 et@Right -> et.a

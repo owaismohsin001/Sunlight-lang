@@ -1,6 +1,6 @@
 lib "*std"
 
-type World <- {unsafeF}
+World <- {unsafeF}
 
 class unsafeRunIO: st
 st@World -> st.unsafeF: ()

@@ -2,7 +2,7 @@ lib "*std"
 
 -- State module
 mod State
-    type State <- {f}
+    State <- {f}
 
     runState: i, st <- st.f: i
     execState: i, st <- snd: $runState: i, st

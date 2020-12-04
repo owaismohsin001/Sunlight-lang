@@ -2,7 +2,7 @@ lib "*std"
 
 -- iniu
 mod Strict
-    type Strict <- !{a}
+    Strict <- !{a}
 
     fmap ? s@$Strict -> $strict: f: s.a
     seq ? f@$Strict and s@$Strict -> $strict: f.a: s.a

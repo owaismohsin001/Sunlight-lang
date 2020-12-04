@@ -37,7 +37,6 @@ notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.strin
             Parser.True,
             Parser.False,
             Parser.Not,
-            Parser.Type,
             Parser.Class,
             Parser.Every,
             Parser.Is,
@@ -61,7 +60,6 @@ data Keyword =
     | True
     | False
     | Not
-    | Type
     | Class
     | Every
     | Is
@@ -398,8 +396,6 @@ lhs =
 structDef =
     do
         pos <- getSourcePos
-        keyword Type
-        spaces
         id <- dataName
         spaces
         Text.Megaparsec.Char.string "<-"
