@@ -11,6 +11,7 @@ import System.Environment
 import Data.List
 import qualified Data.Set as Set
 import Debug.Trace
+import System.Process
 import Text.Megaparsec as P
 
 strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
@@ -64,23 +65,33 @@ fParse cache dir fn fstr =
                     Left e -> error $ P.errorBundlePretty e
             Left n -> error $ P.errorBundlePretty n
 
-run :: String -> String -> IO ()
-run fstr fn =
+compile :: String -> String -> IO ()
+compile fstr fn =
     do
         (_, nd) <- fParse Set.empty "." fn fstr
         let tnd = mergeMultipleNode nd
         case DefCheck.checkDefinitions (Right tnd) Nothing of
             Right n -> writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\n" ++ endStr
-            Left str -> putStrLn str
+            Left str -> error str
 
-runFile fn =
+compileFile :: FilePath -> IO ()
+compileFile fn =
     do
         f <- readFile fn
-        run f fn
+        compile f fn
+
+runFile :: FilePath -> IO ()
+runFile fn =
+    do
+        compileFile fn
+        callCommand "lua bin.lua"
+
+run :: IO ()
+run = runFile "main.slt"
 
 main = 
     do
         args <- getArgs
         let fn = head args
         f <- readFile fn
-        run f fn
+        compile f fn
