@@ -80,6 +80,12 @@ The benefit of using functions instead of the actual type syntax is that these f
 ## Checking a type
 To check a type you can simply type a variable's name by saying `a@Circle` where RHS of `@` is a type.
 
+## Passing a type
+A type in Sunlight-Lang can be passed around to functions as if it was a value, this is here to allow dispatch based on arbitraray types, these include return type dispatch and similar conveniences. Here's an eample of passing a type to a function
+```
+unit: 2, &Maybe
+```
+This returns `Maybe` with the value of `2`.
 # MultiMethods
 There are two types of multi-methods in Sunlight-lang, opened and closed.
 
