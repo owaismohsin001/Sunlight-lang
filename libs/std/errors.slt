@@ -8,6 +8,11 @@ unit ? r@Maybe -> some: s
 bind ? s@Some -> f: s.a
 bind ? s@None -> none
 
+empty ? r@Maybe -> None
+append ? a@Some and b@None -> a
+append ? a@None and b@Some -> b
+append ? a@Some and b@Some -> some: a.a append b.a
+
 class getSome: mb, d
 mb@Some -> mb.a;
 mb@None -> d;
@@ -20,8 +25,6 @@ glance ? s@None -> none
 
 access ? s@Some -> i access s.a
 access ? s@None -> none
-
-empty ? ls@Some -> empty: ls.a
 
 unedit ? s@Some -> some: unedit: s.a, i, fi, uf
 unedit ? s@None -> none
@@ -60,6 +63,3 @@ glance ? s@Left -> left: glance: fi, i, s.l
 
 access ? s@Right -> i access s.r
 access ? s@Left -> i access s.l
-
-empty ? ls@Right -> empty: ls.r
-empty ? ls@Left -> empty: ls.l

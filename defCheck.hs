@@ -56,7 +56,7 @@ runDefiner (Right n) parent =
         posFromProgram (ProgramNode _ pos) = pos
         pos = posFromProgram n
         baseSymbols = [
-            "head", "tail", "SltList", "SltNum", "eval",
+            "listHead", "listTail", "SltList", "SltNum", "eval",
             "SltString", "SltTuple", "SltBool", "SltFunc",
             "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead"
             ]

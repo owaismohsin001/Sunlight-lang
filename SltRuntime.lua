@@ -822,7 +822,7 @@ end;
 
 ---------------------------------
 -- Base functions
-head = 
+listHead = 
   SltThunk.create(
     function() return
       SltFunc.create(
@@ -833,7 +833,7 @@ head =
     end
   )
 
-tail = SltThunk.create(
+listTail = SltThunk.create(
   function() return
     SltFunc.create(
       function(ls)

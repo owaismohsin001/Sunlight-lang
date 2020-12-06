@@ -1,0 +1,8 @@
+open empty: r
+empty ? r@SltList -> []
+
+open append: a, b
+append ? ([] = a or a@SltList) and ([] = b or b@SltList) -> a .. b
+
+open concat: r, xs
+concat ? def -> fold: append, (empty: r), xs
