@@ -295,13 +295,44 @@ fib: n <- if n.a < 2 then Strict::strict: 1 else (\a, b -> a+b) fmap' (fib: fmap
 out <- fib: Strict::Strict{a :: 100}
 ```
 
+# IO
+(From library `IO`)
+IO library offers a World type that is used to manage real world and perform IO in a purely functional style manner using fmap, seq, unit, and bind. To begin you must include this library
+```
+lib "*state"
+```
+Now you can print to the screen, read user input and do similar IO action by binding an IO action to another. Here's an example of printing "Hello World" monadically.
+```
+println: "Hello World"
+```
+You can, as mentioned earlier, also take use input. A program that does both input and output would be
+```
+lib "*std"
+lib "*IO"
+
+msg: n <- (readln: "Counted up to " .. stringify: n-1) bind \println: n
+
+out <- mapM: msg, &World, (fl: 1 where fl: n <- [n] .. fl: n+1 end)
+```
+This program is a simple counter that increments a number as soon as you hit enter. There are many functions aside from the ones provided by it's implmentation of other methods, so here are all of them.
+
+`read` - reads from the console
+
+`readln` - reads from the console, and appends a newline after your message
+
+`write` - writes a string to the console
+
+`print` - uses stringify on the input and writing it on the console
+
+`println` - appends a newline to its input after converting it to a string and writes that on the console
+
 # State type
 (From library `state`)
 State library offers a state type that can be used to manage state in a purely functional and abstract style using fmap, seq, unit, and bind. Start by including this library like such
 ```
 lib "*state"
 ```
-The you can use it to manage any/all kind of state, for example a simple stack can be implemented as such.
+Then you can use it to manage any/all kind of state, for example a simple stack can be implemented as such.
 ```
 lib "*state"
 
