@@ -67,7 +67,7 @@ or
 ```
 out <- Triangle{a :: 5, b :: 3, c :: 8}
 ```
-That definition of types also defines functions named `square`, `circle`, and `triangle`(these are entirely lowercased), all of which are just functions that take the number of arguments their respective type takes and return an instance of their respective types. For example,
+That definition of types also defines functions named `square`, `circle`, and `triangle`(their first argument is lowercased), all of which are just functions that take the number of arguments their respective type takes and return an instance of their respective types. For example,
 ```
 out <- square: 5
 ```
