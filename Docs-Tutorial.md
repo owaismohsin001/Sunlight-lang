@@ -106,7 +106,7 @@ p@Wild -> p.name .. p.forest
 Now open methods can be extended to have new cases anywhere from your program. Here's an example
 ```
 open fst: stct
-fst ? stct@SltTuple -> f where (f, s) = stct
+fst ? stct@SltTuple -> (f where (f, s) = stct end)
 ```
 Now we can have
 ```
