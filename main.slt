@@ -1,4 +1,5 @@
 lib "*std"
+lib "*monoids"
 lib "*strict"
 lib "*state"
 lib "*IO"

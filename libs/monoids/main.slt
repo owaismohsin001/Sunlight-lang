@@ -1,0 +1,23 @@
+lib "*std"
+
+-- Monoid modules
+mod Monoids
+    Sum <- !{n}
+    Product <- !{n}
+
+    empty ? r@$Sum -> $sum: 0
+    append ? a@$Sum and b@$Sum -> $sum: a.n+b.n
+
+    empty ? r@$Product -> $product: 1
+    append ? a@$Product and b@$Product -> $product: a.n*b.n
+
+
+    AllTrue <- !{b}
+    AnyTrue <- !{b}
+
+    empty ? r@$AllTrue -> $allTrue: true
+    append ? a@$AllTrue and b@$AllTrue -> $allTrue: a.b and b.b
+
+    empty ? r@$AnyTrue -> $anyTrue: false
+    append ? a@$AnyTrue and b@$AnyTrue -> $anyTrue: a.b or b.b
+end
