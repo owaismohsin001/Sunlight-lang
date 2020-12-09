@@ -426,8 +426,8 @@ function SltStruct.create(name, overarch, canHash, tb, loc)
   this.table = tb
 
   this.isType = function(this, other)
-    if type(other) == "string" then return SltBool.create(this.type_ == other or this.overarch == other, this.pos) end
-    return SltBool.create(this.type_ == other.type_ or this.overarch == other.type_, this.pos) 
+    if type(other) == "string" then return SltBool.create(this.type_ == other or this.overarch == other, this.loc) end
+    return SltBool.create(this.type_ == other.type_ or this.overarch == other.type_, this.loc) 
   end;
 
   this.checkLength = function(this, length)
@@ -848,7 +848,7 @@ baseStringify =
     function() return
       SltFunc.create(
         function(t)
-          return SltString.create(tostring(t()), t().pos)
+          return SltString.create(tostring(t()), t().loc)
         end
       )
     end
@@ -861,7 +861,7 @@ unsafeMod =
         function(a)
           return SltFunc.create(
             function(b)
-              return SltNum.create(math.fmod(a().value, b().value), b().pos)
+              return SltNum.create(math.fmod(a().value, b().value), b().loc)
             end
           )
         end
@@ -876,6 +876,16 @@ eval = SltThunk.create(
         if t.type_ ~= "SltThunk" then return SltError.crate("TypeError", "Cannot evaluate a " .. t.type_, t) end
         t()
         return t()
+      end
+    )
+  end
+)
+
+getType = SltThunk.create(
+  function() return
+    SltFunc.create(
+      function(a)
+        return SltType.create(a().type_, a().loc)
       end
     )
   end

@@ -58,7 +58,8 @@ runDefiner (Right n) parent =
         baseSymbols = [
             "listHead", "listTail", "SltList", "SltNum", "eval",
             "SltString", "SltTuple", "SltBool", "SltFunc",
-            "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead"
+            "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead",
+            "getType"
             ]
 
 ioDefiner :: Either (P.ParseErrorBundle String Data.Void.Void) Node -> Maybe Scope -> IO ()
