@@ -255,10 +255,10 @@ everyExpr =
                 )
         return $ CallNode (IdentifierNode "map_and_filter" pos) sugar pos
 
-atom = choice [
+atom = choice $ map try [
     Parser.ifExpr,
     Parser.lambdaExpr,
-    try Parser.parens,
+    Parser.parens,
     Parser.everyExpr,
     Parser.notExpr,
     Parser.negExpr,
@@ -267,9 +267,9 @@ atom = choice [
     Parser.caseExpr,
     Parser.list,
     Parser.string '"', 
-    try Parser.fractional, 
+    Parser.fractional, 
     Parser.number,
-    try $ Parser.structInstanceExpr <* notFollowedBy (Text.Megaparsec.Char.string "::"),
+    Parser.structInstanceExpr <* notFollowedBy (Text.Megaparsec.Char.string "::"),
     Parser.identifier Prelude.False
     ]
 
