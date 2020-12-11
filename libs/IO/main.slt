@@ -22,5 +22,5 @@ read: a <- world: \st -> ((unsafeRead: a), st)
 readln: a <- world: \st -> ((unsafeRead: a .. "\\n"), st)
 input <- read cmp' stringify  
 write: a <- world: \st -> ((unsafeWrite: a), st)
-print <- \write: stringify: x
-println <- \write: (stringify: x) .. "\\n"
+print <- write cmp' stringify
+println: x <- (print: x) bind \print: "\\n"
