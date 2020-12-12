@@ -15,7 +15,7 @@ import System.Process
 import Text.Megaparsec as P
 
 strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
-endStr = "tostring(out())"
+endStr = "tostring(out1())"
 
 remIncludes =
         do

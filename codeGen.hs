@@ -19,8 +19,8 @@ fDeclare (DeStructure ds _) = intercalate "" $ map fDeclare ds
 fDeclare a = "> " ++ show a ++ "\n\n"
 
 --- Generate Application Code
-handlebinOp l "and" r pos = "((" ++ generate l ++ ")" ++ ":anded(SltThunk.create(function() return " ++ generate r ++ " end)))"
-handlebinOp l "or" r pos = "((" ++ generate l  ++ ")" ++ ":ored(SltThunk.create(function() return " ++ generate r ++ " end)))"
+handlebinOp l "&" r pos = "((" ++ generate l ++ ")" ++ ":anded(SltThunk.create(function() return " ++ generate r ++ " end)))"
+handlebinOp l "|" r pos = "((" ++ generate l  ++ ")" ++ ":ored(SltThunk.create(function() return " ++ generate r ++ " end)))"
 handlebinOp l "=" r pos = "((" ++ generate l ++ ")" ++ ":eq(" ++ generate r ++ "))"
 handlebinOp l "/=" r pos = "((" ++ generate l ++ ")" ++ ": neq(" ++ generate r ++ "))"
 handlebinOp l ">" r pos = "((" ++ generate l ++ ")" ++ ":gt(" ++ generate r ++ "))"

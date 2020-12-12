@@ -1,7 +1,7 @@
 Maybe <- Some{a} | None
 
-seq ? f@Some and s@Some -> some: f.a: s.a
-seq ? f@None or s@None -> s
+seq ? f@Some & s@Some -> some: f.a: s.a
+seq ? f@None | s@None -> s
 
 unit ? r@Maybe -> some: s
 
@@ -9,9 +9,9 @@ bind ? s@Some -> f: s.a
 bind ? s@None -> none
 
 empty ? r@Maybe -> None
-append ? a@Some and b@None -> a
-append ? a@None and b@Some -> b
-append ? a@Some and b@Some -> some: a.a append b.a
+append ? a@Some & b@None -> a
+append ? a@None & b@Some -> b
+append ? a@Some & b@Some -> some: a.a append b.a
 
 class getSome: mb, d
 mb@Some -> mb.a;
@@ -51,9 +51,9 @@ unit ? r@Either -> right: s
 bind ? s@Left -> s.l
 bind ? s@Right -> f: s.r
 
-seq ? f@Right and s@Right -> right: f.r: s.r
-seq ? f@Left and s@Left -> left: f.l: s.l
-seq ? f@Left or s@Right -> s
+seq ? f@Right & s@Right -> right: f.r: s.r
+seq ? f@Left & s@Left -> left: f.l: s.l
+seq ? f@Left | s@Right -> s
 
 unedit ? s@Right -> right: unedit: s.r, i, fi, uf
 unedit ? s@Left -> left: unedit: s.l, i, fi, uf

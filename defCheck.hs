@@ -170,13 +170,13 @@ usedVars _ p =
 -- Remove def keyword
 removeDefKey :: Node -> Node
 removeDefKey (ProgramNode ds pos) = ProgramNode (map removeDefKey ds) pos 
-removeDefKey (DeclNode lhs rhs pos) = DeclNode lhs (removeDefKey rhs) pos
+removeDefKey (DeclNode lhs rhs pos) = DeclNode (removeDefKey lhs) (removeDefKey rhs) pos
 removeDefKey (BinOpNode lhs op rhs pos) = 
     case op of
         "." -> BinOpNode (removeDefKey lhs) op rhs pos
         _ -> BinOpNode (removeDefKey lhs) op (removeDefKey rhs) pos
-removeDefKey fid@(IdentifierNode id pos) = if id == "def" then BoolNode "true" pos else fid
-removeDefKey n@(FuncDefNode mid args expr pos) = FuncDefNode mid args (removeDefKey expr) pos
+removeDefKey fid@(IdentifierNode id pos) = if id == "def" then BoolNode "true" pos else IdentifierNode (id ++ "1") pos
+removeDefKey n@(FuncDefNode mid args expr pos) = FuncDefNode mid (map removeDefKey args) (removeDefKey expr) pos
 removeDefKey n@(WhereNode expr ds pos) = WhereNode (removeDefKey expr) (map removeDefKey ds) pos
 removeDefKey (CallNode id args pos) = CallNode (removeDefKey id) (map removeDefKey args) pos
 removeDefKey (UnaryExpr op e pos) = UnaryExpr op (removeDefKey e) pos
@@ -190,7 +190,8 @@ removeDefKey (SequenceIfNode ns mels pos) = SequenceIfNode (map removeDefKey ns)
     getElse Nothing = Nothing
 removeDefKey (ListNode ns pos) = ListNode (map removeDefKey ns) pos
 removeDefKey (TupleNode ts pos) = TupleNode (map removeDefKey ts) pos
-removeDefKey (StructInstanceNode id args lazy pos) = StructInstanceNode (removeDefKey id) (map removeDefKey args) lazy pos
+removeDefKey (StructInstanceNode id args lazy pos) = StructInstanceNode (removeDefKey id) (map f args) lazy pos where
+    f (DeclNode lhs rhs pos) = DeclNode lhs (removeDefKey rhs) pos
 removeDefKey st@(StructDefNode id args strct mov pos) = 
     case mov of
         Nothing -> st
@@ -268,15 +269,15 @@ checkDefinitions le parent =
                                 Left _ -> Left "No entry point defined"
                                 Right () -> 
                                     case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
-                                        Right () -> Right $ filteredRmns
+                                        Right () -> Right filteredRmns
                                         Left a -> Left a
                                     where filteredRmns = outputOut sc $ removeDefKey $ filterDefs rmn
                     where 
                         outputOut sc (ProgramNode ps pos) = ProgramNode (map (outputOut sc) ps) pos
-                        outputOut sc nd@(DeclNode id@(IdentifierNode "out" ipos) def pos) = 
+                        outputOut sc nd@(DeclNode id@(IdentifierNode "out1" ipos) def pos) = 
                             case (StringPos "unsafeRunIO" (getStringPos nn) `exists` sc) of 
-                                Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite" ipos) [def] pos) pos
-                                Right () -> DeclNode id (CallNode (IdentifierNode "unsafeRunIO" ipos) [def] pos) pos
+                                Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite1" ipos) [def] pos) pos
+                                Right () -> DeclNode id (CallNode (IdentifierNode "unsafeRunIO1" ipos) [def] pos) pos
                         outputOut _ a = a
 
                         defStructs n = defStruct [] n
@@ -285,7 +286,7 @@ checkDefinitions le parent =
                             let used = usedVars Set.empty n in 
                                 ProgramNode (filter (toKeep used) dfs) pos
                         toKeep used x = 
-                            head (define [] x) `Set.member` used || str == "out" || str == "loopout" where 
+                            head (define [] x) `Set.member` used || str == "out" where 
                                 str = getPosString $ head $ define [] x
                         getPosString (StringPos s _) = s
                         getStringPos (ProgramNode _ pos) = pos

@@ -42,8 +42,6 @@ notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.strin
             Parser.Is,
             Parser.Where,
             Parser.End,
-            Parser.Or,
-            Parser.And,
             Parser.Open,
             Parser.Include,
             Parser.Mod,
@@ -65,8 +63,6 @@ data Keyword =
     | Is
     | End
     | Where
-    | And
-    | Or
     | Include
     | Open
     | Mod
@@ -593,7 +589,7 @@ backExpr =
                 let (l:ls) = reverse xs
                 return $ foldl (\a b -> CallNode b [a] pos) l ls
 
-logicalExpr = binOp compExpr (Text.Megaparsec.Char.string "and" <|> Text.Megaparsec.Char.string "or") BinOpNode
+logicalExpr = binOp compExpr (Text.Megaparsec.Char.string "&" <|> Text.Megaparsec.Char.string "|") BinOpNode
 
 compExpr = binOp typeExpr ops BinOpNode where
     ops =

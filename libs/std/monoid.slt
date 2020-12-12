@@ -6,10 +6,10 @@ open concat: r, xs
 concat ? def -> fold: append, (empty: r), xs
 
 empty ? r@SltList -> []
-append ? ([] = a or a@SltList) and ([] = b or b@SltList) -> a .. b
+append ? ([] = a | a@SltList) & ([] = b | b@SltList) -> a .. b
 
 empty ? r@SltString -> ""
-append ? a@SltString and b@SltString -> a .. b
+append ? a@SltString & b@SltString -> a .. b
 
 empty ? r@SltFunc -> id
-append ? a@SltFunc and b@SltFunc -> a cmp' b
+append ? a@SltFunc & b@SltFunc -> a cmp' b

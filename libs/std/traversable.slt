@@ -9,8 +9,8 @@ map_and_filter ? [] = xs -> []
 map_and_filter ? xs@SltList -> if rf: head: xs then [mf: head: xs] .. map_and_filter: mf, rf, tail: xs else map_and_filter: mf, rf, (tail: xs)
 
 open take: n, ls
-take ? ls@SltList and n <= 1 -> []
-take ? [] = ls or n < 1 -> []
+take ? ls@SltList & n <= 1 -> []
+take ? [] = ls | n < 1 -> []
 take ? ls@SltList -> [head: ls] .. take: n-1, tail: ls
 
 open last: s
@@ -24,7 +24,7 @@ fold ? xs@SltList -> f: (head: xs), fold: f, i, tail: xs
 open seq: f, s
 seq ? [] = s -> []
 seq ? [] = f -> []
-seq ? s@SltList and f@SltList -> (map: (head: f), s) .. seq: (tail: f), s
+seq ? s@SltList & f@SltList -> (map: (head: f), s) .. seq: (tail: f), s
 
 open fmap: f, s
 fmap ? s@SltList -> map: f, s

@@ -822,7 +822,7 @@ end;
 
 ---------------------------------
 -- Base functions
-listHead = 
+listHead1 = 
   SltThunk.create(
     function() return
       SltFunc.create(
@@ -833,7 +833,7 @@ listHead =
     end
   )
 
-listTail = SltThunk.create(
+listTail1 = SltThunk.create(
   function() return
     SltFunc.create(
       function(ls)
@@ -843,7 +843,7 @@ listTail = SltThunk.create(
   end
 )
 
-baseStringify = 
+baseStringify1 = 
   SltThunk.create(
     function() return
       SltFunc.create(
@@ -854,7 +854,7 @@ baseStringify =
     end
   )
 
-unsafeMod = 
+unsafeMod1 = 
   SltThunk.create(
     function() return
       SltFunc.create(
@@ -869,7 +869,7 @@ unsafeMod =
     end
   )
 
-eval = SltThunk.create(
+eval1 = SltThunk.create(
   function() return
     SltFunc.create(
       function(t)
@@ -881,7 +881,7 @@ eval = SltThunk.create(
   end
 )
 
-getType = SltThunk.create(
+getType1 = SltThunk.create(
   function() return
     SltFunc.create(
       function(a)
@@ -893,7 +893,7 @@ getType = SltThunk.create(
 
 --------------------------------
 -- IO Functions
-unsafeRead = SltThunk.create(
+unsafeRead1 = SltThunk.create(
   function() return 
     SltFunc.create(
       function(st)
@@ -907,7 +907,7 @@ unsafeRead = SltThunk.create(
   Mutates
 )
 
-unsafeWrite = SltThunk.create(
+unsafeWrite1 = SltThunk.create(
   function() return 
     SltFunc.create(
       function(st)
