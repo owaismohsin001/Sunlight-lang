@@ -43,8 +43,8 @@ class getLeft: et, d
 et@Right -> d
 et@Left -> et.l;
 
-fmap ? s@Right -> f: s.r
-fmap ? s@Left -> s
+fmap ? s@Right -> (right: f) seq s
+fmap ? s@Left -> (left: f) seq s
 
 unit ? r@Either -> right: s
 
@@ -53,7 +53,7 @@ bind ? s@Right -> f: s.r
 
 seq ? f@Right & s@Right -> right: f.r: s.r
 seq ? f@Left & s@Left -> left: f.l: s.l
-seq ? f@Left | s@Right -> s
+seq ? f@Left | s@Right | s@Left | f@Right -> s
 
 unedit ? s@Right -> right: unedit: s.r, i, fi, uf
 unedit ? s@Left -> left: unedit: s.l, i, fi, uf

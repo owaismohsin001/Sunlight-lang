@@ -1,8 +1,13 @@
 open unit: s, r
-unit ? r@SltList -> [s]
-
 open bind: s, f
+
+unit ? r@SltList -> [s]
 bind ? s@SltList -> concat: &SltList, fmap: f, s
+
+Compose <- {fc}
+
+fmap ? s@Compose -> compose: (fmap: f) fmap s.fc
+seq ? f@Compose & s@Compose -> compose: seq fmap' f.fc seq' s.fc
 
 join: s <- s bind id
 

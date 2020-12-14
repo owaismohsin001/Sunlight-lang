@@ -80,8 +80,10 @@ generate (FuncDefNode _ args expr pos) =
         turnBool b = if b then "true" else "false"
 generate (BoolNode b pos) = "SltBool.create(" ++ b ++ ", " ++ luaPos pos ++ ")"
 generate (SequenceIfNode fs _ pos) = 
-    (intercalate " or " (map generate fs)) ++ 
-        " or error(SltError.create(\"CaseError\", \"None of the cases matched\", {loc = " ++ luaPos pos ++ "}))"
+    case fs of
+        [] -> "error(SltError.create(\"CaseError\", \"None of the cases matched\", {loc = " ++ luaPos pos ++ "}))"
+        _ -> (intercalate " or " (map generate fs)) ++ 
+            " or error(SltError.create(\"CaseError\", \"None of the cases matched\", {loc = " ++ luaPos pos ++ "}))"
 generate (UnaryExpr op e _) = handleUnaryOp op e
 generate (DataNode n _) = "\"" ++ n ++ "\""
 generate (SumTypeNode ds _) = intercalate "\n" (map generate ds)
