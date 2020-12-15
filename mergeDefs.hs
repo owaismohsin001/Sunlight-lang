@@ -3,9 +3,9 @@ module MergeDefs where
 import Nodes
 
 mergeMultipleNode (ProgramNode ps pos) = 
-    ProgramNode (foldr (++) [] $ map merge ps) pos where
+    ProgramNode (mconcat $ map merge ps) pos where
         merge :: Node -> [Node]
-        merge (MultipleDefinitionNode mds) = foldr (++) [] $ map merge mds
+        merge (MultipleDefinitionNode mds) = mconcat $ map merge mds
         merge (FromStruct n) = [n]
         merge n = [n]
 

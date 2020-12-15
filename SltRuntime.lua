@@ -822,6 +822,28 @@ end;
 
 ---------------------------------
 -- Base functions
+modify1 = SltThunk.create(
+  function() return 
+    SltFunc.create(
+      function(struct)
+        return SltFunc.create(
+          function(string)
+            return SltFunc.create(
+              function(func)
+                local a = copy(struct())
+                local val = a.table[string().value]
+                a.table[string().value] = SltThunk.create(function() return func()(val) end)
+                return a
+              end
+            )
+          end
+        )
+      end     
+    )
+  end,
+  Mutates
+)
+
 listHead1 = 
   SltThunk.create(
     function() return
@@ -874,7 +896,7 @@ eval1 = SltThunk.create(
     SltFunc.create(
       function(t)
         if t.type_ ~= "SltThunk" then return SltError.crate("TypeError", "Cannot evaluate a " .. t.type_, t) end
-        t()
+        tostring(t())
         return t()
       end
     )
@@ -910,9 +932,13 @@ unsafeRead1 = SltThunk.create(
 unsafeWrite1 = SltThunk.create(
   function() return 
     SltFunc.create(
-      function(st)
-        st():getOutput()
-        return st()
+      function(exp)
+        return SltFunc.create(
+          function(st)
+            st():getOutput()
+            return exp()
+          end
+        )
       end     
     )
   end,

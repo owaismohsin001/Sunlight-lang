@@ -11,13 +11,9 @@ foldE f =
 
 mapE :: (b -> b) -> [Either a b] -> Either a [b]
 mapE f [] = Right []
-mapE f (x:xs) = 
-    case folded of
-        Right _ -> Right $ map f remaped
-        Left a -> Left a
-    where 
-        remaped = map (\(Right a) -> a) (x:xs)
-        folded = foldE (\_ b -> b) x xs
+mapE f (x:xs) = do
+    let remaped = map (\(Right a) -> a) (x:xs)
+    return $ map f remaped
 
 verify :: [Either a ()] -> Either a ()
 verify = foldE (\_ b -> b) (Right ())

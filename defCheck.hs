@@ -59,7 +59,7 @@ runDefiner (Right n) parent =
             "listHead", "listTail", "SltList", "SltNum", "eval",
             "SltString", "SltTuple", "SltBool", "SltFunc",
             "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead",
-            "getType"
+            "getType", "modify"
             ]
 
 ioDefiner :: Either (P.ParseErrorBundle String Data.Void.Void) Node -> Maybe Scope -> IO ()
