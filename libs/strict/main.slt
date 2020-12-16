@@ -8,5 +8,7 @@ mod Strict
     seq ? f@$Strict & s@$Strict -> $strict: f.a: s.a
     unit ? r@$Strict -> Strict::strict: s
     bind ? s@$Strict -> f: s.a
-    a <- 10
+
+    get: s <- s.a
+    getF: f <- Strict::get cmp' f cmp' Strict::strict
 end

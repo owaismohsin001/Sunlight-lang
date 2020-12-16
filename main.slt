@@ -1,7 +1,5 @@
 lib "*std"
-lib "*monoids"
 lib "*strict"
-lib "*state"
 lib "*IO"
 
 a <- Some{a :: (\a, b, c -> [[a, b*2], b, c]) fmap' [8, 5] seq' [6, 3] seq' [1, 9]}
@@ -23,9 +21,9 @@ circ <- Shapes::Circle{r :: 15}
 
 tri <- Shapes::Triangle{a :: 2, b :: 9, c :: 7}
 
-fib: n <- if n < 2 then 1 else (fib: n-1) + (fib: n-2)
+fib: n <- if Strict::get: (\x < 2) fmap n then Strict::strict: 1 else add fmap' (fib: (\x-1) fmap n) seq' (fib: (\x-2) fmap n)
 
-out <- println: fib fmap mlp2 seq (some: \x+circV) seq mdLs[2][1][2] where
+out <- println: (Strict::getF: fib) fmap mlp2 seq (some: \x+circV) seq mdLs[2][1][2] where
     mlp2 <- unit: \x*2, &Maybe
     circV <- Shapes::getV: circ
 end

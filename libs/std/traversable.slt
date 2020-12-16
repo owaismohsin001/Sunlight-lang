@@ -29,7 +29,7 @@ seq ? s@SltList & f@SltList -> (map: (head: f), s) .. seq: (tail: f), s
 open fmap: f, s
 fmap ? s@SltList -> map: f, s
 
-fmap ? s@SltFunc -> \f: s: x
+fmap ? s@SltFunc & f@SltFunc -> \f: s: x
 
 map: f, xs <- every xs is f: x
 filter: f, xs <- every xs is x if f: x

@@ -16,10 +16,7 @@ lev xs ys = levMemo ! (n, m)
           | xa ! u == ya ! v = levMemo ! (u-1, v-1)
           | otherwise        = 1 + minimum [levMemo ! (u, v-1),
                                             levMemo ! (u-1, v),
-                                            levMemo ! (u-1, v-1)] 
-
-possibles = ["apple", "rapple", "zig", "appel", "steve"]
-word = "maple"
+                                            levMemo ! (u-1, v-1)]
 
 similarity :: String -> [String] -> [(String, Int)]
 similarity w ls = zipWith (\a b -> (b, lev a b)) (map (const w) ls) ls

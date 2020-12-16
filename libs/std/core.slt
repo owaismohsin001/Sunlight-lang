@@ -26,3 +26,6 @@ n@SltNum -> unsafeMod: n
 
 open stringify: v
 stringify ? def -> baseStringify: v
+
+class modify: st, el, f
+el@SltString & f@SltFunc -> baseModify: st, el, f
