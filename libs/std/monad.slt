@@ -1,4 +1,4 @@
-open unit: s, r
+open unit: r, s
 open bind: s, f
 
 unit ? r@SltList -> [s]
@@ -12,7 +12,10 @@ seq ? f@Compose & s@Compose -> compose: seq fmap' f.fc seq' s.fc
 join: s <- s bind id
 
 class mapM: f, r, xs
-[] = xs -> unit: [], r
-true -> (f: head: xs) bind \y -> (mapM: f, r, tail: xs) bind \ys -> unit: ([y] .. ys), r
+[] = xs -> unit: r, []
+true -> (f: head: xs) bind \y -> (mapM: f, r, tail: xs) bind \ys -> unit: r, ([y] .. ys)
 
-mapM_: f, r, xs <- (mapM: f, r, xs) bind \unit: (), r
+mapM_: f, r, xs <- (mapM: f, r, xs) bind \unit: r, ()
+
+sequence <- mapM: id
+sequence_ <- mapM_: id

@@ -17,6 +17,11 @@ sub: a, b <- a-b
 mul: a, b <- a*b
 div: a, b <- a/b
 
+inc <- \x+1
+dec <- \x-1
+
+cons: a, b <- [a] .. b
+
 class safeDiv: a, b
 b = 0 -> none
 true -> some: a/b
