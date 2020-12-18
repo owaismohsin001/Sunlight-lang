@@ -41,6 +41,13 @@ define ds (FuncDefNode _ args _ _) = ds ++ concatMap (define ds) args
 define ds (WhereNode _ dcs _) = ds ++ concatMap (define ds) dcs
 define ds a = error(show a)
 
+baseSymbols = [
+    "listHead", "listTail", "SltList", "SltNum", "eval",
+    "SltString", "SltTuple", "SltBool", "SltFunc",
+    "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead",
+    "getType", "baseModify"
+    ]
+
 -- Run definition checker
 runDefiner :: Either String Node -> Maybe Scope -> Either String (Node, Scope)
 runDefiner le@(Left e) parent = Left e
@@ -55,12 +62,6 @@ runDefiner (Right n) parent =
                 Nothing -> zipWith StringPos baseSymbols (map (const pos) baseSymbols)
         posFromProgram (ProgramNode _ pos) = pos
         pos = posFromProgram n
-        baseSymbols = [
-            "listHead", "listTail", "SltList", "SltNum", "eval",
-            "SltString", "SltTuple", "SltBool", "SltFunc",
-            "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead",
-            "getType", "baseModify"
-            ]
 
 ioDefiner :: Either (P.ParseErrorBundle String Data.Void.Void) Node -> Maybe Scope -> IO ()
 ioDefiner fa b =
@@ -168,39 +169,42 @@ usedVars _ p =
         a -> Set.empty
 
 -- Remove def keyword
-removeDefKey :: Node -> Node
-removeDefKey (ProgramNode ds pos) = ProgramNode (map removeDefKey ds) pos 
-removeDefKey (DeclNode lhs rhs pos) = DeclNode (removeDefKey lhs) (removeDefKey rhs) pos
-removeDefKey (BinOpNode lhs op rhs pos) = 
+removeDefKey :: Set.Set String -> Node -> Node
+removeDefKey nds (ProgramNode ds pos) = ProgramNode (map (removeDefKey nds) ds) pos 
+removeDefKey nds (DeclNode lhs rhs pos) = DeclNode (removeDefKey nds lhs) (removeDefKey nds rhs) pos
+removeDefKey nds (BinOpNode lhs op rhs pos) = 
     case op of
-        "." -> BinOpNode (removeDefKey lhs) op rhs pos
-        _ -> BinOpNode (removeDefKey lhs) op (removeDefKey rhs) pos
-removeDefKey fid@(IdentifierNode id pos) = if id == "def" then BoolNode "true" pos else IdentifierNode (id ++ "1") pos
-removeDefKey n@(FuncDefNode mid args expr pos) = FuncDefNode mid (map removeDefKey args) (removeDefKey expr) pos
-removeDefKey n@(WhereNode expr ds pos) = WhereNode (removeDefKey expr) (map removeDefKey ds) pos
-removeDefKey (CallNode id args pos) = CallNode (removeDefKey id) (map removeDefKey args) pos
-removeDefKey (UnaryExpr op e pos) = UnaryExpr op (removeDefKey e) pos
-removeDefKey (IfNode ce te ee pos) = IfNode (removeDefKey ce) (removeDefKey te) fee pos where
+        "." -> BinOpNode (removeDefKey nds lhs) op rhs pos
+        _ -> BinOpNode (removeDefKey nds lhs) op (removeDefKey nds rhs) pos
+removeDefKey nds fid@(IdentifierNode id pos) = 
+    case id of
+        "def" -> BoolNode "true" pos 
+        _ -> if id `Set.member` nds then fid else IdentifierNode (id ++ "1") pos
+removeDefKey nds n@(FuncDefNode mid args expr pos) = FuncDefNode mid (map (removeDefKey nds) args) (removeDefKey nds expr) pos
+removeDefKey nds n@(WhereNode expr ds pos) = WhereNode (removeDefKey nds expr) (map (removeDefKey nds) ds) pos
+removeDefKey nds (CallNode id args pos) = CallNode (removeDefKey nds id) (map (removeDefKey nds) args) pos
+removeDefKey nds (UnaryExpr op e pos) = UnaryExpr op (removeDefKey nds e) pos
+removeDefKey nds (IfNode ce te ee pos) = IfNode (removeDefKey nds ce) (removeDefKey nds te) fee pos where
     fee =
         case ee of
             Nothing -> Nothing
-            Just n -> Just $ removeDefKey n
-removeDefKey (SequenceIfNode ns mels pos) = SequenceIfNode (map removeDefKey ns) (getElse mels) pos where
-    getElse (Just a) = Just $ removeDefKey a
+            Just n -> Just $ removeDefKey nds n
+removeDefKey nds (SequenceIfNode ns mels pos) = SequenceIfNode (map (removeDefKey nds) ns) (getElse mels) pos where
+    getElse (Just a) = Just $ removeDefKey nds a
     getElse Nothing = Nothing
-removeDefKey (ListNode ns pos) = ListNode (map removeDefKey ns) pos
-removeDefKey (TupleNode ts pos) = TupleNode (map removeDefKey ts) pos
-removeDefKey (StructInstanceNode id args lazy pos) = StructInstanceNode (removeDefKey id) (map f args) lazy pos where
-    f (DeclNode lhs rhs pos) = DeclNode lhs (removeDefKey rhs) pos
-removeDefKey st@(StructDefNode id args strct mov pos) = 
+removeDefKey nds (ListNode ns pos) = ListNode (map (removeDefKey nds) ns) pos
+removeDefKey nds (TupleNode ts pos) = TupleNode (map (removeDefKey nds) ts) pos
+removeDefKey nds (StructInstanceNode id args lazy pos) = StructInstanceNode (removeDefKey nds id) (map f args) lazy pos where
+    f (DeclNode lhs rhs pos) = DeclNode lhs (removeDefKey nds rhs) pos
+removeDefKey nds st@(StructDefNode id args strct mov pos) = 
     case mov of
         Nothing -> st
-        Just ov -> StructDefNode id args strct (Just $ removeDefKey ov) pos
-removeDefKey n@SumTypeNode{} = n
-removeDefKey n@DeStructure{} = n
-removeDefKey fid@DataNode{} = fid
-removeDefKey (NewMethodNode id cond exp pos) = NewMethodNode (removeDefKey id) (removeDefKey cond) (removeDefKey exp) pos
-removeDefKey p = p
+        Just ov -> StructDefNode id args strct (Just $ removeDefKey nds ov) pos
+removeDefKey _ n@SumTypeNode{} = n
+removeDefKey _ n@DeStructure{} = n
+removeDefKey _ fid@DataNode{} = fid
+removeDefKey nds (NewMethodNode id cond exp pos) = NewMethodNode (removeDefKey nds id) (removeDefKey nds cond) (removeDefKey nds exp) pos
+removeDefKey _ p = p
 
 -- Define all struct definitions
 defStruct :: [(StringPos, [String])] -> Node -> [(StringPos, [String])]
@@ -271,7 +275,7 @@ checkDefinitions le parent =
                                     case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
                                         Right () -> Right filteredRmns
                                         Left a -> Left a
-                                    where filteredRmns = outputOut sc $ removeDefKey $ filterDefs rmn
+                                    where filteredRmns = outputOut sc $ removeDefKey (Set.fromList baseSymbols) $ filterDefs rmn
                     where 
                         outputOut sc (ProgramNode ps pos) = ProgramNode (map (outputOut sc) ps) pos
                         outputOut sc nd@(DeclNode id@(IdentifierNode "out1" ipos) def pos) = 

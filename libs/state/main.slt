@@ -4,9 +4,9 @@ lib "*std"
 mod State
     State <- {f}
 
-    runState: i, st <- st.f: i
-    execState: i, st <- snd: $runState: i, st
-    evalState: i, st <- fst: $runState: i, st
+    run: i, st <- st.f: i
+    exec: i, st <- snd: $run: i, st
+    eval: i, st <- fst: $run: i, st
 
     fmap ? s@$State -> $state: \s0 -> (((f: a), s1) where (a, s1) <- s.f: s0 end)
 
@@ -20,7 +20,7 @@ mod State
     unit ? r@$State -> $state: \st -> (s, st)
     bind ? s@$State -> $state: \st -> ( ((f: a).f): sn where (a, sn) <- s.f: st end )
 
-    baseState: s <- $state: const: ((), s)
+    base: s <- $state: const: ((), s)
 
     get <- $state: \s -> (s, s)
     put: s <- $state: const: ((), s)
