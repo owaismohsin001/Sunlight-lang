@@ -4,6 +4,8 @@ open bind: s, f
 unit ? r@SltList -> [s]
 bind ? s@SltList -> concat: &SltList, fmap: f, s
 
+unit ? r@SltFunc -> \a -> s
+
 Compose <- {fc}
 
 fmap ? s@Compose -> compose: (fmap: f) fmap s.fc

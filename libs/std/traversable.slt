@@ -21,16 +21,6 @@ open fold: f, i, xs
 fold ? [] = xs -> i
 fold ? xs@SltList -> f: (head: xs), fold: f, i, tail: xs
 
-open seq: f, s
-seq ? [] = s -> []
-seq ? [] = f -> []
-seq ? s@SltList & f@SltList -> (map: (head: f), s) .. seq: (tail: f), s
-
-open fmap: f, s
-fmap ? s@SltList -> map: f, s
-
-fmap ? s@SltFunc & f@SltFunc -> \f: s: x
-
 map: f, xs <- every xs is f: x
 filter: f, xs <- every xs is x if f: x
 len: ls <- fold: \a, b -> b+1, 0, ls

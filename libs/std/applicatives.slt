@@ -1,0 +1,11 @@
+open seq: f, s
+open fmap: f, s
+
+seq ? [] = s -> []
+seq ? [] = f -> []
+seq ? s@SltList & f@SltList -> (map: (head: f), s) .. seq: (tail: f), s
+--
+seq ? s@SltFunc & f@SltFunc -> \f: x, s: x
+
+fmap ? s@SltList -> map: f, s
+fmap ? s@SltFunc & f@SltFunc -> \f: s: x

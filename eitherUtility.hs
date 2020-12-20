@@ -11,6 +11,9 @@ foldE f =
 
 mapE :: (b -> b) -> [Either a b] -> Either a [b]
 mapE f [] = Right []
+mapE f [x] = do
+    na <- x
+    return [na]
 mapE f (x:xs) = do
     let remaped = map (\(Right a) -> a) (x:xs)
     return $ map f remaped
