@@ -97,7 +97,7 @@ isDefined sc n@(FuncDefNode mid args expr pos) =
 isDefined sc n@(WhereNode expr ds pos) = 
     case runDefiner (Right n) $ Just sc of
         Left s -> Left s
-        Right (_, nsc) -> isDefined nsc expr
+        Right (_, nsc) ->  verify (map (isDefined nsc) ds) |>> isDefined nsc expr
 isDefined sc (CallNode id args pos) = verify $ isDefined sc id : map (isDefined sc) args
 isDefined sc (UnaryExpr _ e _) = isDefined sc e
 isDefined sc (IfNode ce te ee _) = isDefined sc ce |>> isDefined sc te |>> 

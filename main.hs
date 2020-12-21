@@ -92,6 +92,10 @@ run = runFile "main.slt"
 main = 
     do
         args <- getArgs
-        let fn = head args
-        f <- readFile fn
-        compile f fn
+        let fn = dispatch args where 
+            dispatch [] = compileFile "main.slt"
+            dispatch ["run"] = run
+            dispatch ["run", a] = runFile a
+            dispatch [a] = compileFile a
+            dispatch _ = error "Only expected three argument maximum"
+        fn

@@ -14,7 +14,6 @@ mod Shapes
     s@$Circle -> s.r*2
     s@$Square -> s.e*2
     s@$Triangle -> (s.a + s.b + s.c)/2
-    a <- 10
 end
 
 circ <- Shapes::Circle{r :: 15}

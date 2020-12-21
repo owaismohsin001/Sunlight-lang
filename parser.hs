@@ -560,7 +560,7 @@ whereExpr =
                     mspaces
                     keyword Where
                     spaces
-                    ds <- (newlines *> spaces *> decl) `sepBy1` notFollowedBy (spacificSpaces *> keyword End)
+                    ds <- (newlines *> spaces *> (try classStmnt <|> try decl)) `sepBy1` notFollowedBy (spacificSpaces *> keyword End)
                     spacificSpaces *> keyword End
                     return $ WhereNode rns ds pos
             ) <|> return rns
@@ -711,6 +711,7 @@ classStmnt =
                     eof *> (StringNode "" <$> getSourcePos)
                     <|> keyword Class *> (StringNode "" <$> getSourcePos)
                     <|> keyword Open *> (StringNode "" <$> getSourcePos)
+                    <|> keyword End *> (StringNode "" <$> getSourcePos)
                     <|> try decl 
                     <|> structDef
                     <|> mewMethod)))
