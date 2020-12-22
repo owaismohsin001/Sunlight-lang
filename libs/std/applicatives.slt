@@ -4,8 +4,14 @@ open fmap: f, s
 seq ? [] = s -> []
 seq ? [] = f -> []
 seq ? s@SltList & f@SltList -> (map: (head: f), s) .. seq: (tail: f), s
---
 seq ? s@SltFunc & f@SltFunc -> \f: x, s: x
 
-fmap ? s@SltList -> map: f, s
 fmap ? s@SltFunc & f@SltFunc -> \f: s: x
+fmap ? def -> map: f, s
+
+-- Compose type
+
+Compose <- {fc}
+
+fmap ? s@Compose -> compose: (fmap: f) fmap s.fc
+seq ? f@Compose & s@Compose -> compose: seq fmap' f.fc seq' s.fc
