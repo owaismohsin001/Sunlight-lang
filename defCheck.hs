@@ -45,7 +45,7 @@ baseSymbols = [
     "listHead", "listTail", "SltList", "SltNum", "eval",
     "SltString", "SltTuple", "SltBool", "SltFunc",
     "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead",
-    "getType", "baseModify"
+    "typeOf", "ovTypeOf", "baseModify"
     ]
 
 -- Run definition checker
@@ -169,42 +169,42 @@ usedVars _ p =
         a -> Set.empty
 
 -- Remove def keyword
-removeDefKey :: Set.Set String -> Node -> Node
-removeDefKey nds (ProgramNode ds pos) = ProgramNode (map (removeDefKey nds) ds) pos 
-removeDefKey nds (DeclNode lhs rhs pos) = DeclNode (removeDefKey nds lhs) (removeDefKey nds rhs) pos
-removeDefKey nds (BinOpNode lhs op rhs pos) = 
+changeNames :: Set.Set String -> Node -> Node
+changeNames nds (ProgramNode ds pos) = ProgramNode (map (changeNames nds) ds) pos 
+changeNames nds (DeclNode lhs rhs pos) = DeclNode (changeNames nds lhs) (changeNames nds rhs) pos
+changeNames nds (BinOpNode lhs op rhs pos) = 
     case op of
-        "." -> BinOpNode (removeDefKey nds lhs) op rhs pos
-        _ -> BinOpNode (removeDefKey nds lhs) op (removeDefKey nds rhs) pos
-removeDefKey nds fid@(IdentifierNode id pos) = 
+        "." -> BinOpNode (changeNames nds lhs) op rhs pos
+        _ -> BinOpNode (changeNames nds lhs) op (changeNames nds rhs) pos
+changeNames nds fid@(IdentifierNode id pos) = 
     case id of
         "def" -> BoolNode "true" pos 
         _ -> if id `Set.member` nds then fid else IdentifierNode (id ++ "1") pos
-removeDefKey nds n@(FuncDefNode mid args expr pos) = FuncDefNode mid (map (removeDefKey nds) args) (removeDefKey nds expr) pos
-removeDefKey nds n@(WhereNode expr ds pos) = WhereNode (removeDefKey nds expr) (map (removeDefKey nds) ds) pos
-removeDefKey nds (CallNode id args pos) = CallNode (removeDefKey nds id) (map (removeDefKey nds) args) pos
-removeDefKey nds (UnaryExpr op e pos) = UnaryExpr op (removeDefKey nds e) pos
-removeDefKey nds (IfNode ce te ee pos) = IfNode (removeDefKey nds ce) (removeDefKey nds te) fee pos where
+changeNames nds n@(FuncDefNode mid args expr pos) = FuncDefNode mid (map (changeNames nds) args) (changeNames nds expr) pos
+changeNames nds n@(WhereNode expr ds pos) = WhereNode (changeNames nds expr) (map (changeNames nds) ds) pos
+changeNames nds (CallNode id args pos) = CallNode (changeNames nds id) (map (changeNames nds) args) pos
+changeNames nds (UnaryExpr op e pos) = UnaryExpr op (changeNames nds e) pos
+changeNames nds (IfNode ce te ee pos) = IfNode (changeNames nds ce) (changeNames nds te) fee pos where
     fee =
         case ee of
             Nothing -> Nothing
-            Just n -> Just $ removeDefKey nds n
-removeDefKey nds (SequenceIfNode ns mels pos) = SequenceIfNode (map (removeDefKey nds) ns) (getElse mels) pos where
-    getElse (Just a) = Just $ removeDefKey nds a
+            Just n -> Just $ changeNames nds n
+changeNames nds (SequenceIfNode ns mels pos) = SequenceIfNode (map (changeNames nds) ns) (getElse mels) pos where
+    getElse (Just a) = Just $ changeNames nds a
     getElse Nothing = Nothing
-removeDefKey nds (ListNode ns pos) = ListNode (map (removeDefKey nds) ns) pos
-removeDefKey nds (TupleNode ts pos) = TupleNode (map (removeDefKey nds) ts) pos
-removeDefKey nds (StructInstanceNode id args lazy pos) = StructInstanceNode (removeDefKey nds id) (map f args) lazy pos where
-    f (DeclNode lhs rhs pos) = DeclNode lhs (removeDefKey nds rhs) pos
-removeDefKey nds st@(StructDefNode id args strct mov pos) = 
+changeNames nds (ListNode ns pos) = ListNode (map (changeNames nds) ns) pos
+changeNames nds (TupleNode ts pos) = TupleNode (map (changeNames nds) ts) pos
+changeNames nds (StructInstanceNode id args lazy pos) = StructInstanceNode (changeNames nds id) (map f args) lazy pos where
+    f (DeclNode lhs rhs pos) = DeclNode lhs (changeNames nds rhs) pos
+changeNames nds st@(StructDefNode id args strct mov pos) = 
     case mov of
         Nothing -> st
-        Just ov -> StructDefNode id args strct (Just $ removeDefKey nds ov) pos
-removeDefKey _ n@SumTypeNode{} = n
-removeDefKey _ n@DeStructure{} = n
-removeDefKey _ fid@DataNode{} = fid
-removeDefKey nds (NewMethodNode id cond exp pos) = NewMethodNode (removeDefKey nds id) (removeDefKey nds cond) (removeDefKey nds exp) pos
-removeDefKey _ p = p
+        Just ov -> StructDefNode id args strct (Just $ changeNames nds ov) pos
+changeNames _ n@SumTypeNode{} = n
+changeNames _ n@DeStructure{} = n
+changeNames _ fid@DataNode{} = fid
+changeNames nds (NewMethodNode id cond exp pos) = NewMethodNode (changeNames nds id) (changeNames nds cond) (changeNames nds exp) pos
+changeNames _ p = p
 
 -- Define all struct definitions
 defStruct :: [(StringPos, [String])] -> Node -> [(StringPos, [String])]
@@ -275,16 +275,16 @@ checkDefinitions le parent =
                                     case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
                                         Right () -> Right filteredRmns
                                         Left a -> Left a
-                                    where filteredRmns = outputOut sc $ removeDefKey (Set.fromList baseSymbols) $ filterDefs rmn
+                                    where filteredRmns = outputOut sc $ changeNames (Set.fromList baseSymbols) $ filterDefs rmn
                     where 
                         outputOut sc (ProgramNode ps pos) = ProgramNode (map (outputOut sc) ps) pos
                         outputOut sc nd@(DeclNode id@(IdentifierNode "out1" ipos) def pos) = 
                             case (StringPos "unsafeRunIO" (getStringPos nn) `exists` sc) of 
-                                Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite1" ipos) [def] pos) pos
+                                Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite" ipos) [def, def] pos) pos
                                 Right () -> DeclNode id (CallNode (IdentifierNode "unsafeRunIO1" ipos) [def] pos) pos
                         outputOut _ a = a
 
-                        defStructs n = defStruct [] n
+                        defStructs = defStruct []
                         rmn = removeNewMethods sc nn
                         filterDefs n@(ProgramNode dfs pos) = 
                             let used = usedVars Set.empty n in 

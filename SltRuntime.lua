@@ -905,11 +905,21 @@ eval = SltThunk.create(
   end
 )
 
-getType = SltThunk.create(
+typeOf = SltThunk.create(
   function() return
     SltFunc.create(
       function(a)
         return SltType.create(a().type_, a().loc)
+      end
+    )
+  end
+)
+
+ovTypeOf = SltThunk.create(
+  function() return
+    SltFunc.create(
+      function(a)
+        return SltType.create(a().overarch and a().overarch or a().type_, a().loc)
       end
     )
   end

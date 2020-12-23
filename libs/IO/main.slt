@@ -4,7 +4,7 @@ World <- {unsafeF}
 
 class unsafeRunIO: st
 st@World -> st.unsafeF: ()
-true -> unsafeWrite: st
+true -> unsafeWrite: st, st
 
 fmap ? s@World -> world: \s0 -> (((f: a), s1) where (a, s1) <- s.unsafeF: s0 end)
 

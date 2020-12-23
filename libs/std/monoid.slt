@@ -2,7 +2,7 @@ open empty: r
 empty ? def -> concat: []
 
 open append: a, b
-append ? def -> concat: (getType: a), [a, b]
+append ? def -> concat: (ovTypeOf: a), [a, b]
 
 open concat: r, xs
 concat ? def -> fold: append, (empty: r), xs

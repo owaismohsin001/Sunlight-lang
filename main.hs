@@ -27,7 +27,7 @@ remIncludes =
 
 foldS :: Set.Set String -> [(String, String, String)] -> IO [(Set.Set String, Node)]
 foldS _ [] = return []
-foldS s [(dir, fn, ftxt)] = mapM id [fParse s dir fn ftxt] :: IO [(Set.Set String, Node)]
+foldS s [(dir, fn, ftxt)] = sequence [fParse s dir fn ftxt] :: IO [(Set.Set String, Node)]
 foldS s ((dir, fn, ftxt):xs) =
     do
         tre@(che, _) <- fParse s dir fn ftxt
