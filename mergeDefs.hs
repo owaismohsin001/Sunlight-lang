@@ -26,9 +26,7 @@ getDollar nm (IfNode ce te ee pos) = IfNode (getDollar nm ce) (getDollar nm te) 
         case ee of
             Nothing -> Nothing
             Just n -> Just $ getDollar nm n
-getDollar nm (SequenceIfNode ns mels pos) = SequenceIfNode (map (getDollar nm) ns) (getElse mels) pos where
-    getElse (Just a) = Just $ getDollar nm a
-    getElse Nothing = Nothing
+getDollar nm (SequenceIfNode ns pos) = SequenceIfNode (map (getDollar nm) ns) pos
 getDollar nm (ListNode ns pos) = ListNode (map (getDollar nm) ns) pos
 getDollar nm (TupleNode ts pos) = TupleNode (map (getDollar nm) ts) pos
 getDollar nm (StructInstanceNode id args lazy pos) = StructInstanceNode (getDollar nm id) (map (getDollar nm) args) lazy pos

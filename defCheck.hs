@@ -1,13 +1,14 @@
 module DefCheck where
 
+import qualified Data.ByteString.Char8 as B
 import Data.Void
 import qualified Data.Map as Map
 import Data.List
 import Nodes
 import Debug.Trace
-import Data.Hashable
 import ReduceMethods
 import EitherUtility
+import qualified Crypto.Hash as Hash
 import Data.Maybe
 import Scope
 import qualified Data.Set as Set
@@ -104,7 +105,7 @@ isDefined sc (IfNode ce te ee _) = isDefined sc ce |>> isDefined sc te |>>
     case ee of
         Just e -> isDefined sc e
         Nothing -> Right ()
-isDefined sc (SequenceIfNode ns _ pos) = verify $ map (isDefined $ newSc sc) ns where
+isDefined sc (SequenceIfNode ns pos) = verify $ map (isDefined $ newSc sc) ns where
     newSc sc = Scope {getElems = Set.singleton $ StringPos "def" pos, getParent = Just sc}
 isDefined sc (ListNode ns _) = verify $ map (isDefined sc) ns
 isDefined sc (TupleNode ts _) = verify $ map (isDefined sc) ts
@@ -149,7 +150,7 @@ usedVars st (IfNode ce te ee _) = usedVars st ce `Set.union` usedVars st te `Set
     case ee of
         Just e -> usedVars st e
         Nothing -> Set.empty
-usedVars st (SequenceIfNode ns _ _) =  st `reduceSets` ns
+usedVars st (SequenceIfNode ns _) =  st `reduceSets` ns
 usedVars st (ListNode ns _) = st `reduceSets` ns
 usedVars st (TupleNode ts _) = st `reduceSets` ts
 usedVars st (StructInstanceNode id args _ _) = 
@@ -179,7 +180,7 @@ changeNames nds (BinOpNode lhs op rhs pos) =
 changeNames nds fid@(IdentifierNode id pos) = 
     case id of
         "def" -> BoolNode "true" pos 
-        _ -> if id `Set.member` nds then fid else IdentifierNode (id ++ "1") pos
+        _ -> if id `Set.member` nds then fid else IdentifierNode (hash id) pos
 changeNames nds n@(FuncDefNode mid args expr pos) = FuncDefNode mid (map (changeNames nds) args) (changeNames nds expr) pos
 changeNames nds n@(WhereNode expr ds pos) = WhereNode (changeNames nds expr) (map (changeNames nds) ds) pos
 changeNames nds (CallNode id args pos) = CallNode (changeNames nds id) (map (changeNames nds) args) pos
@@ -189,9 +190,7 @@ changeNames nds (IfNode ce te ee pos) = IfNode (changeNames nds ce) (changeNames
         case ee of
             Nothing -> Nothing
             Just n -> Just $ changeNames nds n
-changeNames nds (SequenceIfNode ns mels pos) = SequenceIfNode (map (changeNames nds) ns) (getElse mels) pos where
-    getElse (Just a) = Just $ changeNames nds a
-    getElse Nothing = Nothing
+changeNames nds (SequenceIfNode ns pos) = SequenceIfNode (map (changeNames nds) ns) pos
 changeNames nds (ListNode ns pos) = ListNode (map (changeNames nds) ns) pos
 changeNames nds (TupleNode ts pos) = TupleNode (map (changeNames nds) ts) pos
 changeNames nds (StructInstanceNode id args lazy pos) = StructInstanceNode (changeNames nds id) (map f args) lazy pos where
@@ -229,7 +228,7 @@ checkStructArgs sc (IfNode ce te ee _) = checkStructArgs sc ce |>> checkStructAr
     case ee of
         Just e -> checkStructArgs sc e
         Nothing -> Right ()
-checkStructArgs sc (SequenceIfNode ns _ _) = verify $ map (checkStructArgs sc) ns
+checkStructArgs sc (SequenceIfNode ns _) = verify $ map (checkStructArgs sc) ns
 checkStructArgs sc (ListNode ns _) = verify $ map (checkStructArgs sc) ns
 checkStructArgs sc (TupleNode ts _) = verify $ map (checkStructArgs sc) ts
 checkStructArgs sc (StructInstanceNode (DataNode id ipos) args _ pos) = 
@@ -278,10 +277,12 @@ checkDefinitions le parent =
                                     where filteredRmns = outputOut sc $ changeNames (Set.fromList baseSymbols) $ filterDefs rmn
                     where 
                         outputOut sc (ProgramNode ps pos) = ProgramNode (map (outputOut sc) ps) pos
-                        outputOut sc nd@(DeclNode id@(IdentifierNode "out1" ipos) def pos) = 
-                            case (StringPos "unsafeRunIO" (getStringPos nn) `exists` sc) of 
-                                Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite" ipos) [def, def] pos) pos
-                                Right () -> DeclNode id (CallNode (IdentifierNode "unsafeRunIO1" ipos) [def] pos) pos
+                        outputOut sc nd@(DeclNode id@(IdentifierNode iid ipos) def pos)
+                            | iid == outName = 
+                                case (StringPos "unsafeRunIO" (getStringPos nn) `exists` sc) of 
+                                    Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite" ipos) [def, def] pos) pos
+                                    Right () -> DeclNode id (CallNode (IdentifierNode (hash "unsafeRunIO") ipos) [def] pos) pos
+                            | otherwise = nd
                         outputOut _ a = a
 
                         defStructs = defStruct []
@@ -303,3 +304,6 @@ checkIODefinitions lf p =
     where l = case lf of
                 Left e -> Left $ P.errorBundlePretty e
                 Right n -> Right n
+
+hash n = "h" ++ show (Hash.hash $ B.pack n :: Hash.SHA256)
+outName = hash "out"

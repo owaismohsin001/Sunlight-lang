@@ -20,7 +20,7 @@ methodFun p@(ProgramNode ps pos) = ProgramNode (getNodes $ map mFun ps) pos wher
                     SequenceIfNode (
                         getNodes $ map removeDef (map (convMethod $ extractString id) ps) ++ 
                             map (convMethod $ extractString id) (filter getDefKey ps)
-                        ) Nothing pos
+                        ) pos
                     ) pos
             ) pos where 
             ns = getNodes $ map (convMethod $ extractString id) ps

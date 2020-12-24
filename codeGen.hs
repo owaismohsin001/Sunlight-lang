@@ -79,7 +79,7 @@ generate (FuncDefNode _ args expr pos) =
         gen = intercalate "" (map (\arg -> "SltFunc.create(function (" ++ generateLhs arg ++") return ") args)
         turnBool b = if b then "true" else "false"
 generate (BoolNode b pos) = "SltBool.create(" ++ b ++ ", " ++ luaPos pos ++ ")"
-generate (SequenceIfNode fs _ pos) = 
+generate (SequenceIfNode fs pos) = 
     case fs of
         [] -> "error(SltError.create(\"CaseError\", \"None of the cases matched\", {loc = " ++ luaPos pos ++ "}))"
         _ -> (intercalate " or " (map generate fs)) ++ 
@@ -88,8 +88,8 @@ generate (UnaryExpr op e _) = handleUnaryOp op e
 generate (DataNode n _) = "\"" ++ n ++ "\""
 generate (SumTypeNode ds _) = intercalate "\n" (map generate ds)
 generate (WhereNode exp ds _) = 
-    "((function() \n" ++ fDecls ++ intercalate ";\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " end)())" where
-        fDecls = intercalate ";\n" (map fDeclare ds)
+    "((function() \n" ++ fDecls ++ intercalate "\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " end)())" where
+        fDecls = intercalate "\n" (map fDeclare ds)
 generate strct@(StructDefNode id table b ov pos) = 
     generateLhs id ++ " = " ++ struct
     where 

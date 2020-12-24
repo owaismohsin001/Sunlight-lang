@@ -715,7 +715,7 @@ classStmnt =
                     <|> try decl 
                     <|> structDef
                     <|> mewMethod)))
-        return $ DeclNode id (FuncDefNode (Just id) args (SequenceIfNode allCases Nothing seqPos) seqPos) pos
+        return $ DeclNode id (FuncDefNode (Just id) args (SequenceIfNode allCases seqPos) seqPos) pos
     where
         cases = do
             newlines
@@ -768,7 +768,7 @@ caseExpr =
         Text.Megaparsec.Char.string "|"
         spaces
         fls <- p `sepBy` (spaces *> (Text.Megaparsec.Char.string "|") <* spaces :: Parser String)
-        return $ SequenceIfNode fls Nothing pos 
+        return $ SequenceIfNode fls pos 
     where 
         p = 
             do

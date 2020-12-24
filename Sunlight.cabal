@@ -24,6 +24,8 @@ executable Sunlight
                        , megaparsec
                        , text
                        , array
+                       , bytestring
+                       , hashing
                        , hashable
                        , containers
                        , process

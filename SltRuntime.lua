@@ -1,5 +1,7 @@
 hash = require("hashLib")
 
+table.unpack = unpack and unpack or table.unpack
+
 uCount = 0
 
 Mutates = -1
@@ -136,7 +138,11 @@ SltValue = {
       unwrap = function(this, args)
         tryOrError(function() return checkType("SltTuple", this) end)
         tryOrError(function() return this.checkLength(this, args) end)
-        return table.unpack(this.value)
+        if unpack == nil then
+          return table.unpack(this.value)
+        else
+          return unpack(this.value)
+        end
       end;
 
       destructure = function(this, args)
@@ -146,7 +152,11 @@ SltValue = {
         for k, v in pairs(this.table) do 
           table.insert(newTable, v)
         end
-        return table.unpack(newTable)
+        if unpack == nil then
+          return table.unpack(this.value)
+        else
+          return unpack(this.value)
+        end
       end;
 
       toString = function(this)
