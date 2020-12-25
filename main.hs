@@ -5,6 +5,7 @@ import CodeGen
 import EitherUtility
 import ReduceMethods
 import Data.Void
+import Data.Char
 import MergeDefs
 import System.Exit
 import System.Environment   
@@ -80,22 +81,36 @@ compileFile fn =
         f <- readFile fn
         compile f fn
 
-runFile :: FilePath -> IO ()
-runFile fn =
+runFileMode :: String -> FilePath -> IO ()
+runFileMode runner fn =
     do
         compileFile fn
-        callCommand "lua bin.lua"
+        callCommand $ runner ++ " bin.lua"
+
+runMode :: String -> IO ()
+runMode = (flip runFileMode) "main.slt"
 
 run :: IO ()
-run = runFile "main.slt"
+run = runMode "lua"
+
+runFile :: FilePath -> IO ()
+runFile = runFileMode "lua"
+
+runFileJIT :: FilePath -> IO ()
+runFileJIT = runFileMode "luajit"
+
+runJIT :: IO ()
+runJIT = runMode "luajit"
 
 main = 
     do
         args <- getArgs
-        let fn = dispatch args where 
+        let fn = dispatch $ map (map toLower) args where 
             dispatch [] = compileFile "main.slt"
             dispatch ["run"] = run
             dispatch ["run", a] = runFile a
+            dispatch ["jit"] = runJIT
+            dispatch ["jit", a] = runFileJIT a
             dispatch [a] = compileFile a
-            dispatch _ = error "Only expected three argument maximum"
+            dispatch xs = error $ "Unexpected arguments " ++ intercalate ", " xs
         fn
