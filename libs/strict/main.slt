@@ -2,13 +2,12 @@ lib "*std"
 
 -- iniu
 mod Strict
-    Strict <- !{a}
+Strict <- !{a}
 
-    fmap ? s@$Strict -> $strict: f: s.a
-    seq ? f@$Strict & s@$Strict -> $strict: f.a: s.a
-    unit ? r@$Strict -> Strict::strict: s
-    bind ? s@$Strict -> f: s.a
+fmap ? s@$Strict -> $strict: f: s.a
+seq ? f@$Strict & s@$Strict -> $strict: f.a: s.a
+unit ? r@$Strict -> Strict::strict: s
+bind ? s@$Strict -> f: s.a
 
-    get: s <- s.a
-    getF: f <- Strict::get cmp' f cmp' Strict::strict
-end
+get: s <- s.a
+getF: f <- Strict::get cmp' f cmp' Strict::strict

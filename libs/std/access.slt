@@ -4,10 +4,10 @@ glance ? s@SltList & i@SltNum & i < 1 -> []
 glance ? s@SltList & i@SltNum & fi: i -> glance: fi, i+1, tail: s
 glance ? s@SltList -> [head: s] .. glance: fi, i+1, tail: s
 
-open unedit: s, i, fi, uf
-unedit ? [] = s -> []
-unedit ? i < 1 -> []
-unedit ? s@SltList & i@SltNum -> if fi: i then [head: s] .. unedit: (tail: s), i+1, fi, uf else [uf: head: s] .. unedit: (tail: s), i+1, fi, uf
+open edit: s, i, fi, uf
+edit ? [] = s -> []
+edit ? i < 1 -> []
+edit ? s@SltList & i@SltNum -> if fi: i then [uf: head: s] .. edit: (tail: s), i+1, fi, uf else [head: s] .. edit: (tail: s), i+1, fi, uf
 
 open access: i, s
 access ? [] = s -> None
@@ -15,5 +15,5 @@ access ? s@SltList & i < 1 -> None
 access ? s@SltList & i = 1 -> some: head: s
 access ? s@SltList -> (i-1) access (tail: s)
 
-change: s, i, uf <- unedit: s, 1, \x /= i, uf
+change: s, i, uf <- edit: s, 1, \x = i, uf
 view: i, s <- (glance: \x /= i, 1, s)[1]

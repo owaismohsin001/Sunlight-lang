@@ -2,30 +2,29 @@ lib "*std"
 
 -- State module
 mod State
-    State <- {f}
+State <- {f}
 
-    run: i, st <- st.f: i
-    exec: i, st <- snd: $run: i, st
-    eval: i, st <- fst: $run: i, st
+run: i, st <- st.f: i
+exec: i, st <- snd: $run: i, st
+eval: i, st <- fst: $run: i, st
 
-    fmap ? s@$State -> $state: \s0 -> (((f: a), s1) where (a, s1) <- s.f: s0 end)
+fmap ? s@$State -> $state: \s0 -> (((f: a), s1) where (a, s1) <- s.f: s0 end)
 
-    seq ? s@$State -> $state: \s0 -> ( 
-        ((fn: a), s2) where 
-            (fn, s1) <- f.f: s0
-            (a, s2) <- s.f: s1 
-        end
-    )
+seq ? s@$State -> $state: \s0 -> ( 
+    ((fn: a), s2) where 
+        (fn, s1) <- f.f: s0
+        (a, s2) <- s.f: s1 
+    end
+)
 
-    unit ? r@$State -> $state: \st -> (s, st)
-    bind ? s@$State -> $state: \st -> ( ((f: a).f): sn where (a, sn) <- s.f: st end )
+unit ? r@$State -> $state: \st -> (s, st)
+bind ? s@$State -> $state: \st -> ( ((f: a).f): sn where (a, sn) <- s.f: st end )
 
-    base: s <- $state: const: ((), s)
+base: s <- $state: const: ((), s)
 
-    get <- $state: \s -> (s, s)
-    put: s <- $state: const: ((), s)
-    modify: f <- $get bind \$put: f: x
-    gets: f <- $state: \xs -> ((f: xs), xs)
-    stApply: f, g <- $state: \xs -> ((f: xs), g: xs)
-    putPair: f <- $state: \xs -> f: xs
-end
+get <- $state: \s -> (s, s)
+put: s <- $state: const: ((), s)
+modify: f <- $get bind \$put: f: x
+gets: f <- $state: \xs -> ((f: xs), xs)
+stApply: f, g <- $state: \xs -> ((f: xs), g: xs)
+putPair: f <- $state: \xs -> f: xs

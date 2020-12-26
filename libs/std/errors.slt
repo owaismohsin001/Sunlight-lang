@@ -26,8 +26,8 @@ glance ? s@None -> none
 access ? s@Some -> i access s.a
 access ? s@None -> none
 
-unedit ? s@Some -> some: unedit: s.a, i, fi, uf
-unedit ? s@None -> none
+edit ? s@Some -> some: edit: s.a, i, fi, uf
+edit ? s@None -> none
 
 class toEither: s
 s@Some -> right: s.a
@@ -55,8 +55,8 @@ seq ? f@Right & s@Right -> right: f.r: s.r
 seq ? f@Left & s@Left -> left: f.l: s.l
 seq ? f@Left | s@Right | s@Left | f@Right -> s
 
-unedit ? s@Right -> right: unedit: s.r, i, fi, uf
-unedit ? s@Left -> left: unedit: s.l, i, fi, uf
+edit ? s@Right -> right: edit: s.r, i, fi, uf
+edit ? s@Left -> left: edit: s.l, i, fi, uf
 
 glance ? s@Right -> right: glance: fi, i, s.r
 glance ? s@Left -> left: glance: fi, i, s.l

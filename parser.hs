@@ -72,6 +72,9 @@ data Keyword =
 
 type Parser = Parsec Void String
 
+eofString :: Parser String
+eofString = const "" <$> eof
+
 string :: Char -> Parser Node
 string c =
     do
@@ -494,8 +497,8 @@ modStmnt =
         pos <- getSourcePos
         mname <- keyword Mod *> spaces *> dataName <* newlines <* spaces
         ds <- (spaces *> newlines *> spaces *> (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl )) 
-            `sepBy1` notFollowedBy (newlines *> spaces *> newlines *> keyword End)
-        (newlines *> spaces *> newlines *> keyword End)
+            `sepBy1` notFollowedBy (newlines *> spaces *> newlines *> (keyword End <|> eofString))
+        (newlines *> spaces *> newlines *> (keyword End <|> eofString))
         let tds = map (differLhs mname) ds
         let flist = map (getDollar $ extractString mname) tds
         return $ MultipleDefinitionNode flist
@@ -539,7 +542,7 @@ decls xs =
         dcs <- 
              (pref *>
                 (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl <|> modStmnt))
-                `endBy` ((const "" <$> eof) <|> (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String))
+                `endBy` (eofString <|> (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String))
         return $ ProgramNode (concatLists dcs $ getLists xs) pos
     where
         pref = 
