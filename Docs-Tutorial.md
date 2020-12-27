@@ -221,9 +221,9 @@ which returns `[6, 5, 55, 8]` and if you want to chain these you should say
 ```
 out <- \f -> change: [[1, 2], [2, 5], [9, 3]], 2, f <| \f, x -> change: x, 1, f <| \x*2
 ```
-which in turn returns `[[1, 2], [4, 5], [9, 3]]`. If you instead want to change a bunch of elements that dissatisfy a predicate then you should use `unedit` and write
+which in turn returns `[[1, 2], [4, 5], [9, 3]]`. If you instead want to change a bunch of elements that satisfy a predicate then you should use `edit` and write
 ```
-out <- out <- unedit: [3, 5, 55, 8], 1, \x < 3, \x*2
+out <- edit: [3, 5, 55, 8], 1, \x >= 3, \x*2
 ```
 and these can be chained with continuations the same way that the other one can, as `change` is merely a specification of `unedit`.
 
@@ -233,7 +233,7 @@ If you define your own data structures that can be "indexed", whatever indexing 
 # Data structure manipulation
 (From `traversable.slt`)
 There are many ways to manipulate data structures, you can map/filter over them, take from them, and even fold them to some value. For mapping and filtering, you can use `every` keyword like this
-```
+```-
 every [1, 2, 3, 4, 5] is x+1
 ```
 and filtering over them using the same syntax will also be very much possible when you say
