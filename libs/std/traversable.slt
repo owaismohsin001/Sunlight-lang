@@ -29,7 +29,7 @@ map: f, xs <- every xs is f: x
 filter: f, xs <- every xs is x if f: x
 len: ls <- fold: \a, b -> b+1, 0, ls
 reduce: f, ls <- fold: f, (head: ls), tail: ls
-zip <- zipWith: \a, b -> (a, b)
+zip <- zipWith: (,)
 
 range: a, b <- take: b+1, (fl: a where fl: n <- [n] .. fl: n+1 end)
 replicate: v, n <- map: (const: v), range: 1, n
