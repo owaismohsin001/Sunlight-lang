@@ -44,13 +44,16 @@ getAllElems sc =
 exists id sc =
     if id `existsIn` sc then 
         Right () 
-    else 
-        case closeOnes of
-            [] -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found"
-            [a] -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found\n" ++
-                    "Maybe, you meant " ++ show a
-            _ -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found\n" ++ 
-                    "Perhaps, you meant one of " ++ intercalate ", " closeOnes
+    else
+        case getStr id of
+            [a] -> Left $ "No definition for " ++ [a] ++ " found"
+            _ -> 
+                case closeOnes of
+                    [] -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found"
+                    [a] -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found\n" ++
+                            "Maybe, you meant " ++ show a
+                    _ -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found\n" ++ 
+                            "Perhaps, you meant one of " ++ intercalate ", " closeOnes
     where
         getPos (StringPos _ pos) = pos
         getStr (StringPos str _) = str

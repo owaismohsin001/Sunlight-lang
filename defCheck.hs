@@ -32,7 +32,7 @@ define ds (StructDefNode id _ _ (Just (DataNode o dtpos)) pos) = define ds id ++
 define ds (StructDefNode id _ _ Nothing _) = define ds id
 define ds (DeStructure dcs _) = concatMap (define ds) dcs
 define ds (SumTypeNode (dc:dcs) pos) = 
-    define ds dc ++ concatMap (define ds) (map (\(StructDefNode id args b ov pos) -> StructDefNode id args b Nothing pos) dcs)
+    define ds dc ++ concatMap (define ds . (\(StructDefNode id args b ov pos) -> StructDefNode id args b Nothing pos)) dcs
 define ds (SumTypeNode a _) = define ds (head a)
 define ds (MethodNode id _ _) = define ds id 
 define ds NewMethodNode{} = ds
@@ -134,12 +134,12 @@ reduceSets st dcs = Set.foldr Set.union Set.empty $ Set.fromList $ map (usedVars
 -- Collect a set of all used variable names to compare them with unused ones
 usedVars :: Set.Set StringPos -> Node -> Set.Set StringPos
 usedVars st (ProgramNode dcs _) = st `reduceSets` dcs
-usedVars st (DeclNode lhs rhs _) = usedVars st rhs `Set.union` st
+usedVars st (DeclNode lhs rhs _) = (usedVars st rhs `Set.union` st) `Set.difference` usedVars Set.empty lhs
 usedVars st (BinOpNode lhs op rhs pos) = 
     case op of
         "." -> usedVars st lhs `Set.union` st
         _ -> usedVars st lhs `Set.union` (usedVars st rhs `Set.union` st)
-usedVars st (IdentifierNode id pos) = st `Set.union` Set.singleton (StringPos id pos) `Set.union` Set.singleton (StringPos "unsafeRunIO" pos)
+usedVars st (IdentifierNode id pos) = st `Set.union` Set.singleton (StringPos id pos)
 usedVars st n@(FuncDefNode _ args expr pos) = 
     usedVars st expr `Set.difference` (Set.empty `reduceSets` args)
 usedVars st n@(WhereNode expr ds pos) = usedVars st expr `Set.union` (st `Set.union` (Set.empty `reduceSets` ds))
@@ -209,7 +209,7 @@ changeNames _ p = p
 defStruct :: [(StringPos, [String])] -> Node -> [(StringPos, [String])]
 defStruct ds (ProgramNode ns _) = concatMap (defStruct ds) ns
 defStruct ds (StructDefNode (DataNode id dpos) args _ _ pos) = [(StringPos id dpos, map extractString args)]
-defStruct ds (SumTypeNode (dcs) pos) = concatMap (defStruct ds) dcs
+defStruct ds (SumTypeNode dcs pos) = concatMap (defStruct ds) dcs
 defStruct ds _ = ds
 
 -- Check all structs have correct arguments
@@ -268,7 +268,7 @@ checkDefinitions le parent =
                     case isDefined sc rmn  of
                         Left s -> Left s
                         Right () -> 
-                            case (StringPos "out" (getStringPos nn) `exists` sc) of 
+                            case StringPos "out" (getStringPos nn) `exists` sc of 
                                 Left _ -> Left "No entry point defined"
                                 Right () -> 
                                     case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
@@ -279,7 +279,7 @@ checkDefinitions le parent =
                         outputOut sc (ProgramNode ps pos) = ProgramNode (map (outputOut sc) ps) pos
                         outputOut sc nd@(DeclNode id@(IdentifierNode iid ipos) def pos)
                             | iid == outName = 
-                                case (StringPos "unsafeRunIO" (getStringPos nn) `exists` sc) of 
+                                case StringPos "unsafeRunIO" (getStringPos nn) `exists` sc of 
                                     Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite" ipos) [def, def] pos) pos
                                     Right () -> DeclNode id (CallNode (IdentifierNode (hash "unsafeRunIO") ipos) [def] pos) pos
                             | otherwise = nd
@@ -291,7 +291,7 @@ checkDefinitions le parent =
                             let used = usedVars Set.empty n in 
                                 ProgramNode (filter (toKeep used) dfs) pos
                         toKeep used x = 
-                            head (define [] x) `Set.member` used || str == "out" where 
+                            head (define [] x) `Set.member` used || str == "out" || str == "unsafeRunIO" where 
                                 str = getPosString $ head $ define [] x
                         getPosString (StringPos s _) = s
                         getStringPos (ProgramNode _ pos) = pos
