@@ -268,21 +268,23 @@ atom = choice $ map try [
     Parser.string '"', 
     Parser.fractional, 
     Parser.number,
-    Parser.tupleFunction,
+    Parser.containerFunction "(" ")" "," TupleNode,
+    Parser.containerFunction "[" "]" "," ListNode,
     Parser.structInstanceExpr <* notFollowedBy (Text.Megaparsec.Char.string "::"),
     Parser.identifier Prelude.False
     ]
 
-tupleFunction =
+containerFunction :: String -> String -> String -> ([Node] -> P.SourcePos -> Node) -> Parser Node
+containerFunction strt end sep f =
     do
         pos <- getSourcePos
-        Text.Megaparsec.Char.string "("
+        Text.Megaparsec.Char.string strt
         fstComma <- comma
         commas <- P.many comma
-        Text.Megaparsec.Char.string ")"
+        Text.Megaparsec.Char.string end
         let args = map ((flip IdentifierNode pos) . (\a -> "x" ++ show a)) [1 .. length commas + 2]
-        return $ FuncDefNode Nothing args (TupleNode args pos) pos
-    where comma = spaces *> Text.Megaparsec.Char.string "," <* spaces
+        return $ FuncDefNode Nothing args (f args pos) pos
+    where comma = spaces *> Text.Megaparsec.Char.string sep <* spaces
 
 typeRef =
     do
