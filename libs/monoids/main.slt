@@ -20,4 +20,8 @@ mod Monoids
 
     empty ? r@$AnyTrue -> $anyTrue: false
     append ? a@$AnyTrue & b@$AnyTrue -> $anyTrue: a.b | b.b
+
+    LCmp <- {f}
+    empty ? r@$LCmp -> $lCmp: id
+    append ? a@$LCmp & b@$LCmp -> $lCmp: a.f cmp_ b.f
 end
