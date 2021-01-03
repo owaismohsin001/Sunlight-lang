@@ -9,5 +9,5 @@ seq ? f@$Strict & s@$Strict -> $strict: f.a: s.a
 unit ? r@$Strict -> Strict::strict: s
 bind ? s@$Strict -> f: s.a
 
-get: s <- s.a
-getF: f <- Strict::get cmp' f cmp' Strict::strict
+get ? s@$Strict -> s.a
+applyT <- apply: &$Strict

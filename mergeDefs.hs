@@ -38,4 +38,5 @@ getDollar nm n@SumTypeNode{} = n
 getDollar nm n@DeStructure{} = n
 getDollar nm fid@(DataNode id pos) = if head id == '$' then DataNode (nm ++ "__" ++ tail id) pos else fid
 getDollar nm (NewMethodNode id cond exp pos) = NewMethodNode (getDollar nm id) (getDollar nm cond) (getDollar nm exp) pos
+getDollar nm (TypeRefNode n pos) = TypeRefNode (getDollar nm n) pos
 getDollar _ p = p

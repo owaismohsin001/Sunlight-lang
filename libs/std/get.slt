@@ -1,0 +1,3 @@
+open get: s
+
+apply: t, f, x <- get: f: unit: t, x
