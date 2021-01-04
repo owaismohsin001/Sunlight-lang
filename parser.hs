@@ -582,7 +582,7 @@ whereExpr =
                     return $ WhereNode rns ds pos
             ) <|> return rns
     where
-        spacificSpaces = (spaces *> newlines *> spaces) <|> (Parser.newline *> newlines *> spaces)
+        spacificSpaces = (spaces *> newlines *> spaces) <|> (spaces *> Parser.newline *> newlines *> spaces)
 
 expr =
     do 
@@ -747,21 +747,17 @@ classStmnt =
             return $ IfNode cond thenExpr Nothing pos
         mnewlines = Parser.newline *> newlines
 
-notExpr =
+prefixExpr pref expT resf = 
     do
         pos <- getSourcePos
-        keyword Not
+        prefT <- pref
         Parser.spaces
-        expr <- compExpr
-        return $ UnaryExpr "not" expr pos
+        expr <- expT
+        return $ UnaryExpr (resf prefT) expr pos
 
-negExpr =
-    do
-        pos <- getSourcePos
-        Text.Megaparsec.Char.string "-"
-        Parser.spaces
-        e <- expr
-        return $ UnaryExpr "-" e pos
+notExpr = prefixExpr (keyword Not) compExpr (const "not")
+
+negExpr = prefixExpr (Text.Megaparsec.Char.string "-") compExpr (const "-")
 
 ifExpr =
     do

@@ -4,6 +4,7 @@ import Data.Hashable
 import qualified Data.Set as Set
 import qualified Text.Megaparsec as P
 import Data.List
+import Data.Maybe
 import Lev
 
 import Debug.Trace
@@ -35,10 +36,7 @@ instance Ord StringPos where
     (StringPos a _) <= (StringPos b _) = hash a <= hash b
 
 getAllElems :: Scope -> Set.Set StringPos
-getAllElems sc = 
-    case getParent sc of
-        Just nsc -> getElems sc `Set.union` getAllElems nsc
-        Nothing -> getElems sc
+getAllElems sc = maybe (getElems sc) (\nsc -> getElems sc `Set.union` getAllElems nsc) (getParent sc)
 
 -- existence checking function
 exists id sc =
