@@ -182,7 +182,7 @@ structInstanceExpr =
         try (
             do
                 Text.Megaparsec.Char.string "{"
-                ls <- seqInstance
+                ls <- spaces *> seqInstance <* spaces
                 Text.Megaparsec.Char.string "}"
                 return $ StructInstanceNode id ls Prelude.False pos
             ) <|> return (StructInstanceNode id [] Prelude.False pos)
@@ -260,6 +260,7 @@ atom = choice $ map try [
     Parser.parens,
     Parser.everyExpr,
     Parser.notExpr,
+    accessFuncExpr,
     Parser.negExpr,
     Parser.boolean,
     Parser.tuple,
@@ -747,17 +748,28 @@ classStmnt =
             return $ IfNode cond thenExpr Nothing pos
         mnewlines = Parser.newline *> newlines
 
-prefixExpr pref expT resf = 
+prefixExpr pref expT resf construct = 
     do
         pos <- getSourcePos
         prefT <- pref
         Parser.spaces
         expr <- expT
-        return $ UnaryExpr (resf prefT) expr pos
+        return $ construct (resf prefT) expr pos
 
-notExpr = prefixExpr (keyword Not) compExpr (const "not")
+notExpr = prefixExpr (keyword Not) compExpr (const "not") UnaryExpr
 
-negExpr = prefixExpr (Text.Megaparsec.Char.string "-") compExpr (const "-")
+negExpr = prefixExpr (Text.Megaparsec.Char.string "-") compExpr (const "-") UnaryExpr
+
+accessFuncExpr = prefixExpr 
+    (Text.Megaparsec.Char.string ".")
+    (identifier Prelude.False)
+    id
+    (\_ (IdentifierNode id ipos) pos -> 
+        FuncDefNode 
+            Nothing 
+            [IdentifierNode "x" ipos] 
+            (BinOpNode (IdentifierNode "x" ipos) "." (StringNode id ipos) pos) pos
+        )
 
 ifExpr =
     do

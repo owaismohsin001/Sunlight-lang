@@ -6,7 +6,7 @@ class unsafeRunIO: st
 st@World -> st.unsafeF: ()
 true -> unsafeWrite: st, st
 
-fmap ? s@World -> world: \s0 -> (((f: a), s1) where (a, s1) <- s.unsafeF: s0 end)
+fmap ? s@World -> world: \s0 -> (((f: a), s1) where (a, s1) <- .unsafeF: s, s0 end)
 
 seq ? s@World -> world: \s0 -> ( 
     ((fn: a), s2) where 
@@ -16,7 +16,7 @@ seq ? s@World -> world: \s0 -> (
 )
 
 unit ? r@World -> world: \st -> (s, st)
-bind ? s@World -> world: \st -> ( ((f: a).unsafeF): sn where (a, sn) <- s.unsafeF: st end )
+bind ? s@World -> world: \st -> ( ((f: a).unsafeF): sn where (a, sn) <- .unsafeF: s, st end )
 
 read: a <- world: \st -> ((unsafeRead: a), st)
 readln: a <- world: \st -> ((unsafeRead: a .. "\\n"), st)
