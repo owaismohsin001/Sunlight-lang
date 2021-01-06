@@ -567,7 +567,8 @@ decls xs =
         concatLists dcs xs =
             case xs of
                 [] -> dcs
-                a -> foldr (++) (head xs) (tail xs) ++ dcs
+                [a] -> a ++ dcs
+                (x:xs) -> foldr (++) x xs ++ dcs
 
 whereExpr =
     do 
