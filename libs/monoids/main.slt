@@ -5,20 +5,20 @@ mod Monoids
     Sum <- !{n}
     Product <- !{n}
 
-    empty ? r@$Sum -> $sum: 0
+    empty ? r@$Sum -> 0$sum
     append ? a@$Sum & b@$Sum -> $sum: a.n+b.n
 
-    empty ? r@$Product -> $product: 1
+    empty ? r@$Product -> 1$product
     append ? a@$Product & b@$Product -> $product: a.n*b.n
 
 
     AllTrue <- !{b}
     AnyTrue <- !{b}
 
-    empty ? r@$AllTrue -> $allTrue: true
+    empty ? r@$AllTrue -> true$allTrue
     append ? a@$AllTrue & b@$AllTrue -> $allTrue: a.b & b.b
 
-    empty ? r@$AnyTrue -> $anyTrue: false
+    empty ? r@$AnyTrue -> false$anyTrue
     append ? a@$AnyTrue & b@$AnyTrue -> $anyTrue: a.b | b.b
 
     LCmp <- {f}

@@ -4,7 +4,7 @@ head ? v@SltList -> listHead: v
 open tail: v
 tail ? v@SltList -> listTail: v
 
-open map_and_filter: mf, rf, xs;
+open map_and_filter: mf, rf, xs
 map_and_filter ? [] = xs -> []
 map_and_filter ? xs@SltList -> if rf: head: xs then [mf: head: xs] .. map_and_filter: mf, rf, tail: xs else map_and_filter: mf, rf, (tail: xs)
 

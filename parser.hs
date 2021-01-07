@@ -254,26 +254,35 @@ everyExpr =
                 )
         return $ CallNode (IdentifierNode "map_and_filter" pos) sugar pos
 
-atom = choice $ map try [
-    Parser.ifExpr,
-    Parser.lambdaExpr,
-    Parser.parens,
-    Parser.everyExpr,
-    Parser.notExpr,
-    accessFuncExpr,
-    Parser.negExpr,
-    Parser.boolean,
-    Parser.tuple,
-    Parser.caseExpr,
-    Parser.list,
-    Parser.string '"', 
-    Parser.fractional, 
-    Parser.number,
-    Parser.containerFunction "(" ")" "," TupleNode,
-    Parser.containerFunction "[" "]" "," ListNode,
-    Parser.structInstanceExpr <* notFollowedBy (Text.Megaparsec.Char.string "::"),
-    Parser.identifier Prelude.False
-    ]
+atom = 
+    do
+        pos <- getSourcePos
+        pre <- prefix
+        id <- try $ (do
+            xId <- identifier Prelude.False
+            return $ CallNode xId [pre] pos)
+            <|> (const pre <$> Text.Megaparsec.Char.string "")
+        return id
+    where prefix = choice $ map try [
+            Parser.ifExpr,
+            Parser.lambdaExpr,
+            Parser.parens,
+            Parser.everyExpr,
+            Parser.notExpr,
+            accessFuncExpr,
+            Parser.negExpr,
+            Parser.boolean,
+            Parser.tuple,
+            Parser.caseExpr,
+            Parser.list,
+            Parser.string '"', 
+            Parser.fractional, 
+            Parser.number,
+            Parser.containerFunction "(" ")" "," TupleNode,
+            Parser.containerFunction "[" "]" "," ListNode,
+            Parser.structInstanceExpr <* notFollowedBy (Text.Megaparsec.Char.string "::"),
+            Parser.identifier Prelude.False
+            ]
 
 containerFunction :: String -> String -> String -> ([Node] -> P.SourcePos -> Node) -> Parser Node
 containerFunction strt end sep f =
