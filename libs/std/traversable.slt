@@ -6,7 +6,7 @@ tail ? v@SltList -> listTail: v
 
 open map_and_filter: mf, rf, xs
 map_and_filter ? [] = xs -> []
-map_and_filter ? xs@SltList -> if rf: head: xs then [mf: head: xs] .. map_and_filter: mf, rf, tail: xs else map_and_filter: mf, rf, (tail: xs)
+map_and_filter ? xs@SltList -> if rf: head: xs then [mf: head: xs] .. map_and_filter: mf, rf, tail: xs else map_and_filter: mf, rf, tail: xs
 
 open take: n, ls
 take ? ls@SltList & n <= 1 -> []
@@ -19,7 +19,7 @@ last ? s@SltList -> last: tail: s
 
 open fold: f, i, xs
 fold ? [] = xs -> i
-fold ? xs@SltList -> f: (head: xs), fold: f, i, tail: xs
+fold ? xs@SltList -> f: head: xs,, fold: f, i, tail: xs
 
 open zipWith: f, as, bs
 zipWith ? [] = as | [] = bs -> []
@@ -31,6 +31,6 @@ len: ls <- fold: \a, b -> b+1, 0, ls
 reduce: f, ls <- fold: f, (head: ls), tail: ls
 zip <- zipWith: (,)
 
-range: a, b <- take: b+1, (fl: a where fl: n <- [n] .. fl: n+1 end)
-replicate: v, n <- map: (const: v), range: 1, n
+range: a, b <- take: b+1, infiniteList: a, inc
+replicate: v, n <- map: const: v,, range: 1, n
 infiniteList: init, change <- fls: init where fls: n <- [n] .. fls: change: n end
