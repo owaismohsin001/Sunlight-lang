@@ -30,6 +30,7 @@ data Node =
     | WhereNode Node [Node] SourcePos
     | StrictNode Node
     | MultipleDefinitionNode [Node]
+    | ExternalNode Node [Node] SourcePos
     | TypeRefNode Node SourcePos
     deriving (Eq)
 
@@ -69,6 +70,7 @@ instance Show Node where
     show (StructInstanceNode id ls _ _) = show id ++ "{" ++ intercalate "; " (map show ls) ++ "}"
     show (DeStructure ds _) = "{" ++ intercalate ", " (map show ds) ++ "}"
     show (MethodNode id args _) = "open " ++ show id ++ "(" ++ intercalate ", " (map show args) ++ ")"
+    show (ExternalNode id ds pos) = "external " ++ show id ++ "{" ++ intercalate ", " (map show ds) ++ "}"
     show (NewMethodNode id ce te _) = 
         "close " ++ show id ++ " ? " ++ show ce ++ " -> " ++ show te
     show (FuncDefNode f args e _) = fname ++ " <- " ++ "(" ++ intercalate ", " (map show args) ++ ")" ++ " -> " ++ show e where

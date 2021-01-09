@@ -33,6 +33,7 @@ define ds (StructDefNode id _ _ Nothing _) = define ds id
 define ds (DeStructure dcs _) = concatMap (define ds) dcs
 define ds (SumTypeNode (dc:dcs) pos) = 
     define ds dc ++ concatMap (define ds . (\(StructDefNode id args b ov pos) -> StructDefNode id args b Nothing pos)) dcs
+define ds (ExternalNode _ dcs _) = concatMap (define ds) dcs
 define ds (SumTypeNode a _) = define ds (head a)
 define ds (MethodNode id _ _) = define ds id 
 define ds NewMethodNode{} = ds
@@ -45,8 +46,8 @@ define ds a = error(show a)
 baseSymbols = [
     "listHead", "listTail", "SltList", "SltNum", "eval",
     "SltString", "SltTuple", "SltBool", "SltFunc",
-    "unsafeMod", "baseStringify", "unsafeWrite", "unsafeRead",
-    "typeOf", "ovTypeOf", "baseModify"
+    "unsafeMod", "baseStringify", "typeOf", "ovTypeOf",
+    "unsafeWrite"
     ]
 
 -- Run definition checker
@@ -118,6 +119,7 @@ isDefined sc (StructDefNode id args _ mov _) =
         Just ov -> isDefined sc ov
 isDefined sc SumTypeNode{} = Right ()
 isDefined sc DeStructure{} = Right ()
+isDefined sc ExternalNode{} = Right ()
 isDefined sc (DataNode id pos) = StringPos id pos `exists` sc
 isDefined sc (NewMethodNode id _ _ _) = Left $ "Undefined open method " ++ show id
 isDefined _ p = 
@@ -128,8 +130,10 @@ isDefined _ p =
         a -> Left $ show a
 
 -- Take a set of sets and reduce it down to a set
+reduceSetsGeneralized f st dcs = Set.foldr Set.union Set.empty $ Set.fromList $ map (f st) dcs
+
 reduceSets :: Set.Set StringPos -> [Node] -> Set.Set StringPos
-reduceSets st dcs = Set.foldr Set.union Set.empty $ Set.fromList $ map (usedVars st) dcs
+reduceSets = reduceSetsGeneralized usedVars
 
 -- Collect a set of all used variable names to compare them with unused ones
 usedVars :: Set.Set StringPos -> Node -> Set.Set StringPos
@@ -246,6 +250,7 @@ checkStructArgs sc StructDefNode{} = Right()
 checkStructArgs sc SumTypeNode{} = Right ()
 checkStructArgs sc DeStructure{} = Right ()
 checkStructArgs sc TypeRefNode{} = Right ()
+checkStructArgs sc ExternalNode{} = Right ()
 checkStructArgs _ p = 
     case p of 
         NumNode _ _ -> Right ()
@@ -255,6 +260,16 @@ checkStructArgs _ p =
         DataNode _ _ -> Right ()
         a -> error (show a)
 
+-- reduceSets for unHahable function
+reduceUnhashable = reduceSetsGeneralized unHashable
+
+-- Collect names that must not be hashed
+unHashable :: Set.Set String -> Node -> Set.Set String
+unHashable st (ProgramNode dcs _) = st `reduceUnhashable` dcs
+unHashable st (IdentifierNode id pos) = st `Set.union` Set.singleton id
+unHashable st (DataNode id pos) = st `Set.union` Set.singleton id
+unHashable st (ExternalNode _ dcs _) = st `reduceUnhashable` dcs
+unHashable st _ = st
 
 -- Run the definition checker
 checkDefinitions :: Either String Node -> Maybe Scope -> Either String Node
@@ -274,7 +289,8 @@ checkDefinitions le parent =
                                     case checkStructArgs (Map.fromList $ defStruct [] filteredRmns) filteredRmns of
                                         Right () -> Right filteredRmns
                                         Left a -> Left a
-                                    where filteredRmns = outputOut sc $ changeNames (Set.fromList baseSymbols) $ filterDefs rmn
+                                    where filteredRmns = 
+                                            outputOut sc $ changeNames (unHashable (Set.fromList baseSymbols) rmn) $ filterDefs rmn
                     where 
                         outputOut sc (ProgramNode ps pos) = ProgramNode (map (outputOut sc) ps) pos
                         outputOut sc nd@(DeclNode id@(IdentifierNode iid ipos) def pos)

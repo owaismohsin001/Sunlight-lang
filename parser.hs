@@ -46,7 +46,8 @@ notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.strin
             Parser.Include,
             Parser.Mod,
             Parser.Lib,
-            Parser.Def
+            Parser.Def,
+            Parser.External
         ]
 
 showL k = map toLower (show k)
@@ -68,6 +69,7 @@ data Keyword =
     | Mod
     | Lib
     | Def
+    | External
     deriving(Show, Eq)
 
 type Parser = Parsec Void String
@@ -554,6 +556,14 @@ modStmnt =
         changeFun mn (FuncDefNode (Just id) args e pos) = FuncDefNode (Just $ differLhs mn id) args e pos
         changeFun mn n = n
 
+externals = 
+    do
+        pos <- getSourcePos
+        keyword External
+        libName <- spaces *> Parser.string '"' <* spaces
+        exts <- Text.Megaparsec.Char.string "{" *> spaces *> commaSep (identifier Prelude.False) <* spaces <* Text.Megaparsec.Char.string "}"
+        return $ ExternalNode libName exts pos
+
 decls xs =
     do
         pos <- getSourcePos
@@ -562,11 +572,14 @@ decls xs =
         P.many Parser.newline
         b <- includes Mod
         P.many Parser.newline
+        exts <- try ((\a -> [a]) <$> externals) <|> return [] 
+        P.many Parser.newline
         spaces
         dcs <- 
-             (pref *>
-                (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl <|> modStmnt))
-                `endBy` (eofString <|> (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String))
+             (++ exts) <$>
+                (pref *>
+                    (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl <|> modStmnt))
+                    `endBy` (eofString <|> (spaces *> Parser.newline *> P.many Parser.newline <* spaces :: Parser String))
         return $ ProgramNode (concatLists dcs $ getLists xs) pos
     where
         pref = 

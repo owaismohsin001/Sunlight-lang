@@ -1,4 +1,5 @@
 lib "*std"
+external "io/baseIO" {unsafeRead}
 
 World <- {unsafeF}
 

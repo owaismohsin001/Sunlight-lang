@@ -16,6 +16,7 @@ fDeclare (DeclNode lhs _ _) = fDeclare lhs
 fDeclare (StructDefNode id _ _ _ _) = "local " ++ generateLhs id ++ ";\n"
 fDeclare (SumTypeNode ds _) = intercalate "" $ map fDeclare ds
 fDeclare (DeStructure ds _) = intercalate "" $ map fDeclare ds
+fDeclare (ExternalNode (StringNode id _) _ _) = "require \"/libs/" ++ id ++ "\";\n"
 fDeclare a = "> " ++ show a ++ "\n\n"
 
 --- Generate Application Code
@@ -105,6 +106,7 @@ generate strct@(StructDefNode id table b ov pos) =
 
 generate (StructInstanceNode id ls _ pos) = 
     "(" ++ generateLhs id ++ "({" ++ intercalate "; " (map generate ls) ++ "}, " ++ luaPos pos ++ "))"
+generate (ExternalNode id _ _) = ""
 
 runGenerator :: Either String Node -> String 
 runGenerator (Left e) = e

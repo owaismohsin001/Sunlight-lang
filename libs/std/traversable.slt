@@ -30,7 +30,9 @@ filter: f, xs <- every xs is x if f: x
 len: ls <- fold: \a, b -> b+1, 0, ls
 reduce: f, ls <- fold: f, (head: ls), tail: ls
 zip <- zipWith: (,)
+zipList <- zipWith: [,]
 
-range: a, b <- take: b+1, infiniteList: a, inc
+generate: f, a, b <- take: b+1, infiniteList: a, f
+range <- generate: inc
 replicate: v, n <- map: const: v,, range: 1, n
 infiniteList: init, change <- fls: init where fls: n <- [n] .. fls: change: n end

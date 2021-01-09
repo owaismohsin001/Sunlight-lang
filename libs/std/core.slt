@@ -1,3 +1,5 @@
+external "std/modify" {baseModify}
+
 id: a <- a
 
 const: a <- (\x -> a)

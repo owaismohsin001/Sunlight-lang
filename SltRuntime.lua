@@ -833,28 +833,6 @@ end;
 
 ---------------------------------
 -- Base functions
-baseModify = SltThunk.create(
-  function() return 
-    SltFunc.create(
-      function(struct)
-        return SltFunc.create(
-          function(string)
-            return SltFunc.create(
-              function(func)
-                local a = copy(struct())
-                if not a.is_struct then SltError.crate("first argument TypeError", "Must be a struct rather than being " .. t.type_, t) end
-                local val = a.table[string().value]
-                a.table[string().value] = SltThunk.create(function() return func()(val) end)
-                return a
-              end
-            )
-          end
-        )
-      end     
-    )
-  end,
-  Mutates
-)
 
 listHead = 
   SltThunk.create(
@@ -935,21 +913,8 @@ ovTypeOf = SltThunk.create(
   end
 )
 
---------------------------------
--- IO Functions
-unsafeRead = SltThunk.create(
-  function() return 
-    SltFunc.create(
-      function(st)
-        io.write(tostring(st()))
-        inp = io.read()
-        io.write("\n")
-        return SltString.create(inp)
-      end     
-    )
-  end,
-  Mutates
-)
+--------------------------
+-- Basic IO Functions
 
 unsafeWrite = SltThunk.create(
   function() return 
