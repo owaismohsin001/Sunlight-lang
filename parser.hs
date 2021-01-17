@@ -572,7 +572,7 @@ decls xs =
         P.many Parser.newline
         b <- includes Mod
         P.many Parser.newline
-        exts <- try ((\a -> [a]) <$> externals) <|> return [] 
+        exts <- P.many $ externals <* newlines
         P.many Parser.newline
         spaces
         dcs <- 
