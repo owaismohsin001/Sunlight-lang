@@ -11,3 +11,5 @@ bind ? s@$Strict -> f: s.a
 
 get ? s@$Strict -> s.a
 applyT <- apply: &$Strict
+
+bool ? a@$Strict -> bool: a.a

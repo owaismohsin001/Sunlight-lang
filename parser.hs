@@ -23,10 +23,7 @@ newline = oneOf "\n;" :: Parser Char
 newlines = P.many Parser.newline
 space = char ' '
 spaces = P.many Parser.space
-mspaces = 
-    do
-        Parser.space
-        Parser.spaces
+mspaces = Parser.space *> Parser.spaces
 keyword k = Text.Megaparsec.Char.string (showL k) :: Parser String
 
 notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.string " " where
@@ -351,20 +348,6 @@ parens =
         char ')'
         return e
 
--- Slow, backtracks a lot, cluncky but elegant, and proven by time
--- binOp fa ops fb ret =
---     x <|> fa
---     where
---         x = try $ do
---                 pos <- getSourcePos
---                 a <- fa
---                 spaces
---                 op <- ops
---                 spaces
---                 b <- fb
---                 return $ ret a op b pos
-
--- New, not tested enogh, uglier, but faster by a lot 
 rBinOp :: Parser Node -> Parser String ->  Parser Node -> (Node -> String -> Node -> SourcePos -> Node) -> Parser Node
 rBinOp fa ops fb ret =
     do
@@ -571,8 +554,7 @@ decls xs =
         a <- includes Lib
         P.many Parser.newline
         b <- includes Mod
-        P.many Parser.newline
-        exts <- P.many $ externals <* newlines
+        exts <- newlines *> (P.many $ externals <* newlines)
         P.many Parser.newline
         spaces
         dcs <- 

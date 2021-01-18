@@ -20,7 +20,7 @@ circ <- Shapes::Circle{r :: 15}
 
 tri <- Shapes::Triangle{a :: 2, b :: 9, c :: 7}
 
-fib: n <- if get: (\x<2) fmap n then Strict::strict: 1 else add fmap' (fib: dec fmap n) seq' (fib: (\x-2) fmap n)
+fib: n <- if bool: (\x<2) fmap n then Strict::strict: 1 else add fmap' (fib: dec fmap n) seq' (fib: (\x-2) fmap n)
 
 out <- println: (Strict::applyT: fib) fmap mlp2 seq (some: \x+circV) seq mdLs[2][1][2] where
     mlp2 <- unit: &Maybe, double

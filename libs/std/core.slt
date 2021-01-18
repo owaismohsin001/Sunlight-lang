@@ -38,5 +38,10 @@ n@SltNum -> unsafeMod: n
 open stringify: v
 stringify ? def -> baseStringify: v
 
+open bool: a
+bool ? a@SltNum -> a /= 0
+bool ? a@SltString -> a /= ""
+bool ? a@SltBool -> a
+
 class modify: st, el, f
 el@SltString & f@SltFunc -> baseModify: st, el, f
