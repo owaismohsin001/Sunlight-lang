@@ -568,11 +568,10 @@ decls xs =
             P.many (Text.Megaparsec.Char.string "--" *> manyTill L.charLiteral (char '\n' :: Parser Char) *> P.many (Text.Megaparsec.Char.string "\n")) 
                 <|> ((\a -> [[a]]) <$> Text.Megaparsec.Char.string "")
         getLists ns = map extractList ns
-        concatLists dcs xs =
-            case xs of
-                [] -> dcs
-                [a] -> a ++ dcs
-                (x:xs) -> foldr (++) x xs ++ dcs
+
+        concatLists dcs [] = dcs
+        concatLists dcs [as] = as ++ xs
+        concatLists dcs xs = mconcat xs ++ dcs
 
 whereExpr =
     do 
