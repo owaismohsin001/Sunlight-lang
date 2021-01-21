@@ -86,12 +86,7 @@ isDefined sc (BinOpNode lhs op rhs pos) =
         _ -> isDefined sc lhs |>> isDefined sc rhs
 isDefined sc (IdentifierNode id pos) = StringPos id pos `exists` sc
 isDefined sc n@(FuncDefNode mid args expr pos) = 
-    expSc |>> 
-        case mid of 
-            Just id -> 
-                isDefined sc id
-            Nothing -> Right ()
-    where
+    expSc |>> maybe (Right ()) (isDefined sc) mid where
         expSc = 
             case runDefiner (Right n) $ Just sc of
                 Left s -> Left s
@@ -228,10 +223,7 @@ checkStructArgs sc n@(FuncDefNode _ _ expr _) = checkStructArgs sc expr
 checkStructArgs sc n@(WhereNode expr _ _) = checkStructArgs sc expr
 checkStructArgs sc (CallNode id args pos) = verify $ checkStructArgs sc id : map (checkStructArgs sc) args
 checkStructArgs sc (UnaryExpr _ e _) = checkStructArgs sc e
-checkStructArgs sc (IfNode ce te ee _) = checkStructArgs sc ce |>> checkStructArgs sc te |>> 
-    case ee of
-        Just e -> checkStructArgs sc e
-        Nothing -> Right ()
+checkStructArgs sc (IfNode ce te ee _) = checkStructArgs sc ce |>> checkStructArgs sc te |>> maybe (Right ()) (checkStructArgs sc) ee
 checkStructArgs sc (SequenceIfNode ns _) = verify $ map (checkStructArgs sc) ns
 checkStructArgs sc (ListNode ns _) = verify $ map (checkStructArgs sc) ns
 checkStructArgs sc (TupleNode ts _) = verify $ map (checkStructArgs sc) ts

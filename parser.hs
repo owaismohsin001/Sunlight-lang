@@ -33,7 +33,6 @@ notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.strin
             Parser.Else,
             Parser.True,
             Parser.False,
-            Parser.Not,
             Parser.Class,
             Parser.Every,
             Parser.Is,
@@ -253,21 +252,11 @@ everyExpr =
                 )
         return $ CallNode (IdentifierNode "map_and_filter" pos) sugar pos
 
-atom = 
-    do
-        pos <- getSourcePos
-        pre <- prefix
-        id <- try $ (do
-            xId <- identifier Prelude.False
-            return $ CallNode xId [pre] pos)
-            <|> (const pre <$> Text.Megaparsec.Char.string "")
-        return id
-    where prefix = choice $ map try [
+prefix = choice $ map try [
             Parser.ifExpr,
             Parser.lambdaExpr,
             Parser.parens,
             Parser.everyExpr,
-            Parser.notExpr,
             accessFuncExpr,
             Parser.negExpr,
             Parser.boolean,
@@ -282,6 +271,16 @@ atom =
             Parser.structInstanceExpr <* notFollowedBy (Text.Megaparsec.Char.string "::"),
             Parser.identifier Prelude.False
             ]
+
+atom = 
+    do
+        pos <- getSourcePos
+        pre <- prefix
+        id <- try $ do
+            xId <- identifier Prelude.False
+            return $ CallNode xId [pre] pos
+            <|> (const pre <$> Text.Megaparsec.Char.string "")
+        return id
 
 containerFunction :: String -> String -> String -> ([Node] -> P.SourcePos -> Node) -> Parser Node
 containerFunction strt end sep f =
@@ -554,7 +553,7 @@ decls xs =
         a <- includes Lib
         P.many Parser.newline
         b <- includes Mod
-        exts <- newlines *> (P.many $ externals <* newlines)
+        exts <- newlines *> spaces *> (P.many $ externals <* spaces <* newlines)
         P.many Parser.newline
         spaces
         dcs <- 
@@ -759,8 +758,6 @@ prefixExpr pref expT resf construct =
         Parser.spaces
         expr <- expT
         return $ construct (resf prefT) expr pos
-
-notExpr = prefixExpr (keyword Not) compExpr (const "not") UnaryExpr
 
 negExpr = prefixExpr (Text.Megaparsec.Char.string "-") compExpr (const "-") UnaryExpr
 

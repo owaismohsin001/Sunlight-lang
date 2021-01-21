@@ -35,7 +35,6 @@ handlebinOp l op r pos = "((" ++ generate l ++ ")" ++ op ++ "(" ++ generate r ++
 
 handleUnaryOp "-" e = "(" ++ generate e ++ ":neg())"
 handleUnaryOp "!" e = "(" ++ "eval(" ++ generate e ++ "))"
-handleUnaryOp "not" e = "(" ++ generate e ++ ":notted())"
 
 generateLhs (TupleNode t _) = intercalate ", " (map generateLhs t)
 generateLhs (DeStructure ds _) = intercalate ", " (map generateLhs ds)

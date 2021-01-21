@@ -35,6 +35,8 @@ true -> some: a/b
 class modulus: n
 n@SltNum -> unsafeMod: n
 
+not <- \if x then false else true
+
 open stringify: v
 stringify ? def -> baseStringify: v
 
