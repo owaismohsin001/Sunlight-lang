@@ -20,13 +20,17 @@ sub: a, b <- a-b
 mul: a, b <- a*b
 div: a, b <- a/b
 
-inc <- \x+1
-dec <- \x-1
+subFlip <- flip: sub
 
-double <- \x*2
+appendList: a, b <- a .. b
+
+inc <- 1add
+dec <- (-1)add
+
+double <- 2mul
 half <- \if x = 0 then 0 else x/2
 
-cons: a, b <- [a] .. b
+cons <- \[x]appendList
 
 class safeDiv: a, b
 b = 0 -> none
@@ -36,6 +40,7 @@ class modulus: n
 n@SltNum -> unsafeMod: n
 
 not <- \if x then false else true
+notB <- not cmp bool
 
 open stringify: v
 stringify ? def -> baseStringify: v
