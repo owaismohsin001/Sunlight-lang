@@ -122,7 +122,7 @@ isDefined _ p =
         NumNode _ _ -> Right ()
         StringNode _ _ -> Right ()
         BoolNode _ _ -> Right ()
-        a -> Left $ show a
+        a -> error $ show a
 
 -- Take a set of sets and reduce it down to a set
 reduceSetsGeneralized f st dcs = Set.foldr Set.union Set.empty $ Set.fromList $ map (f st) dcs

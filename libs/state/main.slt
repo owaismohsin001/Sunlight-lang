@@ -22,9 +22,9 @@ bind ? s@$State -> $state: \st -> ( ((f: a).f): sn where (a, sn) <- s.f: st end 
 
 base: s <- $state: const: ((), s)
 
-get <- $state: \s -> (s, s)
-put: s <- $state: const: ((), s)
+get <- $state: \(x, x)
+put <- \$state: const: ((), x)
 modify: f <- $get bind \$put: f: x
-gets: f <- $state: \xs -> ((f: xs), xs)
-stApply: f, g <- $state: \xs -> ((f: xs), g: xs)
-putPair: f <- $state: \xs -> f: xs
+gets: f <- $state: \((f: x), x)
+stApply: f, g <- $state: \((f: x), g: x)
+putPair: f <- $state: \f: x

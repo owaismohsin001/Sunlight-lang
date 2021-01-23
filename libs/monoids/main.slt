@@ -2,26 +2,26 @@ lib "*std"
 
 -- Monoid modules
 mod Monoids
-    Sum <- !{n}
-    Product <- !{n}
 
-    empty ? r@$Sum -> 0$sum
-    append ? a@$Sum & b@$Sum -> $sum: a.n+b.n
+Sum <- !{n}
+Product <- !{n}
 
-    empty ? r@$Product -> 1$product
-    append ? a@$Product & b@$Product -> $product: a.n*b.n
+empty ? r@$Sum -> 0$sum
+append ? a@$Sum & b@$Sum -> $sum: a.n+b.n
+
+empty ? r@$Product -> 1$product
+append ? a@$Product & b@$Product -> $product: a.n*b.n
 
 
-    AllTrue <- !{b}
-    AnyTrue <- !{b}
+AllTrue <- !{b}
+AnyTrue <- !{b}
 
-    empty ? r@$AllTrue -> true$allTrue
-    append ? a@$AllTrue & b@$AllTrue -> $allTrue: a.b & b.b
+empty ? r@$AllTrue -> true$allTrue
+append ? a@$AllTrue & b@$AllTrue -> $allTrue: a.b & b.b
 
-    empty ? r@$AnyTrue -> false$anyTrue
-    append ? a@$AnyTrue & b@$AnyTrue -> $anyTrue: a.b | b.b
+empty ? r@$AnyTrue -> false$anyTrue
+append ? a@$AnyTrue & b@$AnyTrue -> $anyTrue: a.b | b.b
 
-    LCmp <- {f}
-    empty ? r@$LCmp -> $lCmp: id
-    append ? a@$LCmp & b@$LCmp -> $lCmp: a.f cmp_ b.f
-end
+LCmp <- {f}
+empty ? r@$LCmp -> $lCmp: id
+append ? a@$LCmp & b@$LCmp -> $lCmp: a.f lcmp b.f
