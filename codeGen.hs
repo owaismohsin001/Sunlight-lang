@@ -17,7 +17,7 @@ fDeclare (StructDefNode id _ _ _ _) = "local " ++ generateLhs id ++ ";\n"
 fDeclare (SumTypeNode ds _) = intercalate "" $ map fDeclare ds
 fDeclare (DeStructure ds _) = intercalate "" $ map fDeclare ds
 fDeclare (ExternalNode (StringNode id _) _ _) = "require \"/libs/" ++ id ++ "\";\n"
-fDeclare a = "> " ++ show a ++ "\n\n"
+fDeclare a = error $ show a ++ "\n\n"
 
 --- Generate Application Code
 handlebinOp l "&" r pos = "((" ++ generate l ++ ")" ++ ":anded(SltThunk.create(function() return " ++ generate r ++ " end)))"
@@ -31,10 +31,12 @@ handlebinOp l "<=" r pos = "((" ++ generate l ++ ")" ++ ":lte(" ++ generate r ++
 handlebinOp l ".." r pos = "((" ++ generate l ++ ")" ++ ":concat(SltThunk.create(function() return " ++ generate r ++ " end)))"
 handlebinOp l "@" r pos = "((" ++ generate l ++ ")" ++ ":isType(" ++ generate r ++ "))"
 handlebinOp l "." r pos = "(((" ++ generate l ++ ")" ++ ":getProperty(" ++ generate r ++ "))())"
-handlebinOp l op r pos = "((" ++ generate l ++ ")" ++ op ++ "(" ++ generate r ++ "))"  
+handlebinOp l op r pos = 
+    if op `elem` ["+", "-", "*", "/"] then "((" ++ generate l ++ ")" ++ op ++ "(" ++ generate r ++ "))"
+    else error $ "No operator " ++ op ++ " defined"
+
 
 handleUnaryOp "-" e = "(" ++ generate e ++ ":neg())"
-handleUnaryOp "!" e = "(" ++ "eval(" ++ generate e ++ "))"
 
 generateLhs (TupleNode t _) = intercalate ", " (map generateLhs t)
 generateLhs (DeStructure ds _) = intercalate ", " (map generateLhs ds)
