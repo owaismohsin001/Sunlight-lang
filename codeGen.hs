@@ -53,11 +53,7 @@ generate (IdentifierNode id _) = id ++ "()"
 generate (TypeRefNode dt pos) = "SltType.create(" ++ generate dt ++ ", " ++ luaPos pos ++ ")"
 generate (BinOpNode l op r pos) = handlebinOp l op r pos
 generate (IfNode ce te ee _) = 
-    "(" ++ generate ce ++ ":is_true()" ++ " and " ++ generate te ++ gee ++ ")" where
-        gee =
-            case ee of
-                Just a -> " or " ++ generate a
-                Nothing -> ""
+    "(" ++ generate ce ++ ":is_true()" ++ " and " ++ generate te ++ maybe "" (\a -> " or " ++ generate a) ee ++ ")"
 generate (ProgramNode ds _) = intercalate "\n" (map generate ds)
 generate (TupleNode t pos) = 
     "(SltTuple.create(" ++ "{" ++ intercalate ", " (

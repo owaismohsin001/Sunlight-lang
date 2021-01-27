@@ -1,6 +1,7 @@
 module Nodes where
 
 import Data.List
+import Data.Maybe
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -47,11 +48,7 @@ instance Show Node where
     show (TupleNode arr _) = "(" ++ intercalate ", " (map show arr) ++ ",)"
     show (BinOpNode a op b _) = "(" ++ show a ++ op ++ show b ++ ")"
     show (IfNode ce te ee _) = 
-        "if " ++ show ce ++ " then " ++ show te ++ lp where
-            lp = 
-                case ee of
-                    Just e -> " else " ++ show e
-                    Nothing -> ""
+        "if " ++ show ce ++ " then " ++ show te ++ maybe "" (\e -> " else " ++ show e) ee
     show (DeclNode lhs rhs _) = "let " ++ show lhs ++ " <- " ++ show rhs
     show (BoolNode b _) = b
     show (UnaryExpr u n _) = "(" ++ u ++ " " ++ show n ++ ")"
