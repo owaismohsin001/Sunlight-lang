@@ -119,16 +119,8 @@ SltValue = {
         error(SltError.create("TypeError", "Can't make 'or' of " .. this.type_ .. " and " .. other.type_, this))
       end;
 
-      inside = function(this, other)
-        error(SltError.create("TypeError", "Can't check if " .. this.type_ .. "is in other " .. other.type_, this))
-      end;
-
       getProperty = function(this, other)
         error(SltError.create("KeyError", "Cannot get the property " .. tostring(other) .. " of " .. this.type_, this))
-      end;
-
-      getIndex = function(this, other)
-        error(SltError.create("KeyError", "Cannot get the index " .. other.value .. " from " .. this.type_, this))
       end;
 
       concat = function(this, other)
@@ -176,19 +168,6 @@ SltValue = {
             return fun(this, other)
         end;
 }
-
-function copy(obj, seen)
-  -- Handle non-tables and previously-seen tables.
-  if type(obj) ~= 'table' then return obj end
-  if seen and seen[obj] then return seen[obj] end
-
-  -- New table; mark it as seen and copy recursively.
-  local s = seen or {}
-  local res = {}
-  s[obj] = res
-  for k, v in pairs(obj) do res[copy(k, s)] = copy(v, s) end
-  return setmetatable(res, getmetatable(obj))
-end
 
 function map(tbl, f)
   local t = {}
