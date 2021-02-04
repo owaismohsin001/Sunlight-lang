@@ -1,4 +1,5 @@
 external "std/modify" {baseModify}
+external "std/intify" {stringToInt}
 
 id: a <- a
 
@@ -46,10 +47,15 @@ notB <- not cmp bool
 open stringify: v
 stringify ? def -> baseStringify: v
 
-open bool: a
-bool ? a@SltNum -> a /= 0
-bool ? a@SltString -> a /= ""
-bool ? a@SltBool -> a
+open bool: s
+bool ? s@SltNum -> s /= 0
+bool ? s@SltString -> s /= ""
+bool ? s@SltBool -> s
+
+open numify: s
+numify ? s@SltString -> stringToInt: s
+numify ? s@SltBool -> if s then 1 else 0
+numify ? s@SltNum -> s
 
 class modify: st, el, f
 el@SltString & f@SltFunc -> baseModify: st, el, f

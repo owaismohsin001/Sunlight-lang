@@ -1,3 +1,5 @@
+require "SltRuntime"
+
 function copy(obj, seen)
   -- Handle non-tables and previously-seen tables.
   if type(obj) ~= 'table' then return obj end
@@ -20,7 +22,7 @@ baseModify = SltThunk.create(
             return SltFunc.create(
               function(func)
                 local a = copy(struct())
-                if not a.is_struct then SltError.crate("first argument TypeError", "Must be a struct rather than being " .. t.type_, t) end
+                if not a.is_struct then SltError.create("first argument TypeError", "Must be a struct rather than being " .. a.type_, t) end
                 local val = a.table[string().value]
                 a.table[string().value] = SltThunk.create(function() return func()(val) end)
                 return a

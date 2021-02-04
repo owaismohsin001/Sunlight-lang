@@ -29,7 +29,9 @@ access ? s@None -> none
 edit ? s@Some -> some: edit: s.a, i, fi, uf
 edit ? s@None -> none
 
-bool ? a@Maybe -> a@Some
+bool ? s@Maybe -> s@Some
+
+numify ? s@Maybe -> numify: s.a
 
 class toEither: s
 s@Some -> right: s.a
@@ -66,4 +68,7 @@ glance ? s@Left -> left: glance: fi, i, s.l
 access ? s@Right -> i access s.r
 access ? s@Left -> i access s.l
 
-bool ? a@Either -> a@Right
+bool ? s@Either -> s@Right
+
+numify ? s@Right -> numify: s.r
+numify ? s@Left -> numify: s.l

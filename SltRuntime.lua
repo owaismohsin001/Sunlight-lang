@@ -514,7 +514,7 @@ function SltError.create(errorType, message, value)
     loc = "In file: \"" .. fn .. "\", line no: " .. ln .. ", col no: " .. cn
     print(loc)
   end
-  print("Uncaught Error: " .. message)
+  error("Uncaught Error: " .. message)
 end
 
 SltThunk = {}
