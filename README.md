@@ -18,6 +18,7 @@ Fine, what about an actual program? Maybe output the lyrics of 99 bottles of bee
 
 ```
 lib "*std"
+lib "*IO"
 
 class unlessZero: n
 n = 0 -> []
@@ -29,8 +30,7 @@ end
 
 bottle <- "1 bottle of beer on the wall,\\n1 bottle of beer.\\nTake one down, pass it around,\\nNo bottles of beer on the wall."
 
-out <- map: (\if x = 1 then bottle else bottles: x), unlessZero: 99
-
+out <- mapM: (\if x = 1 then bottle else bottles: x) lcmp println, &World, unlessZero: 99
 ```
 That was oddly specific but ok. So, to learn more definetly visit [this page](https://github.com/ameerwasi001/Sunlight-lang/blob/master/Docs-Tutorial.md). Do definitely note that this project is still in it's pre-alpha stagesso don't use it in a serious and big projecct.
 
