@@ -35,4 +35,5 @@ zipList <- zipWith: [,]
 generate: f, a, b <- take: b+1, infiniteList: a, f
 range <- generate: inc
 replicate: v, n <- map: const: v,, range: 1, n
+iterate: f, x <- [x] .. iterate: f, (f: x)
 infiniteList: init, change <- fls: init where fls: n <- [n] .. fls: change: n end

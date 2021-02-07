@@ -55,7 +55,7 @@ fParse cache dir fn fstr =
                 s = extractString x
         libs <- mapM (readFile . sepStatic) (extractList libs)
         let sepStatic s = if head s == '*' then "./libs/" ++ tail s else dir ++ "/" ++ s
-        let lbs = zipWith3 (\a b c -> (a, b, c)) (map sepStatic lns) lns libs
+        let lbs = zip3 (map sepStatic lns) lns libs
         libs <- foldS nCache lbs
         let ps = zipWith (P.runParser (Parser.parse [])) ns txs
         let ins = mapE id ps :: Either (ParseErrorBundle String Data.Void.Void) [Node]

@@ -41,7 +41,7 @@ define ds NewMethodNode{} = ds
 -- Define function arguments and where clauses
 define ds (FuncDefNode _ args _ _) = ds ++ concatMap (define ds) args
 define ds (WhereNode _ dcs _) = ds ++ concatMap (define ds) dcs
-define ds a = error(show a)
+define _ _ = []
 
 baseSymbols = [
     "listHead", "listTail", "SltList", "SltNum", "eval",

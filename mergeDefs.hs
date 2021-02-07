@@ -1,14 +1,15 @@
 module MergeDefs where
 
 import Nodes
+import Debug.Trace
+import Data.List
 
 mergeMultipleNode (ProgramNode ps pos) = 
-    ProgramNode (mconcat $ map merge ps) pos where
+    ProgramNode (concat $ map merge ps) pos where
         merge :: Node -> [Node]
-        merge (MultipleDefinitionNode mds) = mconcat $ map merge mds
+        merge (MultipleDefinitionNode mds) = concat $ map merge mds
         merge (FromStruct n) = [n]
         merge n = [n]
-
 
 getDollar :: String -> Node -> Node
 getDollar nm (DeclNode lhs rhs pos) = DeclNode lhs (getDollar nm rhs) pos
