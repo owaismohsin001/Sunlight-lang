@@ -569,8 +569,7 @@ decls xs =
         getLists ns = map extractList ns
 
         concatLists dcs [] = dcs
-        concatLists dcs [as] = as ++ xs
-        concatLists dcs xs = mconcat xs ++ dcs
+        concatLists dcs xs = Data.List.concat xs ++ dcs
 
 whereExpr =
     do 
