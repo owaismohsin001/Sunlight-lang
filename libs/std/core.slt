@@ -41,6 +41,10 @@ true -> some: a/b
 class modulus: n
 n@SltNum -> unsafeMod: n
 
+class safeModulus: a, b
+b = 0 -> none
+true -> some: a modulus b
+
 not <- \if x then false else true
 notB <- not cmp bool
 

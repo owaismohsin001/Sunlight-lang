@@ -44,7 +44,7 @@ exists id sc =
         Right () 
     else
         case getStr id of
-            [a] -> Left $ "No definition for " ++ [a] ++ " found"
+            [a] -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for " ++ [a] ++ " found"
             _ -> 
                 case closeOnes of
                     [] -> Left $ showPos (getPos id) ++ "\n" ++ "No definition for '" ++ getStr id ++ "' found"
