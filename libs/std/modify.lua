@@ -22,8 +22,13 @@ baseModify = SltThunk.create(
             return SltFunc.create(
               function(func)
                 local a = copy(struct())
-                if not a.is_struct then SltError.create("first argument TypeError", "Must be a struct rather than being " .. a.type_, t) end
+                if not a.is_struct then SltError.create("first argument TypeError", "Must be a struct rather than being " .. a.type_, a) end
                 local val = a.table[string().value]
+                if val == nil then 
+                  strStruct = tostring(struct())
+                  print(strStruct)
+                  SltError.create("first argument KeyError",  "Key ".. tostring(string()) .. " not found in " .. strStruct, a) 
+                end
                 a.table[string().value] = SltThunk.create(function() return func()(val) end)
                 return a
               end

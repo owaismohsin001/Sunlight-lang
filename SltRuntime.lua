@@ -423,7 +423,7 @@ function SltStruct.create(name, overarch, canHash, tb, loc)
     if length ~= len(this.table) then
       error(
         SltError.create(
-          "TypeError", "Cannot destructure length " .. tostring(len(this.value)) .. " struct to " .. tostring(length) .. " names", this
+          "TypeError", "Cannot destructure length " .. tostring(len(this.table)) .. " struct to " .. tostring(length) .. " names", this
         )
       )
     end
