@@ -23,7 +23,7 @@ fmap ? s@None -> none
 glance ? s@Some -> some: glance: fi, i, s.a
 glance ? s@None -> none
 
-access ? s@Some -> i access s.a
+access ? s@Some -> some: i access s.a
 access ? s@None -> none
 
 edit ? s@Some -> some: edit: s.a, i, fi, uf
@@ -65,8 +65,8 @@ edit ? s@Left -> left: edit: s.l, i, fi, uf
 glance ? s@Right -> right: glance: fi, i, s.r
 glance ? s@Left -> left: glance: fi, i, s.l
 
-access ? s@Right -> i access s.r
-access ? s@Left -> i access s.l
+access ? s@Right -> right: i access s.r
+access ? s@Left -> left: i access s.l
 
 bool ? s@Either -> s@Right
 
