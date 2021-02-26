@@ -48,6 +48,9 @@ true -> some: a modulus b
 not <- \if x then false else true
 notB <- not cmp bool
 
+and: a, b <- a & b
+or: a, b <- a | b
+
 open stringify: v
 stringify ? def -> baseStringify: v
 
