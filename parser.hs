@@ -325,7 +325,6 @@ lambdaExpr =
                 e <- logicalExpr
                 return $ FuncDefNode Nothing [IdentifierNode "x" pos] e pos
 
-
 boolean =
     do
         pos <- getSourcePos

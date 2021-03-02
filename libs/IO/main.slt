@@ -1,5 +1,5 @@
 lib "*std"
-external "io/baseIO" {unsafeRead}
+external "io/baseIO" {unsafeRead, unsafeReadFile, unsafeWriteFile, unsafeExistsFile}
 
 World <- {unsafeF}
 
@@ -25,3 +25,13 @@ input <- read cmp' stringify
 write: a <- world: \st -> ((unsafeWrite: a, a), st)
 print <- write cmp' stringify
 println <- \(print: x) bind \print: "\\n"
+
+-- File operations in IO Monad
+OpenMode <- CreateMode | AppendMode
+
+stringify ? v@CreateMode -> "w"
+stringify ? v@AppendMode -> "a"
+
+readFile: a <- world: \st -> ((unsafeReadFile: a), st)
+existsFile: s <- world: \st -> ((unsafeExistsFile: s), st)
+openFile: n, s, mode <- world: \st -> ((unsafeWriteFile: n, s, stringify: mode), st)
