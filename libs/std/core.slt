@@ -1,5 +1,6 @@
 external "std/modify" {baseModify}
 external "std/intify" {stringToInt}
+external "std/exponent" {unsafeExponent}
 
 id: a <- a
 
@@ -63,6 +64,9 @@ open numify: s
 numify ? s@SltString -> stringToInt: s
 numify ? s@SltBool -> if s then 1 else 0
 numify ? s@SltNum -> s
+
+class expo: a, b
+a@SltNum & b@SltNum -> unsafeExponent: a, b
 
 class modify: st, el, f
 el@SltString & f@SltFunc -> baseModify: st, el, f

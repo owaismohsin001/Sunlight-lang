@@ -27,7 +27,7 @@ mspaces = Parser.space *> Parser.spaces
 keyword k = Text.Megaparsec.Char.string (showL k) :: Parser String
 
 notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.string " " where
-    keywords = map ((\a -> Text.Megaparsec.Char.string a :: Parser String) . showL) [
+    keywords = map (Text.Megaparsec.Char.string . showL) [
             Parser.If,
             Parser.Then,
             Parser.Else,
