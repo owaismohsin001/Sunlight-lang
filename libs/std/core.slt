@@ -52,6 +52,9 @@ notB <- not cmp bool
 and: a, b <- a & b
 or: a, b <- a | b
 
+andB: a, b <- (bool: a) and (bool: b)
+orB: a, b <- (bool: a) or (bool: b)
+
 open stringify: v
 stringify ? def -> baseStringify: v
 
