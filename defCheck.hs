@@ -23,6 +23,7 @@ repeated = repeatedBy (>1) where
 
 -- Define all top-level definitions
 define :: [StringPos] -> Node -> [StringPos]
+define ds (IdentifierNode "_" _) = ds
 define ds (IdentifierNode id pos) = ds ++ [StringPos id pos]
 define ds (DataNode id pos) = ds ++ [StringPos id pos]
 define ds (TupleNode t _) = concatMap (define ds) t
@@ -84,7 +85,7 @@ isDefined sc (BinOpNode lhs op rhs pos) =
     case op of
         "." -> isDefined sc lhs
         _ -> isDefined sc lhs |>> isDefined sc rhs
-isDefined sc (IdentifierNode id pos) = StringPos id pos `exists` sc
+isDefined sc (IdentifierNode id pos) = StringPos id pos `exists` sc 
 isDefined sc n@(FuncDefNode mid args expr pos) = 
     expSc |>> maybe (Right ()) (isDefined sc) mid where
         expSc = 
@@ -199,7 +200,7 @@ changeNames nds st@(StructDefNode id args strct mov pos) =
         Nothing -> st
         Just ov -> StructDefNode id args strct (Just $ changeNames nds ov) pos
 changeNames _ n@SumTypeNode{} = n
-changeNames _ n@DeStructure{} = n
+changeNames nds (DeStructure ds pos) = DeStructure (map (changeNames nds) ds) pos
 changeNames _ fid@DataNode{} = fid
 changeNames nds (NewMethodNode id cond exp pos) = NewMethodNode (changeNames nds id) (changeNames nds cond) (changeNames nds exp) pos
 changeNames _ p = p
@@ -299,7 +300,7 @@ checkDefinitions le parent =
                             let used = usedVars Set.empty n in 
                                 ProgramNode (filter (toKeep used) dfs) pos
                         toKeep used x = 
-                            head (define [] x) `Set.member` used || str == "out" || str == "unsafeRunIO" where 
+                            (foldr (||) False (map (`Set.member` used) $ define [] x)) || str == "out" || str == "unsafeRunIO" where 
                                 str = getPosString $ head $ define [] x
                         getPosString (StringPos s _) = s
                         getStringPos (ProgramNode _ pos) = pos

@@ -1,5 +1,9 @@
 module EitherUtility where
 
+import Text.Megaparsec as P
+import Data.Void
+import Nodes
+
 foldE f =
     foldr (
         \fa fb -> 
@@ -9,9 +13,15 @@ foldE f =
                 Right $ f a b
         )
 
-mapE :: (b -> b) -> [Either a b] -> Either a [b]
-mapE _ [] = Right []
-mapE f ls@(_:_) = return $ map (f . (\(Right a) -> a)) ls
+mapEW :: (a -> String) -> (b -> b) -> [Either a b] -> Either a [b]
+mapEW sf _ [] = Right []
+mapEW sf f ls@(_:_) = return $ map (f . nf) ls where
+    nf (Right a) = a
+    nf (Left e) = error $ sf e
+
+mapE :: (TraversableStream s, VisualStream s, ShowErrorComponent v) => 
+    (a -> a) -> [Either (ParseErrorBundle s v) a] -> Either (ParseErrorBundle s v) [a]
+mapE = mapEW P.errorBundlePretty
 
 verify :: [Either a ()] -> Either a ()
 verify = foldE (\_ b -> b) (Right ())

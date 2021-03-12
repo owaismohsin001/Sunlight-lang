@@ -98,15 +98,15 @@ fractional =
         return $ NumNode (extractString dec ++ "." ++ extractString frac) pos
 
 identifier :: Bool -> Parser Node
-identifier sQuote =
+identifier sQuote = 
     do
-        pos <- getSourcePos
-        notKeyword
-        a <- Text.Megaparsec.Char.string "$" <|> Text.Megaparsec.Char.string ""
-        fc <- lower
-        l <- if sQuote then P.many allowedPs <* char '\'' else P.many allowedPs
-        let el = (a ++ [fc]) ++ l
-        return $ IdentifierNode el pos
+            pos <- getSourcePos
+            notKeyword
+            a <- Text.Megaparsec.Char.string "$" <|> Text.Megaparsec.Char.string ""
+            fc <- lower
+            l <- if sQuote then P.many allowedPs <* char '\'' else P.many allowedPs
+            let el = (a ++ [fc]) ++ l
+            return $ IdentifierNode el pos
     <|> nsAccess
     where
 
@@ -130,8 +130,11 @@ identifier sQuote =
                 pos <- getSourcePos
                 op <- Text.Megaparsec.Char.string "::"
                 t2 <- dataName <|> identifier Prelude.False
-                loop $ IdentifierNode (extractString t1 ++ "__" ++ extractString t2) pos
+                loop $ IdentifierNode (extractString t1 ++ "∈" ++ extractString t2) pos
         loop t = (unTrySuffix t <|> return t) :: Parser Node
+
+undersore_identifier :: Parser Node
+undersore_identifier = (flip IdentifierNode <$> getSourcePos <*> Text.Megaparsec.Char.string "_") <|> identifier Prelude.False
 
 dataName :: Parser Node
 dataName =
@@ -171,7 +174,7 @@ dataName =
                         lookAhead (Text.Megaparsec.Char.string "::" :: Parser String) *> 
                             loop stp v
                     ) <|> loop (Just v) v where
-                        v = DataNode (extractString t1 ++ "__" ++ extractString t2) pos
+                        v = DataNode (extractString t1 ++ "∈" ++ extractString t2) pos
 
 structInstanceExpr = 
     do
@@ -313,7 +316,7 @@ lambdaExpr =
     where
         fullLamba pos =
             do
-                args <- logicalExpr `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
+                args <- undersore_identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
                 spaces
                 Text.Megaparsec.Char.string "->"
                 spaces
@@ -380,13 +383,20 @@ lhs =
         Text.Megaparsec.Char.string "<-"
         return id
     where
-        mainLhs = try fDef <|> identifier Prelude.False <|> tuple <|> destructureExpr
+        mainLhs = try fDef 
+            <|> identifier Prelude.False 
+            <|> flip TupleNode <$> getSourcePos <*> (
+                Text.Megaparsec.Char.string "(" *> spaces *>
+                    undersore_identifier `sepBy` (Text.Megaparsec.Char.string "," <* spaces)
+                    <* spaces <* Text.Megaparsec.Char.string ")"
+            )
+            <|> destructureExpr
 
         destructureExpr = 
             do
                 pos <- getSourcePos
                 ls <- Text.Megaparsec.Char.string "{" *> spaces *>
-                        identifier Prelude.False `sepBy1` (Text.Megaparsec.Char.string "," <* spaces) 
+                        undersore_identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces) 
                     <* spaces <* Text.Megaparsec.Char.string "}"
                 return $ DeStructure ls pos
 
@@ -395,7 +405,7 @@ lhs =
                 pos <- getSourcePos
                 callee <- identifier Prelude.False
                 spaces *> Text.Megaparsec.Char.string ":" <* spaces
-                args <- identifier Prelude.False `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
+                args <- undersore_identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
                 spaces
                 return $ CallNode callee args pos
 
@@ -511,8 +521,8 @@ modStmnt =
         return $ MultipleDefinitionNode flist
     where
         differLhs :: Node -> Node -> Node
-        differLhs mn (IdentifierNode id pos) = IdentifierNode (extractString mn ++ "__" ++ id) pos
-        differLhs mn (DataNode id pos) = DataNode (extractString mn ++ "__" ++ id) pos
+        differLhs mn (IdentifierNode id pos) = IdentifierNode (extractString mn ++ "∈" ++ id) pos
+        differLhs mn (DataNode id pos) = DataNode (extractString mn ++ "∈" ++ id) pos
         differLhs mn (TupleNode ts pos) = TupleNode (map (differLhs mn) ts) pos
         differLhs mn (DeclNode lhs rhs pos) = DeclNode (differLhs mn lhs) (changeFun mn rhs) pos
         differLhs mn (StructDefNode id x st (Just o) pos) = StructDefNode (differLhs mn id) x st (Just $ differLhs mn o) pos

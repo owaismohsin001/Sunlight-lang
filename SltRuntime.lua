@@ -144,10 +144,16 @@ SltValue = {
         for k, v in pairs(this.table) do 
           table.insert(newTable, v)
         end
+        local indexedTable = {}
+        local i = #newTable
+        while i > 0 do
+          table.insert(indexedTable, newTable[i])
+          i = i-1
+        end
         if unpack == nil then
-          return table.unpack(this.value)
+          return table.unpack(indexedTable)
         else
-          return unpack(this.value)
+          return unpack(indexedTable)
         end
       end;
 

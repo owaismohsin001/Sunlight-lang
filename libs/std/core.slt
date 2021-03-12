@@ -4,7 +4,7 @@ external "std/exponent" {unsafeExponent}
 
 id: a <- a
 
-const: a <- (\x -> a)
+const: a <- (\_ -> a)
 
 min: a, b <- if a > b then b else a
 max: a, b <- if a > b then a else b
@@ -12,8 +12,8 @@ max: a, b <- if a > b then a else b
 cmp: f, g <- \f: g: x
 lcmp <- flip: cmp
 
-fst: t <- a where (a, b) <- t end
-snd: t <- b where (a, b) <- t end
+fst: t <- (a where (a, _) <- t end)
+snd: t <- (b where (_, b) <- t end)
 
 flip: f, x, y <- f: y, x
 

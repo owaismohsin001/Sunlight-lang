@@ -17,7 +17,7 @@ getDollar nm (BinOpNode lhs op rhs pos) =
     case op of
         "." -> BinOpNode (getDollar nm lhs) op rhs pos
         _ -> BinOpNode (getDollar nm lhs) op (getDollar nm rhs) pos
-getDollar nm fid@(IdentifierNode id pos) = if head id == '$' then IdentifierNode (nm ++ "__" ++ tail id) pos else fid
+getDollar nm fid@(IdentifierNode id pos) = if head id == '$' then IdentifierNode (nm ++ "∈" ++ tail id) pos else fid
 getDollar nm n@(FuncDefNode mid args expr pos) = FuncDefNode mid args (getDollar nm expr) pos
 getDollar nm n@(WhereNode expr ds pos) = WhereNode (getDollar nm expr) (map (getDollar nm) ds) pos
 getDollar nm (CallNode id args pos) = CallNode (getDollar nm id) (map (getDollar nm) args) pos
@@ -37,7 +37,7 @@ getDollar nm st@(StructDefNode id args strct mov pos) =
         Just ov -> StructDefNode id args strct (Just $ getDollar nm ov) pos
 getDollar nm n@SumTypeNode{} = n
 getDollar nm n@DeStructure{} = n
-getDollar nm fid@(DataNode id pos) = if head id == '$' then DataNode (nm ++ "__" ++ tail id) pos else fid
+getDollar nm fid@(DataNode id pos) = if head id == '$' then DataNode (nm ++ "∈" ++ tail id) pos else fid
 getDollar nm (NewMethodNode id cond exp pos) = NewMethodNode (getDollar nm id) (getDollar nm cond) (getDollar nm exp) pos
 getDollar nm (TypeRefNode n pos) = TypeRefNode (getDollar nm n) pos
 getDollar _ p = p

@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import Parser
 import Nodes
 import DefCheck
@@ -10,6 +12,7 @@ import MergeDefs
 import System.Exit
 import System.Environment   
 import Data.List
+import Data.Text (pack, unpack, replace)
 import qualified Data.Set as Set
 import Debug.Trace
 import System.Process
@@ -66,13 +69,16 @@ fParse cache dir fn fstr =
                     Left e -> error $ P.errorBundlePretty e
             Left n -> error $ P.errorBundlePretty n
 
+replaceUnicodeChar :: String -> String
+replaceUnicodeChar = unpack . replace "∈" "__" . pack
+
 compile :: String -> String -> IO ()
 compile fstr fn =
     do
         (_, nd) <- fParse Set.empty "." fn fstr
         let tnd = mergeMultipleNode nd
         case DefCheck.checkDefinitions (Right tnd) Nothing of
-            Right n -> writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\n" ++ endStr
+            Right n -> writeFile "bin.lua" $ replaceUnicodeChar $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\n" ++ endStr
             Left str -> error str
 
 compileFile :: FilePath -> IO ()
