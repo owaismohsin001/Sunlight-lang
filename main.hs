@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 import Parser
 import Nodes
 import DefCheck
@@ -12,13 +10,13 @@ import MergeDefs
 import System.Exit
 import System.Environment   
 import Data.List
-import Data.Text (pack, unpack, replace)
 import qualified Data.Set as Set
 import Debug.Trace
 import System.Process
 import Text.Megaparsec as P
+import GHC.IO.Encoding
 
-strtStr = "local base_path = string.match(arg[0], '^(.-)[^/\\\\]*$')\npackage.path = string.format(\"%s;%s?.lua\", package.path, base_path)\n"
+strtStr = ""
 endStr = "tostring("++ outName ++"())"
 
 remIncludes =
@@ -36,12 +34,12 @@ foldS s ((dir, fn, ftxt):xs) =
     do
         tre@(che, _) <- fParse s dir fn ftxt
         ls <- foldS che xs
-        return $ [tre] ++ ls
+        return $ tre : ls
 
 fParse :: Set.Set String -> String -> String -> String -> IO (Set.Set String, Node)
 fParse cache dir fn fstr = 
     do
-        let str = filter (\x -> x /= '\t') fstr
+        let str = filter (/= '\t') fstr
         let (libs, incs) = res where
             res = case P.runParser remIncludes fn str of
                 Right is -> is
@@ -51,11 +49,10 @@ fParse cache dir fn fstr =
                 mapM (readFile . (\x -> dir ++ "/" ++ extractString x)) (extractList incs) 
                 )
         let lns = filter (not . (`Set.member` cache)) (map extractString (extractList libs))
-        let nCache = cache `Set.union` (Set.fromList $ filter (\s -> head s == '*') lns)
+        let nCache = cache `Set.union` Set.fromList (filter (\ s -> head s == '*') lns)
         txs <- ios
         let 
-            sepStatic x = if head s == '*' then "./libs/" ++ tail s ++ "/main.slt" else dir ++ "/" ++ s ++ "/main.slt" where
-                s = extractString x
+            sepStatic x = if head s == '*' then "./libs/" ++ tail s ++ "/main.slt" else dir ++ "/" ++ s ++ "/main.slt" where s = extractString x
         libs <- mapM (readFile . sepStatic) (extractList libs)
         let sepStatic s = if head s == '*' then "./libs/" ++ tail s else dir ++ "/" ++ s
         let lbs = zip3 (map sepStatic lns) lns libs
@@ -67,10 +64,7 @@ fParse cache dir fn fstr =
                 case P.runParser (Parser.parse $ map snd libs ++ xs) fn str of
                     Right n -> return (nCache, n)
                     Left e -> error $ P.errorBundlePretty e
-            Left n -> error $ P.errorBundlePretty n
-
-replaceUnicodeChar :: String -> String
-replaceUnicodeChar = unpack . replace "∈" "__" . pack
+            Left n -> error (P.errorBundlePretty n)
 
 compile :: String -> String -> IO ()
 compile fstr fn =
@@ -78,7 +72,9 @@ compile fstr fn =
         (_, nd) <- fParse Set.empty "." fn fstr
         let tnd = mergeMultipleNode nd
         case DefCheck.checkDefinitions (Right tnd) Nothing of
-            Right n -> writeFile "bin.lua" $ replaceUnicodeChar $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\n" ++ endStr
+            Right n -> do
+                setLocaleEncoding utf8
+                writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\n" ++ endStr
             Left str -> error str
 
 compileFile :: FilePath -> IO ()
@@ -94,7 +90,7 @@ runFileMode runner fn =
         callCommand $ runner ++ " bin.lua"
 
 runMode :: String -> IO ()
-runMode = (flip runFileMode) "main.slt"
+runMode = flip runFileMode "main.slt"
 
 run :: IO ()
 run = runMode "lua"
@@ -111,12 +107,11 @@ runJIT = runMode "luajit"
 main = 
     do
         args <- getArgs
-        let fn = dispatch $ map (map toLower) args where 
-            dispatch [] = compileFile "main.slt"
-            dispatch ["run"] = run
-            dispatch ["run", a] = runFile a
-            dispatch ["jit"] = runJIT
-            dispatch ["jit", a] = runFileJIT a
-            dispatch [a] = compileFile a
-            dispatch xs = error $ "Unexpected arguments " ++ intercalate ", " xs
-        fn
+        dispatch $ map (map toLower) args where 
+                dispatch [] = compileFile "main.slt"
+                dispatch ["run"] = run
+                dispatch ["run", a] = runFile a
+                dispatch ["jit"] = runJIT
+                dispatch ["jit", a] = runFileJIT a
+                dispatch [a] = compileFile a
+                dispatch xs = error $ "Unexpected arguments " ++ intercalate ", " xs

@@ -71,7 +71,7 @@ data Keyword =
 type Parser = Parsec Void String
 
 eofString :: Parser String
-eofString = const "" <$> eof
+eofString = "" <$ eof
 
 string :: Char -> Parser Node
 string c =
@@ -113,8 +113,8 @@ identifier sQuote =
         allowedPs = lower <|> upper <|> digit <|> undersore
 
         undersore = (
-            ((char '_') :: Parser Char) 
-                <* notFollowedBy ((char '_') :: Parser Char)
+            (char '_' :: Parser Char) 
+                <* notFollowedBy (char '_' :: Parser Char)
             ) :: Parser Char
         nsAccess =
             do
@@ -130,11 +130,11 @@ identifier sQuote =
                 pos <- getSourcePos
                 op <- Text.Megaparsec.Char.string "::"
                 t2 <- dataName <|> identifier Prelude.False
-                loop $ IdentifierNode (extractString t1 ++ "∈" ++ extractString t2) pos
+                loop $ IdentifierNode (extractString t1 ++ "__" ++ extractString t2) pos
         loop t = (unTrySuffix t <|> return t) :: Parser Node
 
-undersore_identifier :: Parser Node
-undersore_identifier = (flip IdentifierNode <$> getSourcePos <*> Text.Megaparsec.Char.string "_") <|> identifier Prelude.False
+undersoreIdentifier :: Parser Node
+undersoreIdentifier = (flip IdentifierNode <$> getSourcePos <*> Text.Megaparsec.Char.string "_") <|> identifier Prelude.False
 
 dataName :: Parser Node
 dataName =
@@ -174,7 +174,7 @@ dataName =
                         lookAhead (Text.Megaparsec.Char.string "::" :: Parser String) *> 
                             loop stp v
                     ) <|> loop (Just v) v where
-                        v = DataNode (extractString t1 ++ "∈" ++ extractString t2) pos
+                        v = DataNode (extractString t1 ++ "__" ++ extractString t2) pos
 
 structInstanceExpr = 
     do
@@ -199,7 +199,7 @@ structInstanceExpr =
                 thing <- expr
                 return $ DeclNode id thing pos
 
-commaSep p  = p `sepBy` (try (spaces *> (Text.Megaparsec.Char.string ", ") <* spaces) :: Parser String)
+commaSep p  = p `sepBy` (try (spaces *> Text.Megaparsec.Char.string ", " <* spaces) :: Parser String)
 
 list = 
     do
@@ -222,8 +222,8 @@ tuple =
         return $ TupleNode ls pos
     where
         commaSep p  = 
-            try (p `endBy` (spaces *> (Text.Megaparsec.Char.string ",") <* spaces :: Parser String))
-            <|> p `sepBy` (spaces *> (Text.Megaparsec.Char.string ",") <* spaces :: Parser String)
+            try (p `endBy` (spaces *> Text.Megaparsec.Char.string "," <* spaces :: Parser String))
+            <|> p `sepBy` (spaces *> Text.Megaparsec.Char.string "," <* spaces :: Parser String)
 
 everyExpr = 
     do
@@ -279,11 +279,11 @@ atom =
     do
         pos <- getSourcePos
         pre <- prefix
-        id <- try $ do
-            xId <- identifier Prelude.False
-            return $ CallNode xId [pre] pos
-            <|> (const pre <$> Text.Megaparsec.Char.string "")
-        return id
+        try
+            $ do 
+                xId <- identifier Prelude.False
+                return $ CallNode xId [pre] pos
+                <|> (pre <$ Text.Megaparsec.Char.string "")
 
 containerFunction :: String -> String -> String -> ([Node] -> P.SourcePos -> Node) -> Parser Node
 containerFunction strt end sep f =
@@ -293,7 +293,7 @@ containerFunction strt end sep f =
         fstComma <- comma
         commas <- P.many comma
         Text.Megaparsec.Char.string end
-        let args = map ((flip IdentifierNode pos) . (\a -> "x" ++ show a)) [1 .. length commas + 2]
+        let args = map (flip IdentifierNode pos . (\a -> "x" ++ show a)) [1 .. length commas + 2]
         return $ FuncDefNode Nothing args (f args pos) pos
     where comma = spaces *> Text.Megaparsec.Char.string sep <* spaces
 
@@ -316,7 +316,7 @@ lambdaExpr =
     where
         fullLamba pos =
             do
-                args <- undersore_identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
+                args <- undersoreIdentifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
                 spaces
                 Text.Megaparsec.Char.string "->"
                 spaces
@@ -387,7 +387,7 @@ lhs =
             <|> identifier Prelude.False 
             <|> flip TupleNode <$> getSourcePos <*> (
                 Text.Megaparsec.Char.string "(" *> spaces *>
-                    undersore_identifier `sepBy` (Text.Megaparsec.Char.string "," <* spaces)
+                    undersoreIdentifier `sepBy` (Text.Megaparsec.Char.string "," <* spaces)
                     <* spaces <* Text.Megaparsec.Char.string ")"
             )
             <|> destructureExpr
@@ -396,7 +396,7 @@ lhs =
             do
                 pos <- getSourcePos
                 ls <- Text.Megaparsec.Char.string "{" *> spaces *>
-                        undersore_identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces) 
+                        undersoreIdentifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces) 
                     <* spaces <* Text.Megaparsec.Char.string "}"
                 return $ DeStructure ls pos
 
@@ -405,7 +405,7 @@ lhs =
                 pos <- getSourcePos
                 callee <- identifier Prelude.False
                 spaces *> Text.Megaparsec.Char.string ":" <* spaces
-                args <- undersore_identifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
+                args <- undersoreIdentifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
                 spaces
                 return $ CallNode callee args pos
 
@@ -430,8 +430,8 @@ structDef =
 
         lowId (DataNode id pos) = IdentifierNode (toLower (head id) : tail id) pos
         lowId (IdentifierNode id pos) = IdentifierNode (map toLower id) pos
-        makeFun (strct@(StructDefNode id xs _ _ pos)) = 
-            if xs == [] then 
+        makeFun strct@(StructDefNode id xs _ _ pos) = 
+            if null xs then 
                 FromStruct $ DeclNode (lowId id) (instantiate xs strct) pos
             else
                 FromStruct $ DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) pos) pos
@@ -472,11 +472,9 @@ structDef =
                                 return $ StructInstanceNode id ls Prelude.False pos
                             ) <|> return (StructInstanceNode id [] Prelude.False pos)
                 seqInstance = commaSep seqPair
-                seqPair =
-                    do
-                        id <- identifier Prelude.False
-                        pos <- getSourcePos
-                        return $ IdentifierNode (extractString id) pos
+                seqPair = do 
+                    id <- identifier Prelude.False
+                    IdentifierNode (extractString id) <$> getSourcePos
 
 decl =
     do
@@ -515,14 +513,14 @@ modStmnt =
         mname <- keyword Mod *> spaces *> dataName <* newlines <* spaces
         ds <- (spaces *> newlines *> spaces *> (try mewMethod <|> try methodDecl <|> try classStmnt <|> try structDef <|> decl )) 
             `sepBy1` notFollowedBy (newlines *> spaces *> newlines *> (keyword End <|> eofString))
-        (newlines *> spaces *> newlines *> (keyword End <|> eofString))
+        newlines *> spaces *> newlines *> (keyword End <|> eofString)
         let tds = map (differLhs mname) ds
         let flist = map (getDollar $ extractString mname) tds
         return $ MultipleDefinitionNode flist
     where
         differLhs :: Node -> Node -> Node
-        differLhs mn (IdentifierNode id pos) = IdentifierNode (extractString mn ++ "∈" ++ id) pos
-        differLhs mn (DataNode id pos) = DataNode (extractString mn ++ "∈" ++ id) pos
+        differLhs mn (IdentifierNode id pos) = IdentifierNode (extractString mn ++ "__" ++ id) pos
+        differLhs mn (DataNode id pos) = DataNode (extractString mn ++ "__" ++ id) pos
         differLhs mn (TupleNode ts pos) = TupleNode (map (differLhs mn) ts) pos
         differLhs mn (DeclNode lhs rhs pos) = DeclNode (differLhs mn lhs) (changeFun mn rhs) pos
         differLhs mn (StructDefNode id x st (Just o) pos) = StructDefNode (differLhs mn id) x st (Just $ differLhs mn o) pos
@@ -562,7 +560,7 @@ decls xs =
         a <- includes Lib
         P.many Parser.newline
         b <- includes Mod
-        exts <- newlines *> spaces *> (P.many $ externals <* spaces <* newlines)
+        exts <- newlines *> spaces *> P.many (externals <* spaces <* newlines)
         P.many Parser.newline
         spaces
         dcs <- 
@@ -602,6 +600,7 @@ expr =
         xs pos  
     where
         spacificSpaces = (spaces *> newlines *> spaces) <|> (Parser.newline *> newlines *> spaces)
+        xs :: SourcePos -> Parser Node
         xs pos = 
             do
                 l <- backExpr `sepBy1` try (spaces *> Text.Megaparsec.Char.string "|>" <* spaces)
@@ -612,6 +611,7 @@ backExpr =
         pos <- getSourcePos
         bs pos 
     where
+        bs :: SourcePos -> Parser Node
         bs pos = 
             do
                 xs <- logicalExpr `sepBy1` try (spaces *> Text.Megaparsec.Char.string "<|" <* spaces)
@@ -652,8 +652,7 @@ application =
         try (
             do
                 m <- mid
-                let args = arr m where
-                    arr(ListNode arr _) = arr
+                let args = arr m where arr(ListNode arr _) = arr
                 return $ CallNode callee args pos
             ) <|> return callee
         where
@@ -717,7 +716,7 @@ mewMethod =
         pos <- getSourcePos
         id <-  identifier Prelude.False
         spaces *> Text.Megaparsec.Char.string "?" <* spaces
-        cond <- (const (IdentifierNode "def" pos) <$> try (keyword Def)) <|> expr
+        cond <- (IdentifierNode "def" pos <$ try (keyword Def)) <|> expr
         spaces
         Text.Megaparsec.Char.string "->"
         spaces
@@ -801,7 +800,7 @@ caseExpr =
         pos <- getSourcePos
         Text.Megaparsec.Char.string "|"
         spaces
-        fls <- p `sepBy` (spaces *> (Text.Megaparsec.Char.string "|") <* spaces :: Parser String)
+        fls <- p `sepBy` (spaces *> Text.Megaparsec.Char.string "|" <* spaces :: Parser String)
         return $ SequenceIfNode fls pos 
     where 
         p = 

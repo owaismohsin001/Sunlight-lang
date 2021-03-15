@@ -21,7 +21,7 @@ instance Show Scope where
     show (Scope set par) = show set ++ " -> " ++ maybeScope where 
         maybeScope =
             case par of
-                Just ( sc@Scope{} ) -> show sc
+                Just sc@Scope{} -> show sc
                 Nothing -> "{}"
 
 data StringPos = StringPos String P.SourcePos

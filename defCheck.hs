@@ -300,7 +300,7 @@ checkDefinitions le parent =
                             let used = usedVars Set.empty n in 
                                 ProgramNode (filter (toKeep used) dfs) pos
                         toKeep used x = 
-                            (foldr (||) False (map (`Set.member` used) $ define [] x)) || str == "out" || str == "unsafeRunIO" where 
+                            foldr ((||) . (`Set.member` used)) False (define [] x) || str == "out" || str == "unsafeRunIO" where 
                                 str = getPosString $ head $ define [] x
                         getPosString (StringPos s _) = s
                         getStringPos (ProgramNode _ pos) = pos

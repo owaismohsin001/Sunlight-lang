@@ -42,7 +42,7 @@ instance Show Node where
     show (IdentifierNode id _) = id
     show (CallNode callee args _) = show callee ++ "(" ++ intercalate ", " (map show args) ++ ")"
     show (WhereNode e ds _) = show e ++ "{" ++ intercalate ", " (map show ds) ++"}"
-    show (MultipleDefinitionNode ds) = "start:\n" ++ (intercalate "\n" (map show ds)) ++ "\nend"
+    show (MultipleDefinitionNode ds) = "start:\n" ++ intercalate "\n" (map show ds) ++ "\nend"
     show (ProgramNode arr _) = intercalate "\n" (map show arr)
     show (ListNode xs _) = "[" ++ intercalate ", " (map show xs) ++ "]"
     show (TupleNode arr _) = "(" ++ intercalate ", " (map show arr) ++ ",)"
@@ -71,10 +71,7 @@ instance Show Node where
     show (NewMethodNode id ce te _) = 
         "close " ++ show id ++ " ? " ++ show ce ++ " -> " ++ show te
     show (FuncDefNode f args e _) = fname ++ " <- " ++ "(" ++ intercalate ", " (map show args) ++ ")" ++ " -> " ++ show e where
-        fname =
-            case f of
-                Just f -> show f
-                Nothing -> "anonymous"
+        fname = maybe "anonymous" show f
 
 extractString (StringNode str _) = str
 extractString (NumNode num _) = num
