@@ -24,11 +24,11 @@ class unlessZero: n
 n = 0 -> []
 true -> [n] .. unlessZero: n-1
 
-bottles: i <- s .. " bottles of beer on the wall,\\n" .. s .. " bottles of beer.\\nTake one pass it around,\\n" .. (stringify: i-1) .. " bottles of beer on the wall.\\n" where
+bottles: i <- s .. " bottles of beer on the wall,\n" .. s .. " bottles of beer.\nTake one pass it around,\n" .. (stringify: i-1) .. " bottles of beer on the wall.\n" where
    s <- stringify: i
 end
 
-bottle <- "1 bottle of beer on the wall,\\n1 bottle of beer.\\nTake one down, pass it around,\\nNo bottles of beer on the wall."
+bottle <- "1 bottle of beer on the wall,\n1 bottle of beer.\nTake one down, pass it around,\nNo bottles of beer on the wall."
 
 out <- mapM: (\if x = 1 then bottle else bottles: x) lcmp println, &World, unlessZero: 99
 ```

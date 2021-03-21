@@ -20,11 +20,11 @@ unit ? r@World -> world: \st -> (s, st)
 bind ? s@World -> world: \st -> ( ((f: a).unsafeF): sn where (a, sn) <- .unsafeF: s, st end )
 
 read: a <- world: \st -> ((unsafeRead: a), st)
-readln: a <- world: \st -> ((unsafeRead: a .. "\\n"), st)
+readln: a <- world: \st -> ((unsafeRead: a .. "\n"), st)
 input <- read cmp' stringify  
 write: a <- world: \st -> ((unsafeWrite: a, a), st)
 print <- write cmp' stringify
-println <- \(print: x) bind \print: "\\n"
+println <- \(print: x) bind \print: "\n"
 
 -- File operations in IO Monad
 OpenMode <- CreateMode | AppendMode

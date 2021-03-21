@@ -47,7 +47,7 @@ generateLhs (DataNode id _) = id
 luaPos (P.SourcePos s ln cn) = 
     "{\"" ++ s ++ "\", " ++ tail (dropWhile (/= ' ') (show ln)) ++ ", " ++ tail(dropWhile (/= ' ') (show cn)) ++ "}"
 
-generate (StringNode str pos) = "(SltString.create(\"" ++ str ++ "\", " ++ luaPos pos ++"))"
+generate (StringNode str pos) = "(SltString.create(" ++ show str ++ ", " ++ luaPos pos ++"))"
 generate (NumNode n pos) = "(SltNum.create(" ++ n ++ ", " ++ luaPos pos ++ "))"
 generate (IdentifierNode id _) = id ++ "()"
 generate (TypeRefNode dt pos) = "SltType.create(" ++ generate dt ++ ", " ++ luaPos pos ++ ")"
