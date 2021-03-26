@@ -117,7 +117,7 @@ isDefined sc SumTypeNode{} = Right ()
 isDefined sc DeStructure{} = Right ()
 isDefined sc ExternalNode{} = Right ()
 isDefined sc (DataNode id pos) = StringPos id pos `exists` sc
-isDefined sc (NewMethodNode id _ _ _) = Left $ "Undefined open method " ++ show id
+isDefined sc (NewMethodNode id _ _ pos) = Left $ "Undefined open method " ++ show id ++ "\n" ++ showPos pos
 isDefined _ p = 
     case p of 
         NumNode _ _ -> Right ()
@@ -126,6 +126,7 @@ isDefined _ p =
         a -> error $ show a
 
 -- Take a set of sets and reduce it down to a set
+reduceSetsGeneralized :: Ord a1 => (t -> a2 -> Set.Set a1) -> t -> [a2] -> Set.Set a1
 reduceSetsGeneralized f st dcs = Set.foldr Set.union Set.empty $ Set.fromList $ map (f st) dcs
 
 reduceSets :: Set.Set StringPos -> [Node] -> Set.Set StringPos
@@ -185,7 +186,7 @@ changeNames nds n@(FuncDefNode mid args expr pos) = FuncDefNode mid (map (change
 changeNames nds n@(WhereNode expr ds pos) = WhereNode (changeNames nds expr) (map (changeNames nds) ds) pos
 changeNames nds (CallNode id args pos) = CallNode (changeNames nds id) (map (changeNames nds) args) pos
 changeNames nds (UnaryExpr op e pos) = UnaryExpr op (changeNames nds e) pos
-changeNames nds (IfNode ce te ee pos) = IfNode (changeNames nds ce) (changeNames nds te) fee pos where
+changeNames nds (IfNode ce te ee pos) = IfNode (changeNames nds ce) (changeNames nds te) (changeNames nds <$> ee) pos where
     fee =
         case ee of
             Nothing -> Nothing

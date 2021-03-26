@@ -27,24 +27,7 @@ mspaces = Parser.space *> Parser.spaces
 keyword k = Text.Megaparsec.Char.string (showL k) :: Parser String
 
 notKeyword = try $ notFollowedBy $ choice keywords *> Text.Megaparsec.Char.string " " where
-    keywords = map (Text.Megaparsec.Char.string . showL) [
-            Parser.If,
-            Parser.Then,
-            Parser.Else,
-            Parser.True,
-            Parser.False,
-            Parser.Class,
-            Parser.Every,
-            Parser.Is,
-            Parser.Where,
-            Parser.End,
-            Parser.Open,
-            Parser.Include,
-            Parser.Mod,
-            Parser.Lib,
-            Parser.Def,
-            Parser.External
-        ]
+    keywords = map (Text.Megaparsec.Char.string . showL) [Parser.If ..]
 
 showL k = map toLower (show k)
 
@@ -54,7 +37,6 @@ data Keyword =
     | Else
     | True
     | False
-    | Not
     | Class
     | Every
     | Is
@@ -66,7 +48,7 @@ data Keyword =
     | Lib
     | Def
     | External
-    deriving(Show, Eq)
+    deriving(Show, Eq, Enum)
 
 type Parser = Parsec Void String
 
@@ -601,10 +583,7 @@ expr =
     where
         spacificSpaces = (spaces *> newlines *> spaces) <|> (Parser.newline *> newlines *> spaces)
         xs :: SourcePos -> Parser Node
-        xs pos = 
-            do
-                l <- backExpr `sepBy1` try (spaces *> Text.Megaparsec.Char.string "|>" <* spaces)
-                return $ foldr (\a b -> CallNode a [b] pos) (head l) (reverse $ tail l)
+        xs pos = backExpr `sepBy1` try (spaces *> Text.Megaparsec.Char.string "|>" <* spaces) >>= \l -> return $ foldr (\a b -> CallNode a [b] pos) (head l) (reverse $ tail l)
 
 backExpr =
     do
@@ -614,9 +593,8 @@ backExpr =
         bs :: SourcePos -> Parser Node
         bs pos = 
             do
-                xs <- logicalExpr `sepBy1` try (spaces *> Text.Megaparsec.Char.string "<|" <* spaces)
-                let (l:ls) = reverse xs
-                return $ foldl (\a b -> CallNode b [a] pos) l ls
+                logicalExpr `sepBy1` try (spaces *> Text.Megaparsec.Char.string "<|" <* spaces) >>=
+                    \xs -> let (l:ls) = reverse xs in return $ foldl (\a b -> CallNode b [a] pos) l ls
 
 logicalExpr = binOp compExpr (Text.Megaparsec.Char.string "&" <|> Text.Megaparsec.Char.string "|") BinOpNode
 

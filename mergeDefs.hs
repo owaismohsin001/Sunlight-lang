@@ -5,9 +5,9 @@ import Debug.Trace
 import Data.List
 
 mergeMultipleNode (ProgramNode ps pos) = 
-    ProgramNode (concat $ map merge ps) pos where
+    ProgramNode (concatMap merge ps) pos where
         merge :: Node -> [Node]
-        merge (MultipleDefinitionNode mds) = concat $ map merge mds
+        merge (MultipleDefinitionNode mds) = concatMap merge mds
         merge (FromStruct n) = [n]
         merge n = [n]
 

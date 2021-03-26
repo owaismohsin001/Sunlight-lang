@@ -80,7 +80,7 @@ generate (BoolNode b pos) = "SltBool.create(" ++ b ++ ", " ++ luaPos pos ++ ")"
 generate (SequenceIfNode fs pos) = 
     case fs of
         [] -> "error(SltError.create(\"CaseError\", \"None of the cases matched\", {loc = " ++ luaPos pos ++ "}))"
-        _ -> (intercalate " or " (map generate fs)) ++ 
+        _ -> intercalate " or " (map generate fs) ++ 
             " or error(SltError.create(\"CaseError\", \"None of the cases matched\", {loc = " ++ luaPos pos ++ "}))"
 generate (UnaryExpr op e _) = handleUnaryOp op e
 generate (DataNode n _) = "\"" ++ n ++ "\""
