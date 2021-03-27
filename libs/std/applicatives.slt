@@ -15,3 +15,8 @@ Compose <- {fc}
 
 fmap ? s@Compose -> compose: (fmap: f) fmap s.fc
 seq ? f@Compose & s@Compose -> compose: seq fmap' f.fc seq' s.fc
+
+-- Synonyms of functions
+
+{^:} <- fmap
+{^,} <- seq

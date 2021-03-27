@@ -82,15 +82,22 @@ fractional =
 identifier :: Bool -> Parser Node
 identifier sQuote = 
     do
-            pos <- getSourcePos
-            notKeyword
-            a <- Text.Megaparsec.Char.string "$" <|> Text.Megaparsec.Char.string ""
-            fc <- lower
-            l <- if sQuote then P.many allowedPs <* char '\'' else P.many allowedPs
-            let el = (a ++ [fc]) ++ l
-            return $ IdentifierNode el pos
+        pos <- getSourcePos
+        notKeyword
+        a <- Text.Megaparsec.Char.string "$" <|> Text.Megaparsec.Char.string ""
+        fc <- lower
+        l <- if sQuote then P.many allowedPs <* char '\'' else P.many allowedPs
+        let el = (a ++ [fc]) ++ l
+        return $ IdentifierNode el pos
+    <|> (
+        (\pos str -> IdentifierNode ("{" ++ str ++ "}") pos) 
+        <$> getSourcePos 
+        <*> if sQuote then allSyms <* char '\'' else allSyms
+        )
     <|> nsAccess
     where
+
+        allSyms = Text.Megaparsec.Char.string "{" *> manyTill L.charLiteral (char '}')
 
         allowedPs = lower <|> upper <|> digit <|> undersore
 
