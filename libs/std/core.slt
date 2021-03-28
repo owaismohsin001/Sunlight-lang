@@ -74,3 +74,6 @@ a@SltNum & b@SltNum -> unsafeExponent: a, b
 
 class modify: st, el, f
 el@SltString & f@SltFunc -> baseModify: st, el, f
+
+{.} <- cmp
+{|.} <- lcmp

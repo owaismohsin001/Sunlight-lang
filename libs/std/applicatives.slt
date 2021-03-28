@@ -20,3 +20,4 @@ seq ? f@Compose & s@Compose -> compose: seq fmap' f.fc seq' s.fc
 
 {^:} <- fmap
 {^,} <- seq
+{^<} <- fmap {.} const

@@ -14,4 +14,4 @@ empty ? r@SltString -> ""
 append ? a@SltString & b@SltString -> a .. b
 
 empty ? r@SltFunc -> id
-append ? a@SltFunc & b@SltFunc -> a cmp' b
+append ? a@SltFunc & b@SltFunc -> a {.} b

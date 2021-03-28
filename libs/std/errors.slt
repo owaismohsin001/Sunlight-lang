@@ -47,8 +47,8 @@ class getLeft: et, d
 et@Right -> d
 et@Left -> et.l;
 
-fmap ? s@Right -> (right: f) seq s
-fmap ? s@Left -> (left: f) seq s
+fmap ? s@Right -> (right: f) {^,} s
+fmap ? s@Left -> (left: f) {^,} s
 
 unit ? r@Either -> right: s
 

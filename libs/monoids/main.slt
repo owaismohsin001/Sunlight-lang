@@ -24,4 +24,4 @@ append ? a@$AnyTrue & b@$AnyTrue -> $anyTrue: a.b | b.b
 
 LCmp <- {f}
 empty ? r@$LCmp -> $lCmp: id
-append ? a@$LCmp & b@$LCmp -> $lCmp: a.f lcmp b.f
+append ? a@$LCmp & b@$LCmp -> $lCmp: a.f {|.} b.f

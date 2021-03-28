@@ -16,3 +16,8 @@ mapM_: f, r, xs <- (mapM: f, r, xs) bind \unit: r, ()
 
 sequence <- mapM: id
 sequence_ <- mapM_: id
+
+-- Monad symbols
+{^->} <- bind
+{^>}: a, b <- a {^->} \b
+{<^}: a, b <- a {^->} \n -> b {^->} \unit: (ovTypeOf: a), n
