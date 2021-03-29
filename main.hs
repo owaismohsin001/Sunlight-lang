@@ -3,6 +3,7 @@ import Nodes
 import DefCheck
 import CodeGen
 import EitherUtility
+import Modes
 import ReduceMethods
 import Data.Void
 import Data.Char
@@ -15,9 +16,6 @@ import Debug.Trace
 import System.Process
 import Text.Megaparsec as P
 import GHC.IO.Encoding
-
-strtStr = ""
-endStr = "tostring("++ outName ++"())"
 
 remIncludes =
         do
@@ -66,52 +64,48 @@ fParse cache dir fn fstr =
                     Left e -> error $ P.errorBundlePretty e
             Left n -> error (P.errorBundlePretty n)
 
-compile :: String -> String -> IO ()
-compile fstr fn =
+compile :: CompileMode m => m -> String -> String -> IO ()
+compile mode fstr fn =
     do
         (_, nd) <- fParse Set.empty "." fn fstr
         let tnd = mergeMultipleNode nd
         case DefCheck.checkDefinitions (Right tnd) Nothing of
-            Right n -> do
-                setLocaleEncoding utf8
-                writeFile "bin.lua" $ strtStr ++ "require 'SltRuntime'\n" ++ CodeGen.runGenerator (Right n) ++ ";\n\n" ++ endStr
+            Right n -> writeFile (fileNameGen mode) $ wholeCodeGen mode outName n 
             Left str -> error str
 
-compileFile :: FilePath -> IO ()
-compileFile fn =
+compileFile :: CompileMode m => m -> FilePath -> IO ()
+compileFile m fn =
     do
         f <- readFile fn
-        compile f fn
+        compile m f fn
 
-runFileMode :: String -> FilePath -> IO ()
-runFileMode runner fn =
-    do
-        compileFile fn
-        callCommand $ runner ++ " bin.lua"
+runFileMode :: CompileMode m => m -> String -> IO ()
+runFileMode m fn = compileFile m fn *> callCommand (invokeUtility m ++ " " ++ fileNameGen m)
 
-runMode :: String -> IO ()
-runMode = flip runFileMode "main.slt"
+runMode :: CompileMode m => m -> IO ()
+runMode m = runFileMode m "main.slt"
 
 run :: IO ()
-run = runMode "lua"
+run = runMode Lua
 
 runFile :: FilePath -> IO ()
-runFile = runFileMode "lua"
+runFile = runFileMode Lua
 
 runFileJIT :: FilePath -> IO ()
-runFileJIT = runFileMode "luajit"
+runFileJIT = runFileMode LuaJIT
 
 runJIT :: IO ()
-runJIT = runMode "luajit"
+runJIT = runMode LuaJIT
 
+main :: IO ()
 main = 
     do
         args <- getArgs
         dispatch $ map (map toLower) args where 
-                dispatch [] = compileFile "main.slt"
+                dispatch [] = compileFile Lua "main.slt"
                 dispatch ["run"] = run
                 dispatch ["run", a] = runFile a
                 dispatch ["jit"] = runJIT
                 dispatch ["jit", a] = runFileJIT a
-                dispatch [a] = compileFile a
+                dispatch [a] = compileFile Lua a
                 dispatch xs = error $ "Unexpected arguments " ++ intercalate ", " xs

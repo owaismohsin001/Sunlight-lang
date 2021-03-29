@@ -1,6 +1,7 @@
 module CodeGen where
 
 import Nodes
+import Modes
 import qualified Text.Megaparsec as P
 import Data.Maybe
 import Data.List
@@ -108,3 +109,15 @@ generate (ExternalNode id _ _) = ""
 runGenerator :: Either String Node -> String 
 runGenerator (Left e) = e
 runGenerator (Right e) = fDeclare e ++ "\n" ++ generate e
+
+data Lua = Lua | LuaJIT
+
+instance CompileMode Lua where
+    importGen _ = "require 'SltRuntime'\n"
+    codeGen _ n = runGenerator $ Right n
+    fileNameGen _ = "bin.lua"
+    startGen _ = ""
+    sepGen _ = ";\n"
+    endGen _ outName = "tostring("++ outName ++"())"
+    invokeUtility Lua = "lua"
+    invokeUtility LuaJIT = "luajit"
