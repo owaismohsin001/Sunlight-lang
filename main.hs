@@ -70,20 +70,17 @@ compile mode fstr fn =
         (_, nd) <- fParse Set.empty "." fn fstr
         let tnd = mergeMultipleNode nd
         case DefCheck.checkDefinitions (Right tnd) Nothing of
-            Right n -> writeFile (fileNameGen mode) $ wholeCodeGen mode outName n 
+            Right n -> writeFile (binGen mode) $ wholeCodeGen mode outName n 
             Left str -> error str
 
 compileFile :: CompileMode m => m -> FilePath -> IO ()
-compileFile m fn =
-    do
-        f <- readFile fn
-        compile m f fn
+compileFile m fn = readFile fn >>= \f -> compile m f fn
 
 runFileMode :: CompileMode m => m -> String -> IO ()
-runFileMode m fn = compileFile m fn *> callCommand (invokeUtility m ++ " " ++ fileNameGen m)
+runFileMode m fn = compileFile m fn *> callCommand (callUtilityBin m)
 
 runMode :: CompileMode m => m -> IO ()
-runMode m = runFileMode m "main.slt"
+runMode = flip runFileMode "main.slt"
 
 run :: IO ()
 run = runMode Lua

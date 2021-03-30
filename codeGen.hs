@@ -115,7 +115,7 @@ data Lua = Lua | LuaJIT
 instance CompileMode Lua where
     importGen _ = "require 'SltRuntime'\n"
     codeGen _ n = runGenerator $ Right n
-    fileNameGen _ = "bin.lua"
+    fileNameGen _ = (++ ".lua")
     startGen _ = ""
     sepGen _ = ";\n"
     endGen _ outName = "tostring("++ outName ++"())"
