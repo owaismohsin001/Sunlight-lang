@@ -72,6 +72,9 @@ numify ? s@SltNum -> s
 class expo: a, b
 a@SltNum & b@SltNum -> unsafeExponent: a, b
 
+{**} <- expo
+{%} <- modulus
+
 class modify: st, el, f
 el@SltString & f@SltFunc -> baseModify: st, el, f
 

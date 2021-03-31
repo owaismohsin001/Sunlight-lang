@@ -20,6 +20,7 @@ executable Sunlight
   main-is:             Main.hs
   other-modules:       Parser,
                        DefCheck,
+                       Modes,
                        MergeDefs,
                        Scope,
                        Nodes,

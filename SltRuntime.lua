@@ -588,7 +588,7 @@ function SltBool.create(num, location)
 
     this.eq = function(this)
       if this.type_ ~= other.type_ then return SltBool.create(false, this.loc) end
-      return SltBool.crate(this.value == other.value, this.loc)
+      return SltBool.create(this.value == other.value, this.loc)
     end
 
     this.neq = function(this)
