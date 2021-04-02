@@ -315,5 +315,5 @@ checkIODefinitions lf p =
                 Left e -> Left $ P.errorBundlePretty e
                 Right n -> Right n
 
-hash n = "h" ++ show (Hash.hash $ B.pack n :: Hash.SHA256)
+hash n = if head n == '{' then "h" ++ show (Hash.hash $ B.pack n :: Hash.SHA256) else "h" ++ n ++ "1"
 outName = hash "out"

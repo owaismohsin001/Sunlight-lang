@@ -2,6 +2,7 @@ import Parser
 import Nodes
 import DefCheck
 import CodeGen
+import JsCodeGen
 import EitherUtility
 import Modes
 import ReduceMethods
@@ -93,6 +94,12 @@ runFileJIT = runFileMode LuaJIT
 
 runJIT :: IO ()
 runJIT = runMode LuaJIT
+
+runJS :: IO ()
+runJS = runFileMode Deno "main.slt"
+
+runFileJS :: FilePath -> IO ()
+runFileJS = runFileMode Deno
 
 main :: IO ()
 main = 

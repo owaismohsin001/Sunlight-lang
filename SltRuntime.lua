@@ -1,4 +1,4 @@
-hash = require("hashLib")
+hash = require("compiler_libs/hashLib")
 
 table.unpack = unpack and unpack or table.unpack
 

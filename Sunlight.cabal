@@ -22,6 +22,7 @@ executable Sunlight
                        DefCheck,
                        Modes,
                        MergeDefs,
+                       JsCodeGen,
                        Scope,
                        Nodes,
                        ReduceMethods,
