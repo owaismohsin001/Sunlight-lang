@@ -220,7 +220,7 @@ class SltNum extends SltValue {
   div(other: SltValue): SltValue {
     sameTypes(this, other, (a, b) => a.div(b))
     if (other.value == 0) error("DivisionByZero", "Can't divide by zero", this)
-    return new SltNum(this.value + other.value, this.loc)
+    return new SltNum(this.value / other.value, this.loc)
   }
 
   getHash() { return sha1(this.value.toString()) + "IsANumber" }

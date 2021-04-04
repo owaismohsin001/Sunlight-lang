@@ -9,6 +9,9 @@ const: a <- (\_ -> a)
 min: a, b <- if a > b then b else a
 max: a, b <- if a > b then a else b
 
+even <- \x {%} 2 = 0
+odd <- \x {%} 2 /= 0
+
 cmp: f, g <- \f: g: x
 lcmp <- flip: cmp
 
@@ -24,6 +27,8 @@ mul: a, b <- a*b
 div: a, b <- a/b
 
 subFlip <- flip: sub
+divFlip <- flip: div
+
 decN: n <- (-n)add
 
 appendList: a, b <- a .. b
@@ -39,6 +44,8 @@ cons <- \[x]appendList
 class safeDiv: a, b
 b = 0 -> none
 true -> some: a/b
+
+flipSafeDiv <- flip: safeDiv
 
 class modulus: n
 n@SltNum -> unsafeMod: n
