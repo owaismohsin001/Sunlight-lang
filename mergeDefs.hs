@@ -18,7 +18,7 @@ getDollar nm (BinOpNode lhs op rhs pos) =
         "." -> BinOpNode (getDollar nm lhs) op rhs pos
         _ -> BinOpNode (getDollar nm lhs) op (getDollar nm rhs) pos
 getDollar nm fid@(IdentifierNode id pos) = if head id == '$' then IdentifierNode (nm ++ "__" ++ tail id) pos else fid
-getDollar nm n@(FuncDefNode mid args expr pos) = FuncDefNode mid args (getDollar nm expr) pos
+getDollar nm n@(FuncDefNode mid args expr h pos) = FuncDefNode mid args (getDollar nm expr) h pos
 getDollar nm n@(WhereNode expr ds pos) = WhereNode (getDollar nm expr) (map (getDollar nm) ds) pos
 getDollar nm (CallNode id args pos) = CallNode (getDollar nm id) (map (getDollar nm) args) pos
 getDollar nm (UnaryExpr op e pos) = UnaryExpr op (getDollar nm e) pos

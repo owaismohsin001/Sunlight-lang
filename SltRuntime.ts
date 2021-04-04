@@ -273,11 +273,13 @@ interface HashTable<T> {
 class SltFunc extends SltValue {
   fun: (a: SltValue) => SltValue
   values: HashTable<SltValue>
-  constructor(fun: (a: SltValue) => SltValue, loc: [number, number, string]){
+  hashes: boolean
+  constructor(fun: (a: SltValue) => SltValue, loc: [number, number, string], fromStruct: boolean = false){
     super()
     this.fun = fun;
     this.type_ = "SltFunc"
     this.values = {}
+    this.hashes = !fromStruct
     this.hashAble = false
     this.loc = loc
   }
@@ -288,7 +290,7 @@ class SltFunc extends SltValue {
   neq(other: SltValue) { return new SltBool(true, this.loc) }
 
   getValue(arg: SltValue) {
-    if (arg().hashAble) return this.values[arg().getHash()]
+    if (arg().hashAble && this.hashes) return this.values[arg().getHash()]
     return null
   }
 
@@ -296,7 +298,7 @@ class SltFunc extends SltValue {
     const val = this.getValue(a)
     if (val != null) return val
     const res = this.fun(a)
-    if (a().hashAble) this.values[a().getHash()] = res
+    if (a().hashAble && this.hashes) this.values[a().getHash()] = res
     return res
   }
 }
@@ -383,7 +385,7 @@ class SltList extends SltValue {
 
   async getOutput(whole: boolean){    
     let output = this
-    if (whole) { 
+    if (!whole) { 
       await write("[")
       while (output.type_ == "SltList"){
         await output.head().getOutput(true)
@@ -394,8 +396,8 @@ class SltList extends SltValue {
       return
     }
     while (output.type_ == "SltList") {
-      await output.head().getOutput(true)
-      await write("\n\n")
+      console.log(output.head().toString())
+      console.log("\n")
       output = output.tail()
     }
     return
@@ -535,10 +537,23 @@ class SltStruct extends SltValue {
 
   neq(other: SltValue) { return this.eq(other).notted() }
 
+  async getOutput(_: boolean){
+    await write(this.type_)
+    await write("{")
+    for (const k in this.value) {
+      const v = this.value[k]
+      await write(k)
+      await write(" :: ")
+      await v().getOutput()
+      await write(", ")
+    }
+    await write("}")
+  }
+
   toString(){
     const init = this.type_
     let ls = init + "{"
-    const slen = this.value.toString()
+    const slen = Object.keys(this.value).length
     if (slen == 0) return init
     let i = 0
     for (const k in this.value){

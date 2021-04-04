@@ -71,10 +71,10 @@ generate (DeclNode lhs rhs pos) = generateLhs lhs ++ " = " ++ evalRhs where
             TupleNode ts _ -> "SltValue.unwrap(" ++ generate rhs ++ ", " ++ show (length ts) ++ ")"
             DeStructure ds _ -> "SltValue.destructure(" ++ generate rhs ++ ", " ++ show (length ds) ++ ")"
             IdentifierNode o _ -> "(SltThunk.create(function() return " ++ generate rhs ++ " end, \"" ++ o ++ "\"))"
-generate (FuncDefNode _ args expr pos) = 
+generate (FuncDefNode _ args expr bh pos) = 
     "(" ++ fun ++ ")"
     where
-        fun = gen ++ " " ++ generate expr ++ unwords (map (const ("end, " ++ luaPos pos ++ ")")) args)
+        fun = gen ++ " " ++ generate expr ++ unwords (map (const ("end, " ++ turnBool bh ++ ", " ++ luaPos pos ++ ")")) args)
         gen = intercalate "" (map (\arg -> "SltFunc.create(function (" ++ generateLhs arg ++") return ") args)
         turnBool b = if b then "true" else "false"
 generate (BoolNode b pos) = "SltBool.create(" ++ b ++ ", " ++ luaPos pos ++ ")"
@@ -98,8 +98,8 @@ generate strct@(StructDefNode id table b ov pos) =
                 Just a -> "\"" ++ generateLhs a ++ "\", "
                 Nothing -> "nil, "
         struct =
-            "SltFunc.create(function(tb, loc)" ++ " return " ++
-            "SltStruct.create(\"" ++ ident ++ "\", " ++ inheritance ++ makeBool b ++", tb, loc) end, " ++ luaPos pos ++")"
+            "function(tb, loc) return " ++
+            "SltStruct.create(\"" ++ ident ++ "\", " ++ inheritance ++ makeBool b ++", tb, loc) end"
         makeBool b = if b then "true" else "false" 
 
 generate (StructInstanceNode id ls _ pos) = 

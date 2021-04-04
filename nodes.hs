@@ -18,7 +18,7 @@ data Node =
     | TupleNode [Node] SourcePos
     | CallNode Node [Node] SourcePos
     | DeclNode Node Node SourcePos
-    | FuncDefNode (Maybe Node) [Node] Node SourcePos
+    | FuncDefNode (Maybe Node) [Node] Node Bool SourcePos
     | MethodNode Node [Node] SourcePos
     | NewMethodNode Node Node Node SourcePos
     | StructInstanceNode Node [Node] Bool SourcePos
@@ -70,7 +70,7 @@ instance Show Node where
     show (ExternalNode id ds pos) = "external " ++ show id ++ "{" ++ intercalate ", " (map show ds) ++ "}"
     show (NewMethodNode id ce te _) = 
         "close " ++ show id ++ " ? " ++ show ce ++ " -> " ++ show te
-    show (FuncDefNode f args e _) = fname ++ " <- " ++ "(" ++ intercalate ", " (map show args) ++ ")" ++ " -> " ++ show e where
+    show (FuncDefNode f args e _ _) = fname ++ " <- " ++ "(" ++ intercalate ", " (map show args) ++ ")" ++ " -> " ++ show e where
         fname = maybe "anonymous" show f
 
 extractString (StringNode str _) = str

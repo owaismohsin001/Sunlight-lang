@@ -165,6 +165,7 @@ dataName =
                     ) <|> loop (Just v) v where
                         v = DataNode (extractString t1 ++ "__" ++ extractString t2) pos
 
+structInstanceExpr :: Parser Node
 structInstanceExpr = 
     do
         pos <- getSourcePos
@@ -177,7 +178,10 @@ structInstanceExpr =
                 return $ StructInstanceNode id ls Prelude.False pos
             ) <|> return (StructInstanceNode id [] Prelude.False pos)
     where
+        seqInstance :: Parser [Node]
         seqInstance = commaSep seqPair
+
+        seqPair :: Parser Node
         seqPair =
             do
                 id <- identifier Prelude.False
@@ -190,6 +194,7 @@ structInstanceExpr =
 
 commaSep p  = p `sepBy` (try (spaces *> Text.Megaparsec.Char.string ", " <* spaces) :: Parser String)
 
+list :: Parser Node
 list = 
     do
         pos <- getSourcePos
@@ -200,6 +205,7 @@ list =
         Text.Megaparsec.Char.string "]"
         return $ ListNode ls pos
 
+tuple :: Parser Node
 tuple =
     do
         pos <- getSourcePos
@@ -214,6 +220,7 @@ tuple =
             try (p `endBy` (spaces *> Text.Megaparsec.Char.string "," <* spaces :: Parser String))
             <|> p `sepBy` (spaces *> Text.Megaparsec.Char.string "," <* spaces :: Parser String)
 
+everyExpr :: Parser Node
 everyExpr = 
     do
         pos <- getSourcePos
@@ -230,15 +237,15 @@ everyExpr =
             spaces
             re <- expr
             return [
-                    FuncDefNode Nothing [IdentifierNode "x" pos] me pos, 
-                    FuncDefNode Nothing [IdentifierNode "x" pos] re pos, 
+                    FuncDefNode Nothing [IdentifierNode "x" pos] me Prelude.False pos, 
+                    FuncDefNode Nothing [IdentifierNode "x" pos] re Prelude.False pos, 
                     ls
                     ]
             ) <|> (
                 do
                 return [
-                        FuncDefNode Nothing [IdentifierNode "x" pos] me pos, 
-                        FuncDefNode Nothing [IdentifierNode "x" pos] (BoolNode "true" pos) pos, 
+                        FuncDefNode Nothing [IdentifierNode "x" pos] me Prelude.False pos, 
+                        FuncDefNode Nothing [IdentifierNode "x" pos] (BoolNode "true" pos) Prelude.False pos, 
                         ls
                         ]
                 )
@@ -283,7 +290,7 @@ containerFunction strt end sep f =
         commas <- P.many comma
         Text.Megaparsec.Char.string end
         let args = map (flip IdentifierNode pos . (\a -> "x" ++ show a)) [1 .. length commas + 2]
-        return $ FuncDefNode Nothing args (f args pos) pos
+        return $ FuncDefNode Nothing args (f args pos) Prelude.False pos
     where comma = spaces *> Text.Megaparsec.Char.string sep <* spaces
 
 typeRef =
@@ -310,12 +317,12 @@ lambdaExpr =
                 Text.Megaparsec.Char.string "->"
                 spaces
                 e <- logicalExpr
-                return $ FuncDefNode Nothing args e pos
+                return $ FuncDefNode Nothing args e Prelude.False pos
         
         basicLambda pos =
             do
                 e <- logicalExpr
-                return $ FuncDefNode Nothing [IdentifierNode "x" pos] e pos
+                return $ FuncDefNode Nothing [IdentifierNode "x" pos] e Prelude.False pos
 
 boolean =
     do
@@ -423,7 +430,7 @@ structDef =
             if null xs then 
                 FromStruct $ DeclNode (lowId id) (instantiate xs strct) pos
             else
-                FromStruct $ DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) pos) pos
+                FromStruct $ DeclNode (lowId id) (FuncDefNode (Just $ lowId id) xs (instantiate xs strct) Prelude.True pos) pos
 
         instantiate rhss (StructDefNode id lhss b _ pos) = StructInstanceNode id (zipWith (\a b -> DeclNode a b pos) rhss lhss) b pos 
 
@@ -477,7 +484,7 @@ decl =
         e <- whereExpr
         new_e <- 
             case id of
-                (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e pos
+                (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e Prelude.False pos
                 _ -> return e
         return $ DeclNode new_id new_e pos
 
@@ -518,10 +525,10 @@ modStmnt =
         differLhs mn (SumTypeNode ds pos) = SumTypeNode (map (differLhs mn) ds) pos
         differLhs mn (MethodNode id args pos) = MethodNode (differLhs mn id) args pos
         differLhs mn (MultipleDefinitionNode ds) = MultipleDefinitionNode $ map (differLhs mn) ds
-        differLhs mn (FromStruct (DeclNode lhs (FuncDefNode (Just id) args (StructInstanceNode sid sargs b spos) pos) dpos)) =
+        differLhs mn (FromStruct (DeclNode lhs (FuncDefNode (Just id) args (StructInstanceNode sid sargs b spos) h pos) dpos)) =
             FromStruct $ 
                 DeclNode (differLhs mn lhs) 
-                (FuncDefNode (Just $ differLhs mn id) args (StructInstanceNode (differLhs mn sid) sargs b spos) pos) 
+                (FuncDefNode (Just $ differLhs mn id) args (StructInstanceNode (differLhs mn sid) sargs b spos) h pos) 
                 dpos
         differLhs mn (FromStruct (DeclNode lhs (StructInstanceNode sid sargs b spos) pos)) =
             FromStruct $ 
@@ -531,7 +538,7 @@ modStmnt =
         differLhs mn nm@NewMethodNode{} = nm
         differLhs _ a = error(show a ++ "\n")
 
-        changeFun mn (FuncDefNode (Just id) args e pos) = FuncDefNode (Just $ differLhs mn id) args e pos
+        changeFun mn (FuncDefNode (Just id) args e h pos) = FuncDefNode (Just $ differLhs mn id) args e h pos
         changeFun mn n = n
 
 externals = 
@@ -655,7 +662,7 @@ index =
         ls <- P.many tIndex
         return $ case last $ Just og : ls of 
             Just _ -> folded og ls pos
-            Nothing -> FuncDefNode Nothing [IdentifierNode "elwegot" pos] (folded og ls pos) pos
+            Nothing -> FuncDefNode Nothing [IdentifierNode "elwegot" pos] (folded og ls pos) Prelude.False pos
     where
         folded og ls pos = foldr (makeCall pos) og (reverse ls)
 
@@ -728,7 +735,7 @@ classStmnt =
                     <|> try decl 
                     <|> structDef
                     <|> mewMethod)))
-        return $ DeclNode id (FuncDefNode (Just id) args (SequenceIfNode allCases seqPos) seqPos) pos
+        return $ DeclNode id (FuncDefNode (Just id) args (SequenceIfNode allCases seqPos) Prelude.False seqPos) pos
     where
         cases = do
             newlines
@@ -753,6 +760,7 @@ prefixExpr pref expT resf construct =
 
 negExpr = prefixExpr (Text.Megaparsec.Char.string "-") compExpr (const "-") UnaryExpr
 
+accessFuncExpr :: Parser Node
 accessFuncExpr = prefixExpr 
     (Text.Megaparsec.Char.string ".")
     (identifier Prelude.False)
@@ -761,7 +769,9 @@ accessFuncExpr = prefixExpr
         FuncDefNode 
             Nothing 
             [IdentifierNode "x" ipos] 
-            (BinOpNode (IdentifierNode "x" ipos) "." (StringNode id ipos) pos) pos
+            (BinOpNode (IdentifierNode "x" ipos) "." (StringNode id ipos) pos)
+            Prelude.False
+            pos
         )
 
 ifExpr =

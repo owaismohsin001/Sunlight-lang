@@ -464,6 +464,18 @@ function SltStruct.create(name, overarch, canHash, tb, loc)
 
   this.neq = function(this, other) return (this:eq(other)):notted() end
 
+  this.getOutput = function(this)
+    io.write(this.type_)
+    io.write("{")
+    for k, v in pairs(this.table) do
+      io.write(k)
+      io.write(" :: ")
+      v():getOutput()
+      io.write(", ")
+    end
+    io.write("}")
+  end
+
   toString = function(this)
     local init = this.type_
     local ls = init .. "{"
@@ -743,10 +755,11 @@ end;
 
 SltFunc = {}
 SltFunc.__index = SltValue
-function  SltFunc.create(fun, loc)
+function  SltFunc.create(fun, structFunc, loc)
   local this = {}
   this.fun = fun;
   this.type_ = "SltFunc";
+  this.hashes = not structFunc
   this.values = {};
   this.hashAble = false
   this.loc = loc
@@ -761,7 +774,7 @@ function  SltFunc.create(fun, loc)
   this.neq = function(this, other) return SltBool.create(true, this.loc) end
 
   this.getValue = function(this, arg)
-    if arg().hashAble then return this.values[arg():getHash()] end
+    if this.hashes and arg().hashAble then return this.values[arg():getHash()] end
     return nil
   end
 
@@ -769,10 +782,10 @@ function  SltFunc.create(fun, loc)
     __index = SltValue;
     __call = function(this, a, b)
       if a.type_ == nil then return this.fun(a, b) end
-      val = this:getValue(a)
+      local val = this:getValue(a)
       if val ~= nil then return val end
-      res = this.fun(a)
-      if a().hashAble then
+      local res = this.fun(a)
+      if this.hashes and a().hashAble then
         this.values[a():getHash()] = res
       end
       return res

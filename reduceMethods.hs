@@ -21,7 +21,9 @@ methodFun p@(ProgramNode ps pos) = ProgramNode (getNodes $ map mFun ps) pos wher
                         getNodes $ map (removeDef . convMethod (extractString id)) ps ++ 
                             map (convMethod $ extractString id) (filter getDefKey ps)
                         ) pos
-                    ) pos
+                    )
+                Prelude.False 
+                pos
             ) pos where 
             ns = getNodes $ map (convMethod $ extractString id) ps
     mFun a = Just a

@@ -40,7 +40,7 @@ define ds (MethodNode id _ _) = define ds id
 define ds NewMethodNode{} = ds
 
 -- Define function arguments and where clauses
-define ds (FuncDefNode _ args _ _) = ds ++ concatMap (define ds) args
+define ds (FuncDefNode _ args _ _ _) = ds ++ concatMap (define ds) args
 define ds (WhereNode _ dcs _) = ds ++ concatMap (define ds) dcs
 define _ _ = []
 
@@ -86,7 +86,7 @@ isDefined sc (BinOpNode lhs op rhs pos) =
         "." -> isDefined sc lhs
         _ -> isDefined sc lhs |>> isDefined sc rhs
 isDefined sc (IdentifierNode id pos) = StringPos id pos `exists` sc 
-isDefined sc n@(FuncDefNode mid args expr pos) = 
+isDefined sc n@(FuncDefNode mid args expr _ pos) = 
     expSc |>> maybe (Right ()) (isDefined sc) mid where
         expSc = 
             case runDefiner (Right n) $ Just sc of
@@ -141,7 +141,7 @@ usedVars st (BinOpNode lhs op rhs pos) =
         "." -> usedVars st lhs `Set.union` st
         _ -> usedVars st lhs `Set.union` (usedVars st rhs `Set.union` st)
 usedVars st (IdentifierNode id pos) = st `Set.union` Set.singleton (StringPos id pos)
-usedVars st n@(FuncDefNode _ args expr pos) = 
+usedVars st n@(FuncDefNode _ args expr _ pos) = 
     usedVars st expr `Set.difference` (Set.empty `reduceSets` args)
 usedVars st n@(WhereNode expr ds pos) = usedVars st expr `Set.union` (st `Set.union` (Set.empty `reduceSets` ds))
 usedVars st (CallNode id args pos) = usedVars st id `Set.union` (st `reduceSets` args)
@@ -182,7 +182,7 @@ changeNames nds fid@(IdentifierNode id pos) =
     case id of
         "def" -> BoolNode "true" pos 
         _ -> if id `Set.member` nds then fid else IdentifierNode (hash id) pos
-changeNames nds n@(FuncDefNode mid args expr pos) = FuncDefNode mid (map (changeNames nds) args) (changeNames nds expr) pos
+changeNames nds n@(FuncDefNode mid args expr h pos) = FuncDefNode mid (map (changeNames nds) args) (changeNames nds expr) h pos
 changeNames nds n@(WhereNode expr ds pos) = WhereNode (changeNames nds expr) (map (changeNames nds) ds) pos
 changeNames nds (CallNode id args pos) = CallNode (changeNames nds id) (map (changeNames nds) args) pos
 changeNames nds (UnaryExpr op e pos) = UnaryExpr op (changeNames nds e) pos
@@ -221,7 +221,7 @@ checkStructArgs sc (BinOpNode lhs op rhs pos) =
     case op of
         "." -> checkStructArgs sc lhs
         _ -> checkStructArgs sc lhs |>> checkStructArgs sc rhs
-checkStructArgs sc n@(FuncDefNode _ _ expr _) = checkStructArgs sc expr
+checkStructArgs sc n@(FuncDefNode _ _ expr _ _) = checkStructArgs sc expr
 checkStructArgs sc n@(WhereNode expr _ _) = checkStructArgs sc expr
 checkStructArgs sc (CallNode id args pos) = verify $ checkStructArgs sc id : map (checkStructArgs sc) args
 checkStructArgs sc (UnaryExpr _ e _) = checkStructArgs sc e
