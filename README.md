@@ -32,7 +32,7 @@ bottle <- "1 bottle of beer on the wall,\n1 bottle of beer.\nTake one down, pass
 
 out <- mapM: (\if x = 1 then bottle else bottles: x) lcmp println, &World, unlessZero: 99
 ```
-That was oddly specific but ok. So, to learn more definetly visit [this page](https://github.com/ameerwasi001/Sunlight-lang/blob/master/Docs-Tutorial.md). Do definitely note that this project is still in it's pre-alpha stagesso don't use it in a serious and big projecct.
+That was oddly specific but ok. So, to learn more definetly visit [this page](https://github.com/ameerwasi001/Sunlight-lang/blob/master/Docs-Tutorial.md). Do definitely note that this project is still in it's pre-alpha stages so don't use it in a serious or large project.
 
 # Editor Support
 The only editor support for now is this [VSCode syntax highlighter](https://github.com/ameerwasi001/Sunlight-Lang-VSCode) plugin, but there's definitely more to come.
