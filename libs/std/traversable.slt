@@ -17,6 +17,10 @@ open last: s
 last ? (tail: s)@SltNum -> head: s
 last ? s@SltList -> last: tail: s
 
+open init: s
+init ? (tail: s)@SltNum -> []
+init ? s@SltList -> [head: s] .. init: tail: s
+
 open fold: f, i, xs
 fold ? [] = xs -> i
 fold ? xs@SltList -> f: head: xs,, fold: f, i, tail: xs
