@@ -525,7 +525,7 @@ class SltStruct extends SltValue {
       if (ta.length != tb.length) return new SltBool(false, this.loc)
       for (const k in ta){
         const v = ta[k]
-        if (!(k in tb.hasKey)) return new SltBool(false, this.loc)
+        if (!(k in tb)) return new SltBool(false, this.loc)
         if (!tb[k]().eq(v())) return new SltBool(false, this.loc)
       }
       return new SltBool(true, this.loc)

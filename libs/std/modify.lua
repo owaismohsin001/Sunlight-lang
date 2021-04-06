@@ -26,7 +26,6 @@ baseModify = SltThunk.create(
                 local val = a.table[string().value]
                 if val == nil then 
                   strStruct = tostring(struct())
-                  print(strStruct)
                   SltError.create("first argument KeyError",  "Key ".. tostring(string()) .. " not found in " .. strStruct, a) 
                 end
                 a.table[string().value] = SltThunk.create(function() return func()(val) end)
