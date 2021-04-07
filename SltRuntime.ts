@@ -8,7 +8,7 @@ const Mutates = -1
 
 function error(errType: string, message: string, value: SltValue): SltValue{
   if (value.loc != null) {
-    const [fn, ln, cn] = value.loc
+    const [ln, cn, fn] = value.loc
     const lnString = ln.toString()
     const cnString = cn.toString()
     console.log("In file: \"" + fn + "\", line no: " + lnString + ", col no: " + cnString)
