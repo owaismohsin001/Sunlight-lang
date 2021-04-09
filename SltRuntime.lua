@@ -883,7 +883,7 @@ eval = SltThunk.create(
   function() return
     SltFunc.create(
       function(t)
-        if t.type_ ~= "SltThunk" then return SltError.crate("TypeError", "Cannot evaluate a " .. t.type_, t) end
+        if t.type_ ~= "SltThunk" then return SltError.create("TypeError", "Cannot evaluate a " .. t.type_, t) end
         tostring(t())
         return t()
       end
