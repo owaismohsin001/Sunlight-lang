@@ -29,6 +29,9 @@ div: a, b <- a/b
 subFlip <- flip: sub
 divFlip <- flip: div
 
+{|-} <- subFlip
+{|/} <- divFlip
+
 decN: n <- (-n)add
 
 appendList: a, b <- a .. b
