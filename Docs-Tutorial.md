@@ -352,6 +352,32 @@ This program is a simple counter that increments a number as soon as you hit ent
 
 `println` - appends a newline to its input after converting it to a string and writes that on the console
 
+# empty, append, and concat
+These are methods implemented by different types, they allow you to for example, concat a list of strings by simply saying
+```
+concat: &SltString, map: stringify, range: 1, 10
+```
+which returns `12345678910`. This function is automatically defined if both `empty` and `append` are defined, for `SltString` specifically following is the definition
+```
+empty ? r@SltString -> ""
+append ? a@SltString & b@SltString -> a .. b
+```
+The opposite can also be done meaning if you define `concat` properly, both `empty` and `append` will be defined, here's how you would do it for `SltString`
+```
+concat ? r@SltString -> fold: \a, b -> a .. b, "", xs
+```
+Now, just like before, `empty: &SltString` return `""` while `append: "a", "b"` returns `"ab"`. Some of these such as the aforementioned lists and function composition is in the `std` library file `monoid.slt` while others live in a completely seperate library(Also included in the standard library) known as `monoids`. This include the following types
+
+`Sum` - This one is used for adding numbers
+
+`Product` - This one is used for multiplying numbers
+
+`AllTrue` - This one is used for seeing if all values inside a list amounts to true
+
+`AnyTrue` - This one is used for seeing if any value inside a list amounts to true
+
+`LCmp` - Simple function composition but left to right
+
 # State type
 (From library `state`)
 State library offers a state type that can be used to manage state in a purely functional and abstract style using fmap, seq, unit, and bind. Start by including this library like such
