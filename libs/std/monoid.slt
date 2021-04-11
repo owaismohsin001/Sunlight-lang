@@ -1,5 +1,5 @@
 open empty: r
-empty ? def -> concat: []
+empty ? def -> concat: r, []
 
 open append: a, b
 append ? def -> concat: (ovTypeOf: a), [a, b]

@@ -1,5 +1,5 @@
 external "std/modify" {baseModify}
-external "std/intify" {stringToInt}
+external "std/intify" {stringToInt, isNumBase}
 external "std/exponent" {unsafeExponent}
 
 id: a <- a
@@ -56,6 +56,9 @@ n@SltNum -> unsafeMod: n
 class safeModulus: a, b
 b = 0 -> none
 true -> some: a modulus b
+
+open isNum: s
+isNum ? s@SltString -> isNumBase: s
 
 not <- \if x then false else true
 notB <- not cmp bool
