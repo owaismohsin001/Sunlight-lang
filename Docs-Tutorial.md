@@ -130,6 +130,18 @@ both of which output
 ```
 [4, 6, 8]
 ```
+It's important to note that a function call can be ended by a trailing comma. Considering this fact we can see that
+```
+range: (fold: add, 0, range: 1, 10), 10
+```
+can be re-written as 
+```
+range: fold: add, 0, range: 1, 10,,, 10
+```
+both of which return
+```
+[55, 56, 57, 58, 59, 60, 61, 62, 63, 64]
+```
 ## Infix calls
 The aforementioned `add` function can also be used like
 ```
@@ -145,6 +157,16 @@ and result in `4` but you can make it left-associative by instead making the cal
 5 sub' 2 sub' 1
 ```
 which would as expected return `2`.
+## Postfix calls
+Now let's say we want to apply a function named `double` to a number, we could also quite easily say
+```
+3double
+```
+rather than saying
+```
+double: 3
+```
+
 # Optional strictness
 By default all values in Sunlight are lazy but you can have strict(they don't get full immediately evaluated, but they do get evaluated as soon as) values by creating strict types, these will necessarily be memoized by all functions, they may or may not be wrappers
 ```
@@ -175,7 +197,11 @@ Avalible std modules currently are
 `errors.slt`,
 `traversable.slt`,
 `access.slt`,
-`monads.slt`
+`monad.slt`,
+`core.slt`,
+`get.slt`,
+`applicatives.slt`,
+`monoid.slt`
 
 # Error Handling
 (From `errors.slt`)
