@@ -325,6 +325,7 @@ SltTuple.__index = SltValue
 function SltTuple.create(tp, loc)
   local this = {}
   this.type_ = "SltTuple"
+  this.hashAble = false
   this.value = tp
   this.loc = loc
 
@@ -755,11 +756,11 @@ end;
 
 SltFunc = {}
 SltFunc.__index = SltValue
-function  SltFunc.create(fun, structFunc, loc)
+function  SltFunc.create(fun, loc, shouldHash)
   local this = {}
   this.fun = fun;
   this.type_ = "SltFunc";
-  this.hashes = not structFunc
+  this.hashes = shouldHash==nil and true or shouldHash
   this.values = {};
   this.hashAble = false
   this.loc = loc
@@ -922,9 +923,11 @@ unsafeWrite = SltThunk.create(
           function(st)
             st():getOutput()
             return exp()
-          end
+          end,
+          {0, 0, "core"}
         )
-      end     
+      end,
+      {0, 0, "core"}  
     )
   end,
   Mutates

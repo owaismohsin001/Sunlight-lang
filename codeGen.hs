@@ -74,7 +74,7 @@ generate (DeclNode lhs rhs pos) = generateLhs lhs ++ " = " ++ evalRhs where
 generate (FuncDefNode _ args expr bh pos) = 
     "(" ++ fun ++ ")"
     where
-        fun = gen ++ " " ++ generate expr ++ unwords (map (const ("end, " ++ turnBool bh ++ ", " ++ luaPos pos ++ ")")) args)
+        fun = gen ++ " " ++ generate expr ++ unwords (map (const ("end, " ++ luaPos pos ++ ", " ++ turnBool bh ++ ")")) args)
         gen = intercalate "" (map (\arg -> "SltFunc.create(function (" ++ generateLhs arg ++") return ") args)
         turnBool b = if b then "true" else "false"
 generate (BoolNode b pos) = "SltBool.create(" ++ b ++ ", " ++ luaPos pos ++ ")"

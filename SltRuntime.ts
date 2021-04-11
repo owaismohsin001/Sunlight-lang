@@ -274,12 +274,12 @@ class SltFunc extends SltValue {
   fun: (a: SltValue) => SltValue
   values: HashTable<SltValue>
   hashes: boolean
-  constructor(fun: (a: SltValue) => SltValue, loc: [number, number, string], fromStruct: boolean = false){
+  constructor(fun: (a: SltValue) => SltValue, loc: [number, number, string], shouldHash: boolean = true){
     super()
     this.fun = fun;
     this.type_ = "SltFunc"
     this.values = {}
-    this.hashes = !fromStruct
+    this.hashes = shouldHash
     this.hashAble = false
     this.loc = loc
   }
@@ -639,7 +639,7 @@ const unsafeWrite = new SltThunk(
   () => new SltFunc(
     exp => new SltFunc(
       st => {        
-        exp().getOutput(true)
+        st().getOutput(true)
         return exp()
       },
       exp().loc
