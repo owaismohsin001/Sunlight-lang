@@ -290,7 +290,7 @@ class SltFunc extends SltValue {
   neq(other: SltValue) { return new SltBool(true, this.loc) }
 
   getValue(arg: SltValue) {
-    if (arg().hashAble && this.hashes) return this.values[arg().getHash()]
+    if (this.hashes && arg().hashAble) return this.values[arg().getHash()]
     return null
   }
 
@@ -298,7 +298,7 @@ class SltFunc extends SltValue {
     const val = this.getValue(a)
     if (val != null) return val
     const res = this.fun(a)
-    if (a().hashAble && this.hashes) this.values[a().getHash()] = res
+    if (this.hashes && a().hashAble) this.values[a().getHash()] = res
     return res
   }
 }
