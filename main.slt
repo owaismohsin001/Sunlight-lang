@@ -20,7 +20,7 @@ circ <- Shapes::Circle{r :: 15}
 
 tri <- Shapes::Triangle{a :: 2, b :: 9, c :: 7}
 
-fib: n <- if bool: (\x<2) {^:} n then Strict::strict: 1 else add {^:}' (fib: dec fmap n) {^,}' (fib: 2decN fmap n)
+!fib: n <- if bool: (\x<2) {^:} n then Strict::strict: 1 else add {^:}' (fib: dec fmap n) {^,}' (fib: 2decN fmap n)
 
 out <- println: (Strict::applyT: fib) {^:} mlp2 {^,} (some: \x+circV) {^,} (repeatCmp: join, 3, mdLs[2][1][2]) where
     mlp2 <- unit: &Maybe, double

@@ -306,23 +306,24 @@ typeRef =
 lambdaExpr =
     do
         pos <- getSourcePos
+        hashes <- explicitHash Prelude.True
         Text.Megaparsec.Char.string "\\"
         spaces
-        try (fullLamba pos) <|> basicLambda pos
+        try (fullLamba hashes pos) <|> basicLambda hashes pos
     where
-        fullLamba pos =
+        fullLamba h pos =
             do
                 args <- undersoreIdentifier `sepBy1` (Text.Megaparsec.Char.string "," <* spaces)
                 spaces
                 Text.Megaparsec.Char.string "->"
                 spaces
                 e <- logicalExpr
-                return $ FuncDefNode Nothing args e Prelude.True pos
+                return $ FuncDefNode Nothing args e h pos
         
-        basicLambda pos =
+        basicLambda h pos =
             do
                 e <- logicalExpr
-                return $ FuncDefNode Nothing [IdentifierNode "x" pos] e Prelude.True pos
+                return $ FuncDefNode Nothing [IdentifierNode "x" pos] e h pos
 
 boolean =
     do
@@ -472,9 +473,16 @@ structDef =
                     id <- identifier Prelude.False
                     IdentifierNode (extractString id) <$> getSourcePos
 
+explicitHash :: Bool -> Parser Bool
+explicitHash def = f <$> (Text.Megaparsec.Char.string "!" <|> Text.Megaparsec.Char.string "~" <|> Text.Megaparsec.Char.string "") where
+    f "!" = Prelude.True
+    f "~" = Prelude.False
+    f "" = def
+
 decl =
     do
         pos <- getSourcePos
+        hashes <- explicitHash Prelude.False
         id <- lhs
         new_id <- 
             case id of
@@ -484,7 +492,7 @@ decl =
         e <- whereExpr
         new_e <- 
             case id of
-                (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e Prelude.True pos
+                (CallNode c arg _) -> return $ FuncDefNode (Just c) arg e hashes pos
                 _ -> return e
         return $ DeclNode new_id new_e pos
 
