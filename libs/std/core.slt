@@ -44,6 +44,8 @@ half <- \if x = 0 then 0 else x/2
 
 cons <- ~\[x]appendList
 
+{::} <- cons
+
 class safeDiv: a, b
 b = 0 -> none
 true -> some: a/b
@@ -87,6 +89,8 @@ a@SltNum & b@SltNum -> unsafeExponent: a, b
 
 {**} <- expo
 {%} <- modulus
+{#} <- numify
+{$} <- stringify
 
 class modify: st, el, f
 el@SltString & f@SltFunc -> baseModify: st, el, f

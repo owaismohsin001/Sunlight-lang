@@ -10,8 +10,8 @@ const stringToInt = new SltThunk(
     () =>
         new SltFunc(
             i => {
-                    if (isNum(i)) error("TypeError: ", "First argument is not a string", i())
-                    else return new SltNum(i().value.parseFloat(), [6, 1, "intify.js"])
+                    if (!isNum(i)) error("TypeError: ", "First argument is not a string convertible to number", i())
+                    else return new SltNum(parseFloat(i().toString()), [6, 1, "intify.js"])
                 }, 
                 [2, 5, "intify.js"]
             )
