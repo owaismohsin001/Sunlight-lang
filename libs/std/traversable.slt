@@ -27,12 +27,13 @@ fold ? xs@SltList -> f: head: xs,, fold: f, i, tail: xs
 
 open zipWith: f, as, bs
 zipWith ? [] = as | [] = bs -> []
-zipWith ? as@SltList & bs@SltList -> [f: (head: as), head: bs] .. zipWith: f, (tail: as), tail: bs
+zipWith ? as@SltList & bs@SltList -> [f: (head: as), head: bs] .. zipWith: f, tail: as,, tail: bs
 
 map: f, xs <- every xs is f: x
 filter: f, xs <- every xs is x if f: x
 len: ls <- fold: \a, b -> b+1, 0, ls
 reduce: f, ls <- fold: f, (head: ls), tail: ls
+concatList <- concat: &SltList
 zip <- zipWith: (,)
 zipList <- zipWith: [,]
 
