@@ -40,7 +40,7 @@ inc <- 1add
 dec <- 1decN
 
 double <- 2mul
-half <- \if x = 0 then 0 else x/2
+half <- ~\if x = 0 then 0 else x/2
 
 cons <- ~\[x]appendList
 
