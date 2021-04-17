@@ -24,7 +24,7 @@ base: s <- $state: const: ((), s)
 
 get <- $state: \(x, x)
 put <- \$state: const: ((), x)
-modify: f <- $get bind \$put: f: x
+modify: f <- $get bind $put {.} f
 gets: f <- $state: \((f: x), x)
 stApply: f, g <- $state: \((f: x), g: x)
 putPair: f <- $state: \f: x
