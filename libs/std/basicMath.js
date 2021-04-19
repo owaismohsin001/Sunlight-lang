@@ -12,6 +12,22 @@ const unsafeExponent = new SltThunk(
             ),
 )
 
+const unsafeCeil = new SltThunk(
+    () => 
+        new SltFunc(
+            a => new SltNum(Math.ceil(a().value), a().pos),
+            [7, 1, "intify.lua"]
+        )
+)
+
+const unsafeFloor = new SltThunk(
+    () => 
+        new SltFunc(
+            a => new SltNum(Math.floor(a().value), a().pos),
+            [7, 1, "intify.lua"]
+        )
+)
+
 const unsafeRound = new SltThunk(
     () => 
         new SltFunc(
@@ -20,4 +36,4 @@ const unsafeRound = new SltThunk(
         )
 )
 
-export {unsafeExponent, unsafeRound}
+export {unsafeExponent, unsafeRound, unsafeCeil, unsafeFloor}

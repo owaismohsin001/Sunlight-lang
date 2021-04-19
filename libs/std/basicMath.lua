@@ -15,6 +15,22 @@ unsafeRound = SltThunk.create(
     end
 )
 
+unsafeCeil = SltThunk.create(
+    function() return 
+        SltFunc.create(
+            function(a) return SltNum.create(math.ceil(a().value), a().pos) end
+        )
+    end
+)
+
+unsafeFloor = SltThunk.create(
+    function() return 
+        SltFunc.create(
+            function(a) return SltNum.create(math.floor(a().value), a().pos) end
+        )
+    end
+)
+
 unsafeExponent = SltThunk.create(
     function() return
         SltFunc.create(

@@ -1,6 +1,6 @@
 external "std/modify" {baseModify}
 external "std/intify" {stringToInt, isNumBase}
-external "std/basicMath" {unsafeExponent, unsafeRound}
+external "std/basicMath" {unsafeExponent, unsafeRound, unsafeCeil, unsafeFloor}
 
 id: a <- a
 
@@ -90,8 +90,17 @@ a@SltNum & b@SltNum -> unsafeExponent: a, b
 open round: n
 round ? n@SltNum -> unsafeRound: n
 
+open ceil: n
+ceil ? n@SltNum -> unsafeCeil: n
+
+open floor: n
+floor ? n@SltNum -> unsafeFloor: n
+
 class {i/}: a, b
 a@SltNum & b@SltNum -> unsafeRound: a/b
+
+class {i*}: a, b
+a@SltNum & b@SltNum -> unsafeRound: a*b
 
 {**} <- expo
 {%} <- modulus
