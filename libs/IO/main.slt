@@ -24,7 +24,7 @@ readln: a <- world: \st -> ((unsafeRead: a .. "\n"), st)
 input <- read cmp' stringify  
 write: a <- world: \st -> ((unsafeWrite: a, a), st)
 print <- write cmp' stringify
-println <- \(print: x) bind \print: "\n"
+println <- \(print: x) {^>=} \print: "\n"
 
 -- File operations in IO Monad
 OpenMode <- CreateMode | AppendMode
