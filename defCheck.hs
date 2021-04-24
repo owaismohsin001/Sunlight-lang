@@ -47,8 +47,7 @@ define _ _ = []
 baseSymbols = [
     "listHead", "listTail", "SltList", "SltNum", "eval",
     "SltString", "SltTuple", "SltBool", "SltFunc",
-    "unsafeMod", "baseStringify", "typeOf", "ovTypeOf",
-    "unsafeWrite"
+    "baseStringify", "typeOf", "ovTypeOf", "unsafeWrite"
     ]
 
 -- Run definition checker

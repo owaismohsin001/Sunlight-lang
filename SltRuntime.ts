@@ -593,20 +593,6 @@ const baseStringify =
     () => new SltFunc(t => new SltString(t().toString(), t().loc), [0, 0, "core"])
   )
 
-const unsafeMod = 
-  new SltThunk(
-    () => {
-      return new SltFunc(
-        a =>
-          new SltFunc(
-            b => new SltNum(a().value % b().value, b().loc),
-            a().loc
-          ),
-          [0, 0, "core"]
-        )
-      }
-    )
-
 const evaluate = new SltThunk(
   () =>
     new SltFunc(
@@ -653,7 +639,7 @@ export {
   SltValue, SltNum, SltFunc, SltString, 
   SltStruct, SltList, SltThunk, SltTuple, 
   SltType, destructure, unwrap, listHead,
-  listTail, baseStringify, unsafeMod, evaluate,
+  listTail, baseStringify, evaluate,
   typeOf, ovTypeOf, unsafeWrite, SltBool,
   error, Mutates, write
 }

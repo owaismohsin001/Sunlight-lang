@@ -36,4 +36,18 @@ const unsafeRound = new SltThunk(
         )
 )
 
-export {unsafeExponent, unsafeRound, unsafeCeil, unsafeFloor}
+const unsafeMod = 
+  new SltThunk(
+    () => {
+      return new SltFunc(
+        a =>
+          new SltFunc(
+            b => new SltNum(a().value % b().value, b().loc),
+            a().loc
+          ),
+          [0, 0, "core"]
+        )
+      }
+    )
+
+export {unsafeExponent, unsafeRound, unsafeCeil, unsafeFloor, unsafeMod}

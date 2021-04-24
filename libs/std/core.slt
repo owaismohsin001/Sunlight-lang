@@ -1,6 +1,6 @@
 external "std/modify" {baseModify}
 external "std/intify" {stringToInt, isNumBase}
-external "std/basicMath" {unsafeExponent, unsafeRound, unsafeCeil, unsafeFloor}
+external "std/basicMath" {unsafeExponent, unsafeRound, unsafeCeil, unsafeFloor, unsafeMod}
 
 id: a <- a
 

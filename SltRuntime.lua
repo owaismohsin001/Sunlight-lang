@@ -865,21 +865,6 @@ baseStringify =
     end
   )
 
-unsafeMod = 
-  SltThunk.create(
-    function() return
-      SltFunc.create(
-        function(a)
-          return SltFunc.create(
-            function(b)
-              return SltNum.create(math.fmod(a().value, b().value), b().loc)
-            end
-          )
-        end
-      )
-    end
-  )
-
 eval = SltThunk.create(
   function() return
     SltFunc.create(
