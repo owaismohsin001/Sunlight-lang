@@ -38,8 +38,6 @@ data Keyword =
     | True
     | False
     | Class
-    | Every
-    | Is
     | End
     | Where
     | Include
@@ -220,42 +218,10 @@ tuple =
             try (p `endBy` (spaces *> Text.Megaparsec.Char.string "," <* spaces :: Parser String))
             <|> p `sepBy` (spaces *> Text.Megaparsec.Char.string "," <* spaces :: Parser String)
 
-everyExpr :: Parser Node
-everyExpr = 
-    do
-        pos <- getSourcePos
-        keyword Every
-        mspaces
-        ls <- expr
-        mspaces
-        keyword Is
-        mspaces
-        me <- expr
-        sugar <- (do
-            spaces
-            keyword If
-            spaces
-            re <- expr
-            return [
-                    FuncDefNode Nothing [IdentifierNode "x" pos] me Prelude.False pos, 
-                    FuncDefNode Nothing [IdentifierNode "x" pos] re Prelude.False pos, 
-                    ls
-                    ]
-            ) <|> (
-                do
-                return [
-                        FuncDefNode Nothing [IdentifierNode "x" pos] me Prelude.False pos, 
-                        FuncDefNode Nothing [IdentifierNode "x" pos] (BoolNode "true" pos) Prelude.False pos, 
-                        ls
-                        ]
-                )
-        return $ CallNode (IdentifierNode "map_and_filter" pos) sugar pos
-
 prefix = choice $ map try [
             Parser.ifExpr,
             Parser.lambdaExpr,
             Parser.parens,
-            Parser.everyExpr,
             accessFuncExpr,
             Parser.negExpr,
             Parser.boolean,

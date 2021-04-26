@@ -29,8 +29,8 @@ open zipWith: f, as, bs
 zipWith ? [] = as | [] = bs -> []
 zipWith ? as@SltList & bs@SltList -> [f: (head: as), head: bs] .. zipWith: f, tail: as,, tail: bs
 
-map: f, xs <- every xs is f: x
-filter: f, xs <- every xs is x if f: x
+map: f <- map_and_filter: f, (true)const
+filter <- map_and_filter: id
 len: ls <- fold: \a, b -> b+1, 0, ls
 reduce: f, ls <- fold: f, (head: ls), tail: ls
 concatList <- concat: &SltList
