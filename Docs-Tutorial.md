@@ -258,13 +258,13 @@ If you define your own data structures that can be "indexed", whatever indexing 
 
 # Data structure manipulation
 (From `traversable.slt`)
-There are many ways to manipulate data structures, you can map/filter over them, take from them, and even fold them to some value. For mapping and filtering, you can use `every` keyword like this
+There are many ways to manipulate data structures, you can map/filter over them, take from them, and even fold them to some value. For mapping and filtering, you can use the following functions
 ```-
-every [1, 2, 3, 4, 5] is x+1
+map: \x+1, [1, 2, 3, 4, 5]
 ```
 and filtering over them using the same syntax will also be very much possible when you say
 ```
-every [1, 2, 3, 4, 5] is x+1 if x /= 2
+filter: \x/=2, map: \x+1, [1, 2, 3, 4, 5]
 ```
 returning `[2, 4, 5, 6]`. There's a way to map and filter without actually using this syntax for the times it seems verbose, and to use this you should use `map` and `filter`. Reducing is done by the `fold` function like this
 ```
