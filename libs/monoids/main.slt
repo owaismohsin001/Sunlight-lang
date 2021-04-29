@@ -12,7 +12,6 @@ append ? a@$Sum & b@$Sum -> $sum: a.n+b.n
 empty ? r@$Product -> 1$product
 append ? a@$Product & b@$Product -> $product: a.n*b.n
 
-
 AllTrue <- !{b}
 AnyTrue <- !{b}
 
@@ -25,3 +24,9 @@ append ? a@$AnyTrue & b@$AnyTrue -> $anyTrue: a.b | b.b
 LCmp <- {f}
 empty ? r@$LCmp -> $lCmp: id
 append ? a@$LCmp & b@$LCmp -> $lCmp: a.f {|.} b.f
+
+sumOn <- map: $sum
+productOn <- map: $product
+allTrueOn <- map: $allTrue
+anyTrueOn <- map: $anyTrue
+lCmpOn <- map: $lCmp
