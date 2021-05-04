@@ -13,6 +13,7 @@ import Data.Maybe
 import Scope
 import qualified Data.Set as Set
 import qualified Text.Megaparsec as P
+import qualified Control.Monad.State as St
 
 -- Get a list of duplicates from a list of things
 repeated :: Ord a => [a] -> [a]
@@ -170,40 +171,55 @@ usedVars _ p =
         a -> Set.empty
 
 -- Remove def keyword
-changeNames :: Set.Set String -> Node -> Node
-changeNames nds (ProgramNode ds pos) = ProgramNode (map (changeNames nds) ds) pos 
-changeNames nds (DeclNode lhs rhs pos) = DeclNode (changeNames nds lhs) (changeNames nds rhs) pos
+changeNames :: Set.Set String -> Node -> St.State (Map.Map String Int, Int) Node
+changeNames nds (ProgramNode ds pos) = ProgramNode <$> mapM (changeNames nds) ds <*> return pos
+changeNames nds (DeclNode lhs rhs pos) = DeclNode <$> changeNames nds lhs <*> changeNames nds rhs <*> return pos
 changeNames nds (BinOpNode lhs op rhs pos) = 
     case op of
-        "." -> BinOpNode (changeNames nds lhs) op rhs pos
-        _ -> BinOpNode (changeNames nds lhs) op (changeNames nds rhs) pos
+        "." -> BinOpNode <$> changeNames nds lhs <*> return op <*> return rhs <*> return pos
+        _ -> BinOpNode <$> changeNames nds lhs <*> return op <*> changeNames nds rhs <*> return pos
 changeNames nds fid@(IdentifierNode id pos) = 
     case id of
-        "def" -> BoolNode "true" pos 
-        _ -> if id `Set.member` nds then fid else IdentifierNode (hash id) pos
-changeNames nds n@(FuncDefNode mid args expr h pos) = FuncDefNode mid (map (changeNames nds) args) (changeNames nds expr) h pos
-changeNames nds n@(WhereNode expr ds pos) = WhereNode (changeNames nds expr) (map (changeNames nds) ds) pos
-changeNames nds (CallNode id args pos) = CallNode (changeNames nds id) (map (changeNames nds) args) pos
-changeNames nds (UnaryExpr op e pos) = UnaryExpr op (changeNames nds e) pos
-changeNames nds (IfNode ce te ee pos) = IfNode (changeNames nds ce) (changeNames nds te) (changeNames nds <$> ee) pos where
+        "def" -> return $ BoolNode "true" pos
+        _ -> if id `Set.member` nds then return fid 
+            else if id == "out" || id == "unsafeRunIO" then return $ IdentifierNode (safeName id) pos
+            else do
+                (appliedTo, n) <- St.get
+                case id `Map.lookup` appliedTo of
+                    Just i -> return $ IdentifierNode (safeName $ show i) pos
+                    Nothing -> do
+                        St.modify (\(a, b) -> (Map.insert id (b+1) a, b+1))
+                        (_, n) <- St.get
+                        return $ IdentifierNode (safeName $ show n) pos
+changeNames nds n@(FuncDefNode mid args expr h pos) = 
+    FuncDefNode mid <$> mapM (changeNames nds) args <*> changeNames nds expr <*> return h <*> return pos
+changeNames nds n@(WhereNode expr ds pos) = 
+    WhereNode <$> changeNames nds expr <*> mapM (changeNames nds) ds <*> return pos
+changeNames nds (CallNode id args pos) = 
+    CallNode <$> changeNames nds id <*> mapM (changeNames nds) args <*> return pos
+changeNames nds (UnaryExpr op e pos) = 
+    UnaryExpr op <$> changeNames nds e <*> return pos
+changeNames nds (IfNode ce te ee pos) = 
+    IfNode <$> changeNames nds ce <*> changeNames nds te <*> sequence (changeNames nds <$> ee) <*> return pos where
     fee =
         case ee of
             Nothing -> Nothing
             Just n -> Just $ changeNames nds n
-changeNames nds (SequenceIfNode ns pos) = SequenceIfNode (map (changeNames nds) ns) pos
-changeNames nds (ListNode ns pos) = ListNode (map (changeNames nds) ns) pos
-changeNames nds (TupleNode ts pos) = TupleNode (map (changeNames nds) ts) pos
-changeNames nds (StructInstanceNode id args lazy pos) = StructInstanceNode (changeNames nds id) (map f args) lazy pos where
-    f (DeclNode lhs rhs pos) = DeclNode lhs (changeNames nds rhs) pos
+changeNames nds (SequenceIfNode ns pos) = SequenceIfNode <$> mapM (changeNames nds) ns <*> return pos
+changeNames nds (ListNode ns pos) = ListNode <$> mapM (changeNames nds) ns <*> return pos
+changeNames nds (TupleNode ts pos) = TupleNode <$> mapM (changeNames nds) ts <*> return pos
+changeNames nds (StructInstanceNode id args lazy pos) = 
+    StructInstanceNode <$> changeNames nds id <*> mapM f args <*> return lazy <*> return pos where
+        f (DeclNode lhs rhs pos) = DeclNode lhs <$> changeNames nds rhs <*> return pos
 changeNames nds st@(StructDefNode id args strct mov pos) = 
     case mov of
-        Nothing -> st
-        Just ov -> StructDefNode id args strct (Just $ changeNames nds ov) pos
-changeNames _ n@SumTypeNode{} = n
-changeNames nds (DeStructure ds pos) = DeStructure (map (changeNames nds) ds) pos
-changeNames _ fid@DataNode{} = fid
-changeNames nds (NewMethodNode id cond exp pos) = NewMethodNode (changeNames nds id) (changeNames nds cond) (changeNames nds exp) pos
-changeNames _ p = p
+        Nothing -> return st
+        Just ov -> StructDefNode id args strct <$> (Just <$> changeNames nds ov) <*> return pos
+changeNames _ n@SumTypeNode{} = return n
+changeNames nds (DeStructure ds pos) = DeStructure <$> mapM (changeNames nds) ds <*> return pos
+changeNames _ fid@DataNode{} = return fid
+changeNames nds (NewMethodNode id cond exp pos) = NewMethodNode <$> changeNames nds id <*> changeNames nds cond <*> changeNames nds exp <*> return pos
+changeNames _ p = return p
 
 -- Define all struct definitions
 defStruct :: [(StringPos, [String])] -> Node -> [(StringPos, [String])]
@@ -283,14 +299,14 @@ checkDefinitions le parent =
                                         Right () -> Right filteredRmns
                                         Left a -> Left a
                                     where filteredRmns = 
-                                            outputOut sc $ changeNames (unHashable (Set.fromList baseSymbols) rmn) $ filterDefs rmn
+                                            outputOut sc $ St.evalState (changeNames (unHashable (Set.fromList baseSymbols) rmn) $ filterDefs rmn) (Map.empty, 0)
                     where 
                         outputOut sc (ProgramNode ps pos) = ProgramNode (map (outputOut sc) ps) pos
                         outputOut sc nd@(DeclNode id@(IdentifierNode iid ipos) def pos)
                             | iid == outName = 
                                 case StringPos "unsafeRunIO" (getStringPos nn) `exists` sc of 
                                     Left a -> DeclNode id (CallNode (IdentifierNode "unsafeWrite" ipos) [def, def] pos) pos
-                                    Right () -> DeclNode id (CallNode (IdentifierNode (hash "unsafeRunIO") ipos) [def] pos) pos
+                                    Right () -> DeclNode id (CallNode (IdentifierNode (safeName "unsafeRunIO") ipos) [def] pos) pos
                             | otherwise = nd
                         outputOut _ a = a
 
@@ -314,5 +330,5 @@ checkIODefinitions lf p =
                 Left e -> Left $ P.errorBundlePretty e
                 Right n -> Right n
 
-hash n = if head n == '{' then "h" ++ show (Hash.hash $ B.pack n :: Hash.SHA256) else "h" ++ n ++ "1"
-outName = hash "out"
+safeName s = "h" ++ s
+outName = safeName "out"

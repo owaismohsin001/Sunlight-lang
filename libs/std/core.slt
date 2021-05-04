@@ -2,8 +2,6 @@ external "std/modify" {baseModify}
 external "std/intify" {stringToInt, isNumBase}
 external "std/basicMath" {unsafeExponent, unsafeRound, unsafeCeil, unsafeFloor, unsafeMod}
 
-id: a <- a
-
 const: a <- (\_ -> a)
 
 min: a, b <- if a > b then b else a
@@ -12,7 +10,6 @@ max: a, b <- if a > b then a else b
 even <- \x {%} 2 = 0
 odd <- \x {%} 2 /= 0
 
-cmp: f, g <- \f: g: x
 lcmp <- flip: cmp
 
 fst: t <- a where (a, _) <- t end

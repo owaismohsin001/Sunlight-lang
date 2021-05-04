@@ -6,7 +6,7 @@ bind ? s@SltList -> concat: &SltList, fmap: f, s
 
 unit ? r@SltFunc -> \a -> s
 
-join: s <- s bind id
+join: s <- s bind idf
 
 class mapM: f, r, xs
 [] = xs -> unit: r, []
@@ -14,8 +14,8 @@ true -> (f: head: xs) bind \y -> (mapM: f, r, tail: xs) bind \ys -> unit: r, ([y
 
 mapM_: f, r, xs <- (mapM: f, r, xs) bind \unit: r, ()
 
-sequence <- mapM: id
-sequence_ <- mapM_: id
+sequence <- mapM: idf
+sequence_ <- mapM_: idf
 
 -- Monad symbols
 {^>=} <- bind

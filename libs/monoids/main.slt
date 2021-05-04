@@ -22,7 +22,7 @@ empty ? r@$AnyTrue -> false$anyTrue
 append ? a@$AnyTrue & b@$AnyTrue -> $anyTrue: a.b | b.b
 
 LCmp <- {f}
-empty ? r@$LCmp -> $lCmp: id
+empty ? r@$LCmp -> $lCmp: idf
 append ? a@$LCmp & b@$LCmp -> $lCmp: a.f {|.} b.f
 
 sumOn <- map: $sum

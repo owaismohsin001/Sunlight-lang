@@ -1,0 +1,8 @@
+open id: t
+id ? t@SltFunc -> ~\a -> a
+id ? def -> empty: t
+
+open cmp: f, g 
+cmp ? f@SltFunc & g@SltFunc -> \f: g: x
+
+idf <- id: &SltFunc

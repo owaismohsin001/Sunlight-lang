@@ -30,7 +30,7 @@ zipWith ? [] = as | [] = bs -> []
 zipWith ? as@SltList & bs@SltList -> [f: (head: as), head: bs] .. zipWith: f, tail: as,, tail: bs
 
 map: f <- map_and_filter: f, (true)const
-filter <- map_and_filter: id
+filter <- map_and_filter: idf
 len: ls <- fold: \a, b -> b+1, 0, ls
 reduce: f, ls <- fold: f, (head: ls), tail: ls
 concatList <- concat: &SltList

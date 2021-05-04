@@ -13,5 +13,5 @@ append ? ([] = a | a@SltList) & ([] = b | b@SltList) -> a .. b
 empty ? r@SltString -> ""
 append ? a@SltString & b@SltString -> a .. b
 
-empty ? r@SltFunc -> id
+empty ? r@SltFunc -> idf
 append ? a@SltFunc & b@SltFunc -> a {.} b

@@ -59,7 +59,7 @@ generate (TypeRefNode dt pos) = "new SltType(" ++ generate dt ++ ", " ++ luaPos 
 generate (BinOpNode l op r pos) = handlebinOp l op r pos
 generate (IfNode ce te ee _) = 
     generate ce ++ ".is_true()" ++ " ? " ++ generate te ++ maybe "" (\a -> " : " ++ generate a) ee
-generate (ProgramNode ds _) = intercalate "\n" (map generate ds)
+generate (ProgramNode ds _) = intercalate ";\n" (map generate ds)
 generate (TupleNode t pos) = 
     "(new SltTuple(" ++ "[" ++ intercalate ", " (
         map (\e -> "new SltThunk(() => " ++ generate e ++ ")") t
@@ -91,7 +91,7 @@ generate (UnaryExpr op e _) = handleUnaryOp op e
 generate (DataNode n _) = "\"" ++ n ++ "\""
 generate (SumTypeNode ds _) = intercalate "\n" (map generate ds)
 generate (WhereNode exp ds _) = 
-    "((() => {\n" ++ fDecls ++ intercalate "\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " })())" where
+    "((() => {\n" ++ fDecls ++ intercalate ";\n" (map generate ds) ++ "\nreturn " ++ generate exp ++ " })())" where
         fDecls = intercalate "\n" (map fDeclare ds)
 generate strct@(StructDefNode id table b ov pos) = 
     generateLhs id ++ " = " ++ struct
