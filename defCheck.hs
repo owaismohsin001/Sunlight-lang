@@ -201,10 +201,7 @@ changeNames nds (UnaryExpr op e pos) =
     UnaryExpr op <$> changeNames nds e <*> return pos
 changeNames nds (IfNode ce te ee pos) = 
     IfNode <$> changeNames nds ce <*> changeNames nds te <*> sequence (changeNames nds <$> ee) <*> return pos where
-    fee =
-        case ee of
-            Nothing -> Nothing
-            Just n -> Just $ changeNames nds n
+        fee = changeNames nds <$> ee
 changeNames nds (SequenceIfNode ns pos) = SequenceIfNode <$> mapM (changeNames nds) ns <*> return pos
 changeNames nds (ListNode ns pos) = ListNode <$> mapM (changeNames nds) ns <*> return pos
 changeNames nds (TupleNode ts pos) = TupleNode <$> mapM (changeNames nds) ts <*> return pos
@@ -212,9 +209,7 @@ changeNames nds (StructInstanceNode id args lazy pos) =
     StructInstanceNode <$> changeNames nds id <*> mapM f args <*> return lazy <*> return pos where
         f (DeclNode lhs rhs pos) = DeclNode lhs <$> changeNames nds rhs <*> return pos
 changeNames nds st@(StructDefNode id args strct mov pos) = 
-    case mov of
-        Nothing -> return st
-        Just ov -> StructDefNode id args strct <$> (Just <$> changeNames nds ov) <*> return pos
+    maybe (return st) (\ov -> StructDefNode id args strct <$> (Just <$> changeNames nds ov) <*> return pos) mov
 changeNames _ n@SumTypeNode{} = return n
 changeNames nds (DeStructure ds pos) = DeStructure <$> mapM (changeNames nds) ds <*> return pos
 changeNames _ fid@DataNode{} = return fid
