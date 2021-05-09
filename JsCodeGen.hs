@@ -118,7 +118,7 @@ runGenerator (Right e) = fDeclare e ++ "\n" ++ generate e
 data Js = Deno
 
 instance CompileMode Js where
-    importGen _ = "import {SltValue, SltBool, SltNum, SltFunc, SltString, SltStruct, SltList, SltThunk, SltTuple, SltType, destructure, unwrap, listHead, listTail, baseStringify, evaluate, typeOf, ovTypeOf, unsafeWrite} from './SltRuntime.ts'\n;"
+    importGen _ = "import {SltValue, SltBool, SltNum, SltFunc, SltString, SltStruct, SltList, SltThunk, SltTuple, SltType, destructure, unwrap, listHead, listTail, baseStringify, evaluate, typeOf, ovTypeOf, unsafeWrite, error} from './SltRuntime.ts'\n;"
     codeGen _ n = runGenerator $ Right n
     fileNameGen _ = (++ ".js")
     startGen _ = ""
