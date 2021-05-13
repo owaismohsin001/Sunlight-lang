@@ -4,14 +4,12 @@ import Control.Applicative as Applicative
 import Control.Monad
 import Data.Char
 import Nodes
-import Data.Text (Text)
 import Data.List
 import Data.Void
 import EitherUtility
 import Text.Megaparsec as P
 import Text.Megaparsec.Char
 import MergeDefs
-import qualified Data.Text as T
 import qualified Text.Megaparsec.Char.Lexer as L
 
 import Debug.Trace

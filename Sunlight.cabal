@@ -35,7 +35,6 @@ executable Sunlight
                        , text
                        , array
                        , bytestring
-                       , hashing
                        , hashable
                        , containers
                        , process

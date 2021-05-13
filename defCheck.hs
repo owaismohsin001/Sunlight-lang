@@ -8,7 +8,6 @@ import Nodes
 import Debug.Trace
 import ReduceMethods
 import EitherUtility
-import qualified Crypto.Hash as Hash
 import Data.Maybe
 import Scope
 import qualified Data.Set as Set
