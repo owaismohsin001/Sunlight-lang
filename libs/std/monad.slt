@@ -17,6 +17,8 @@ mapM_: f, r, xs <- (mapM: f, r, xs) bind \unit: r, ()
 sequence <- mapM: idf
 sequence_ <- mapM_: idf
 
+replicateM: n, r, v <- sequence: r, replicate: v, n
+
 -- Monad symbols
 {^>=} <- bind
 {^>}: a, b <- a {^>=} \b
