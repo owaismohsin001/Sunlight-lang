@@ -29,6 +29,10 @@ open zipWith: f, as, bs
 zipWith ? [] = as | [] = bs -> []
 zipWith ? as@SltList & bs@SltList -> [f: (head: as), head: bs] .. zipWith: f, tail: as,, tail: bs
 
+open find: f, xs
+find ? [] = xs -> none
+find ? xs@SltList -> if f: head: xs then some: head: xs else find: f, tail: xs
+
 map: f <- map_and_filter: f, (true)const
 filter <- map_and_filter: idf
 len: ls <- fold: \a, b -> b+1, 0, ls
