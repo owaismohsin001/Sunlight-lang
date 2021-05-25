@@ -102,6 +102,8 @@ a@SltNum & b@SltNum -> unsafeRound: a*b
 class {s..}: a, b
 a@SltString & b@SltString -> a .. b
 
+fapply: f, a <- f: a
+
 {**} <- expo
 {%} <- modulus
 {#} <- numify
